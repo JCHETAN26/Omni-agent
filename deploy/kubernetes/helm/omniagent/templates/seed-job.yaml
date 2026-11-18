@@ -1,0 +1,33 @@
+{{- if .Values.seed.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "omniagent.fullname" . }}-seed
+  labels: {{- include "omniagent.componentLabels" (list . "seed") | nindent 4 }}
+  annotations:
+    helm.sh/hook: post-install,post-upgrade
+    helm.sh/hook-weight: "5"
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+spec:
+  backoffLimit: 6                 # retries while datastores are still starting
+  ttlSecondsAfterFinished: 3600
+  template:
+    metadata:
+      labels: {{- include "omniagent.componentLabels" (list . "seed") | nindent 8 }}
+    spec:
+      restartPolicy: OnFailure
+      serviceAccountName: {{ include "omniagent.serviceAccountName" . }}
+      securityContext: {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: seed
+          image: "{{ .Values.backend.image.repository }}:{{ .Values.backend.image.tag }}"
+          command: ["python", "-m", "backend.ingestion.seed", {{ .Values.seed.path | quote }}]
+          {{- include "omniagent.backendEnv" . | nindent 10 }}
+          resources: {{- toYaml .Values.backend.resources | nindent 12 }}
+          securityContext: {{- toYaml .Values.securityContext | nindent 12 }}
+          volumeMounts:
+            - { name: tmp, mountPath: /tmp }
+      volumes:
+        - name: tmp
+          emptyDir: {}
+{{- end }}

@@ -40,6 +40,7 @@ from starlette.websockets import WebSocketState
 
 from backend.api.ring_buffer import RingBuffer
 from backend.api.streaming import stream_answer
+from backend.core import metrics
 from backend.core.services import Services
 from backend.core.telemetry import get_tracer
 
@@ -93,6 +94,7 @@ class Session:
             self.seq += 1
             await self.ws.send_text(json.dumps({**event, "seq": self.seq}, separators=(",", ":")))
             self.messages_out += 1
+            metrics.WS_FRAMES.labels("out").inc()
 
 
 class ConnectionManager:
@@ -166,6 +168,8 @@ async def serve_session(
         return
 
     session = manager.register(ws, s.ws_buffer_size)
+    endpoint = ws.url.path
+    metrics.WS_SESSIONS.labels(endpoint).inc()
     session.services = services
     session.handle_query = handle_query
     tracer = get_tracer()
@@ -217,6 +221,7 @@ async def serve_session(
                 log.exception("ws session error", extra={"session_id": session.id})
         finally:
             manager.unregister(session)
+            metrics.WS_SESSIONS.labels(endpoint).dec()
             span.set_attributes(
                 {
                     "ws.messages_in": session.messages_in,
@@ -260,6 +265,7 @@ async def _reader(session: Session, services: Services) -> None:
             return
         session.last_seen = time.monotonic()
         session.messages_in += 1
+        metrics.WS_FRAMES.labels("in").inc()
         raw_bytes, raw_text = msg.get("bytes"), msg.get("text")
         size = len(raw_bytes) if raw_bytes is not None else len(raw_text or "")
         if size > s.ws_max_message_bytes:
@@ -325,6 +331,7 @@ async def _reader(session: Session, services: Services) -> None:
             decision = await limiter.acquire(f"ws:{session.id}", cost)
             if not decision.allowed:
                 session.rate_limited += 1
+                metrics.WS_RATE_LIMITED.inc()
                 await session.send(
                     {
                         "type": "rate_limited",
@@ -336,6 +343,7 @@ async def _reader(session: Session, services: Services) -> None:
 
         evicted = session.buffer.push(item)
         if evicted is not None:
+            metrics.WS_BUFFER_DROPPED.inc()
             await session.send(
                 {
                     "type": "buffer.overflow",

@@ -1,0 +1,8 @@
+apiVersion: v2
+name: omniagent
+description: OmniAgent - agentic RAG copilot (FastAPI gateway, React UI, Qdrant, Elasticsearch, Redis, optional Triton)
+type: application
+version: 0.4.0
+appVersion: "0.4.0"
+kubeVersion: ">=1.30.0-0"
+keywords: [rag, langgraph, websocket, qdrant, elasticsearch, triton]

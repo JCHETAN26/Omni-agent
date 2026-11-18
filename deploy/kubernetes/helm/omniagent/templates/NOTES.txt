@@ -1,0 +1,13 @@
+OmniAgent {{ .Chart.AppVersion }} deployed as release "{{ .Release.Name }}".
+
+{{- if .Values.ingress.enabled }}
+UI + WebSocket gateway: http{{ if .Values.ingress.tls.enabled }}s{{ end }}://{{ .Values.ingress.host }}/
+  ws{{ if .Values.ingress.tls.enabled }}s{{ end }}://{{ .Values.ingress.host }}/ws/agent
+{{- else }}
+  kubectl port-forward svc/{{ include "omniagent.fullname" . }}-frontend 8080:80
+  open http://localhost:8080
+{{- end }}
+
+Reasoner: {{ .Values.config.llmProvider }}{{ if eq .Values.config.llmProvider "heuristic" }} (offline; set config.llmProvider=anthropic + secrets.values.ANTHROPIC_API_KEY for Claude){{ end }}
+Health:   kubectl port-forward svc/{{ include "omniagent.fullname" . }}-backend 8000 && curl localhost:8000/health
+Metrics:  /metrics on the backend service (not exposed by the Ingress)

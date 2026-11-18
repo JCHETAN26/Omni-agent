@@ -1,0 +1,63 @@
+{{- if .Values.triton.enabled }}
+{{- $fullname := include "omniagent.fullname" . -}}
+{{- $tag := required "triton.image.tag is required when triton.enabled (e.g. \"<yy.mm>-py3\")" .Values.triton.image.tag -}}
+{{- $claim := required "triton.modelRepositoryClaim is required: a PVC with model_server/model_repository" .Values.triton.modelRepositoryClaim -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $fullname }}-triton
+  labels: {{- include "omniagent.componentLabels" (list . "triton") | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {{- include "omniagent.selector" (list . "triton") | nindent 6 }}
+  template:
+    metadata:
+      labels: {{- include "omniagent.componentLabels" (list . "triton") | nindent 8 }}
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8002"
+    spec:
+      containers:
+        - name: triton
+          image: "{{ .Values.triton.image.repository }}:{{ $tag }}"
+          args: ["tritonserver", "--model-repository=/models", "--strict-readiness=true",
+                 "--trace-config=mode=opentelemetry"]
+          ports:
+            - { name: http, containerPort: 8000 }
+            - { name: grpc, containerPort: 8001 }
+            - { name: metrics, containerPort: 8002 }
+          readinessProbe:
+            httpGet: { path: /v2/health/ready, port: http }
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: { path: /v2/health/live, port: http }
+            periodSeconds: 15
+          resources:
+            {{- $res := deepCopy .Values.triton.resources }}
+            {{- if .Values.triton.gpu }}
+            {{- $_ := set $res.limits "nvidia.com/gpu" 1 }}
+            {{- end }}
+            {{- toYaml $res | nindent 12 }}
+          securityContext:
+            allowPrivilegeEscalation: false
+          volumeMounts:
+            - { name: models, mountPath: /models, readOnly: true }
+            - { name: shm, mountPath: /dev/shm }
+      volumes:
+        - name: models
+          persistentVolumeClaim: { claimName: {{ $claim }}, readOnly: true }
+        - name: shm
+          emptyDir: { medium: Memory, sizeLimit: 1Gi }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $fullname }}-triton
+  labels: {{- include "omniagent.componentLabels" (list . "triton") | nindent 4 }}
+spec:
+  selector: {{- include "omniagent.selector" (list . "triton") | nindent 4 }}
+  ports:
+    - { name: grpc, port: 8001, targetPort: grpc }
+    - { name: metrics, port: 8002, targetPort: metrics }
+{{- end }}

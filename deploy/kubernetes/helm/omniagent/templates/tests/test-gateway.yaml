@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: {{ include "omniagent.fullname" . }}-test-gateway
+  labels: {{- include "omniagent.componentLabels" (list . "test") | nindent 4 }}
+  annotations:
+    helm.sh/hook: test
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+spec:
+  restartPolicy: Never
+  containers:
+    - name: readyz
+      image: "{{ .Values.backend.image.repository }}:{{ .Values.backend.image.tag }}"
+      command:
+        - python
+        - -c
+        - |
+          import json, urllib.request
+          base = "http://{{ include "omniagent.fullname" . }}-backend:{{ .Values.backend.port }}"
+          assert urllib.request.urlopen(base + "/readyz", timeout=10).status == 200
+          health = json.load(urllib.request.urlopen(base + "/health", timeout=10))
+          print(health["backends"], health["agent"])
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        allowPrivilegeEscalation: false
+        capabilities: { drop: [ALL] }

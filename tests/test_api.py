@@ -84,3 +84,47 @@ def test_sse_honours_traceparent_header(client, spans):
         headers={"traceparent": f"00-{trace_id}-b7ad6b7169203331-01"},
     )
     assert _parse_sse(r.text)[0]["trace_id"] == trace_id
+
+
+def test_probes_and_prometheus_metrics(client):
+    assert client.get("/livez").json() == {"status": "ok"}
+    assert client.get("/readyz").status_code == 200
+    with client.websocket_connect("/ws/agent") as ws:
+        ws.receive_json()
+        ws.send_json({"type": "query", "id": "m1", "text": "what's 6*7?"})
+        while ws.receive_json()["type"] != "response.end":
+            pass
+    body = client.get("/metrics").text
+    assert 'omniagent_agent_turns_total{outcome="answered",tool="calculator"}' in body
+    assert "omniagent_tokens_streamed_total" in body
+    assert 'omniagent_turn_seconds_bucket{endpoint="agent"' in body
+    assert "omniagent_event_loop_lag_max_seconds" in body
+
+
+def test_seed_path_ingests_at_startup():
+    with TestClient(create_app(make_settings(seed_path="samples"))) as c:
+        r = c.post("/search", json={"query": "PSU redundancy lost", "top_k": 1})
+        assert r.json()["hits"][0]["chunk"]["section_heading"].endswith("PSU Redundancy Alerts")
+
+
+def test_seed_cli(capsys):
+    import asyncio
+    import json
+    import os
+
+    from backend.core.config import get_settings
+    from backend.ingestion import seed
+
+    get_settings.cache_clear()
+    old = os.environ.get("EMBEDDING_PROVIDER")
+    os.environ["EMBEDDING_PROVIDER"] = "hashing"
+    try:
+        asyncio.run(seed.main("samples"))
+    finally:
+        get_settings.cache_clear()
+        if old is None:
+            os.environ.pop("EMBEDDING_PROVIDER")
+        else:
+            os.environ["EMBEDDING_PROVIDER"] = old
+    out = json.loads(capsys.readouterr().out.strip().splitlines()[-1])
+    assert out["documents"] == 3 and out["report"]["chunks"] >= 8

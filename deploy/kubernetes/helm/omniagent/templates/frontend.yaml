@@ -1,0 +1,62 @@
+{{- if .Values.frontend.enabled }}
+{{- $fullname := include "omniagent.fullname" . -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $fullname }}-frontend
+  labels: {{- include "omniagent.componentLabels" (list . "frontend") | nindent 4 }}
+spec:
+  replicas: {{ .Values.frontend.replicaCount }}
+  revisionHistoryLimit: 5
+  selector:
+    matchLabels: {{- include "omniagent.selector" (list . "frontend") | nindent 6 }}
+  template:
+    metadata:
+      labels: {{- include "omniagent.componentLabels" (list . "frontend") | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "omniagent.serviceAccountName" . }}
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets: {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 101                  # nginx-unprivileged
+        seccompProfile: { type: RuntimeDefault }
+      containers:
+        - name: web
+          image: "{{ .Values.frontend.image.repository }}:{{ .Values.frontend.image.tag }}"
+          imagePullPolicy: {{ .Values.frontend.image.pullPolicy }}
+          env:
+            - name: BACKEND_URL
+              value: "http://{{ $fullname }}-backend:{{ .Values.backend.port }}"
+          ports:
+            - { name: http, containerPort: {{ .Values.frontend.port }}, protocol: TCP }
+          readinessProbe:
+            httpGet: { path: /, port: http }
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: { path: /, port: http }
+            periodSeconds: 20
+          resources: {{- toYaml .Values.frontend.resources | nindent 12 }}
+          securityContext: {{- toYaml .Values.securityContext | nindent 12 }}
+          volumeMounts:
+            # nginx renders templates and writes temp files here.
+            - { name: conf, mountPath: /etc/nginx/conf.d }
+            - { name: tmp, mountPath: /tmp }
+      volumes:
+        - name: conf
+          emptyDir: {}
+        - name: tmp
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $fullname }}-frontend
+  labels: {{- include "omniagent.componentLabels" (list . "frontend") | nindent 4 }}
+spec:
+  type: ClusterIP
+  selector: {{- include "omniagent.selector" (list . "frontend") | nindent 4 }}
+  ports:
+    - { name: http, port: 80, targetPort: http, protocol: TCP }
+{{- end }}

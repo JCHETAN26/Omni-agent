@@ -91,6 +91,9 @@ class Settings(BaseSettings):
     rate_limit_refill_per_s: float = 10.0
     rate_limit_audio_cost: float = 0.05  # audio frames are small and frequent
 
+    # --- Startup ---
+    seed_path: str | None = None  # ingest *.md from this directory at startup (demos, dev)
+
     # --- Observability ---
     service_name: str = "omniagent"
     log_format: Literal["json", "text"] = "json"

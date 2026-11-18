@@ -28,6 +28,7 @@ from fastapi.responses import StreamingResponse
 from opentelemetry import context as otel_context
 from opentelemetry.trace import Link, SpanKind, get_current_span
 
+from backend.core import metrics
 from backend.core.models import SearchHit
 from backend.core.services import Services
 from backend.core.telemetry import current_trace_id, extract_context, get_tracer
@@ -36,6 +37,14 @@ from search.pipeline import retrieve_with_rerank
 log = logging.getLogger(__name__)
 
 _TOKEN_RE = re.compile(r"\S+\s*")
+
+
+def _observe_turn(t0: float, first_token_ms: float | None) -> float:
+    elapsed = time.perf_counter() - t0
+    metrics.TURN_SECONDS.labels("stream").observe(elapsed)
+    if first_token_ms is not None:
+        metrics.TTFT_SECONDS.labels("stream").observe(first_token_ms / 1000)
+    return round(elapsed * 1000, 2)
 
 
 def compose_answer(hits: list[SearchHit]) -> str:
@@ -77,6 +86,7 @@ class TokenEmitter:
             }
         )
         self.count += 1
+        metrics.TOKENS_STREAMED.inc()
         await asyncio.sleep(0)  # let other sessions interleave
 
     @property
@@ -156,7 +166,7 @@ async def stream_answer(
                     "tokens": tokens.count,
                     "sha256": tokens.sha256,
                     "first_token_ms": first_token_ms,
-                    "latency_ms": round((time.perf_counter() - t0) * 1000, 2),
+                    "latency_ms": _observe_turn(t0, first_token_ms),
                 }
             )
         except Exception as exc:

@@ -12,12 +12,9 @@ SAMPLES = Path(__file__).resolve().parent.parent / "samples"
 
 
 def load_samples() -> list[Document]:
-    docs = []
-    for path in sorted(SAMPLES.glob("*.md")):
-        text = path.read_text()
-        title = text.splitlines()[0].lstrip("# ").strip()
-        docs.append(Document(doc_id=path.stem, title=title, text=text))
-    return docs
+    from backend.ingestion.loader import load_markdown_dir
+
+    return load_markdown_dir(SAMPLES)
 
 
 @pytest.fixture

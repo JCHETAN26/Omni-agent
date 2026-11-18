@@ -28,6 +28,7 @@ from typing import Protocol
 import numpy as np
 from opentelemetry.trace import SpanKind, Status, StatusCode
 
+from backend.core import metrics
 from backend.core.config import Settings
 from backend.core.telemetry import get_tracer, inject_carrier
 
@@ -165,10 +166,13 @@ class TritonInferenceClient:
                         client_timeout=self.timeout_s,
                     )
             except Exception as exc:
+                metrics.TRITON_ERRORS.labels(model).inc()
                 span.record_exception(exc)
                 span.set_status(Status(StatusCode.ERROR, str(exc)))
                 raise InferenceError(f"{model}: {exc}") from exc
-            span.set_attribute("triton.latency_ms", (time.perf_counter() - t0) * 1000)
+            elapsed = time.perf_counter() - t0
+            metrics.TRITON_SECONDS.labels(model).observe(elapsed)
+            span.set_attribute("triton.latency_ms", elapsed * 1000)
             return result.as_numpy(output)
 
     async def embed(self, texts: Sequence[str]) -> np.ndarray:

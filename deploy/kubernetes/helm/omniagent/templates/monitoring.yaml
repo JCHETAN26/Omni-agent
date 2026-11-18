@@ -1,0 +1,27 @@
+{{- if .Values.metrics.serviceMonitor.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "omniagent.fullname" . }}-backend
+  labels: {{- include "omniagent.componentLabels" (list . "backend") | nindent 4 }}
+spec:
+  selector:
+    matchLabels: {{- include "omniagent.selector" (list . "backend") | nindent 6 }}
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: {{ .Values.metrics.serviceMonitor.interval }}
+---
+{{- end }}
+{{- if .Values.metrics.grafanaDashboard.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "omniagent.fullname" . }}-dashboard
+  labels:
+    {{- include "omniagent.labels" . | nindent 4 }}
+    {{- toYaml .Values.metrics.grafanaDashboard.labels | nindent 4 }}
+data:
+  omniagent.json: |-
+{{ .Files.Get "dashboards/omniagent.json" | indent 4 }}
+{{- end }}

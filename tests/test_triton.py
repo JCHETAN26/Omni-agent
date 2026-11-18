@@ -116,6 +116,9 @@ async def test_errors_surface_as_inference_error(triton):
 
 async def test_event_loop_stays_responsive_under_load(triton):
     _, client = triton
+    # Production loads tokenizers at startup (Services.build -> warmup) before serving;
+    # the first-use load holds the GIL in its worker thread and is not what we measure.
+    await client.warmup()
     lags: list[float] = []
     stop = asyncio.Event()
 

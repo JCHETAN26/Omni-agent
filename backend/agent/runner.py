@@ -32,6 +32,7 @@ from backend.agent.reasoning import HeuristicReasoner, LLMReasoner, Reasoner
 from backend.agent.tools import LogStore
 from backend.agent.workflow import AgentDeps, build_graph
 from backend.api.streaming import Emit, TokenEmitter
+from backend.core import metrics
 from backend.core.services import Services
 from backend.core.telemetry import current_trace_id, extract_context, get_tracer
 
@@ -119,12 +120,14 @@ class AgentRunner:
                 }
             )
             tokens: TokenEmitter | None = None
+            first_token: float | None = None
             try:
                 async for ev in self.graph.astream(
                     {"question": question}, self._config(thread_id), stream_mode="custom"
                 ):
                     kind = ev.pop("kind")
                     if kind == "token":
+                        first_token = first_token or time.perf_counter()
                         if tokens is None or tokens.extra["attempt"] != ev["attempt"]:
                             tokens = TokenEmitter(emit, rid, attempt=ev["attempt"])
                         await tokens(ev["text"])
@@ -140,12 +143,21 @@ class AgentRunner:
                                 }
                             )
                     elif kind == "generation.discarded":
+                        metrics.AGENT_DISCARDED.inc()
                         await emit({"type": "agent.generation.discarded", "id": rid, **ev})
                     elif kind == "step":
+                        if ev.get("fallback"):
+                            metrics.AGENT_FALLBACKS.labels(ev["node"]).inc()
                         await emit({"type": "agent.step", "id": rid, **ev})
 
                 state = (await self.graph.aget_state(self._config(thread_id))).values
                 outcome = state.get("outcome", "")
+                elapsed = time.perf_counter() - t0
+                metrics.AGENT_TURNS.labels(state.get("tool") or "none", outcome or "none").inc()
+                metrics.AGENT_RETRIES.observe(state.get("retries", 0))
+                metrics.TURN_SECONDS.labels("agent").observe(elapsed)
+                if first_token is not None:
+                    metrics.TTFT_SECONDS.labels("agent").observe(first_token - t0)
                 span.set_attributes(
                     {
                         "agent.outcome": outcome,
@@ -175,11 +187,15 @@ class AgentRunner:
                         "rewrites": state.get("rewrites", []),
                         "relevance": state.get("relevance", {}),
                         "grounding": state.get("grounding", {}),
-                        "latency_ms": round((time.perf_counter() - t0) * 1000, 2),
+                        "latency_ms": round(elapsed * 1000, 2),
+                        "first_token_ms": round((first_token - t0) * 1000, 2)
+                        if first_token
+                        else None,
                     }
                 )
                 return state
             except Exception as exc:
+                metrics.AGENT_TURNS.labels("none", "error").inc()
                 log.exception("agent turn failed", extra={"thread_id": thread_id})
                 get_current_span().record_exception(exc)
                 await emit({"type": "response.error", "id": rid, "error": str(exc)})

@@ -10,6 +10,7 @@ from dataclasses import dataclass
 
 from opentelemetry.trace import get_current_span
 
+from backend.core import metrics
 from backend.core.config import Settings
 from backend.core.models import SearchHit
 from model_server.inference_client import InferenceClient, InferenceError
@@ -68,6 +69,7 @@ async def retrieve_with_rerank(
         except (TimeoutError, InferenceError) as exc:
             # Reranking is an enhancement: degrade to RRF order, never fail.
             skipped = "timeout" if isinstance(exc, TimeoutError) else "error"
+            metrics.RERANK_SKIPPED.labels(skipped).inc()
             get_current_span().add_event("rerank.skipped", {"reason": skipped})
             log.warning(
                 "rerank skipped (%s), using RRF order", skipped, extra={"request_id": request_id}

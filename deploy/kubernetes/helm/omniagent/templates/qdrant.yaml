@@ -1,0 +1,77 @@
+{{- if .Values.qdrant.enabled }}
+{{- $fullname := include "omniagent.fullname" . -}}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ $fullname }}-qdrant
+  labels: {{- include "omniagent.componentLabels" (list . "qdrant") | nindent 4 }}
+spec:
+  serviceName: {{ $fullname }}-qdrant-headless
+  replicas: 1
+  selector:
+    matchLabels: {{- include "omniagent.selector" (list . "qdrant") | nindent 6 }}
+  template:
+    metadata:
+      labels: {{- include "omniagent.componentLabels" (list . "qdrant") | nindent 8 }}
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+        seccompProfile: { type: RuntimeDefault }
+      containers:
+        - name: qdrant
+          image: "{{ .Values.qdrant.image.repository }}:{{ .Values.qdrant.image.tag }}"
+          ports:
+            - { name: http, containerPort: 6333 }
+            - { name: grpc, containerPort: 6334 }
+          env:
+            - { name: QDRANT__TELEMETRY_DISABLED, value: "true" }
+          readinessProbe:
+            httpGet: { path: /readyz, port: http }
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: { path: /livez, port: http }
+            periodSeconds: 15
+          resources: {{- toYaml .Values.qdrant.resources | nindent 12 }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities: { drop: [ALL] }
+          volumeMounts:
+            - { name: data, mountPath: /qdrant/storage }
+            - { name: snapshots, mountPath: /qdrant/snapshots }
+      volumes:
+        - name: snapshots
+          emptyDir: {}
+  volumeClaimTemplates:
+    - metadata: { name: data }
+      spec:
+        accessModes: [ReadWriteOnce]
+        {{- with .Values.qdrant.persistence.storageClass }}
+        storageClassName: {{ . }}
+        {{- end }}
+        resources: { requests: { storage: {{ .Values.qdrant.persistence.size }} } }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $fullname }}-qdrant-headless
+  labels: {{- include "omniagent.componentLabels" (list . "qdrant") | nindent 4 }}
+spec:
+  clusterIP: None
+  selector: {{- include "omniagent.selector" (list . "qdrant") | nindent 4 }}
+  ports:
+    - { name: http, port: 6333 }
+    - { name: grpc, port: 6334 }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $fullname }}-qdrant
+  labels: {{- include "omniagent.componentLabels" (list . "qdrant") | nindent 4 }}
+spec:
+  selector: {{- include "omniagent.selector" (list . "qdrant") | nindent 4 }}
+  ports:
+    - { name: http, port: 6333, targetPort: http }
+    - { name: grpc, port: 6334, targetPort: grpc }
+{{- end }}

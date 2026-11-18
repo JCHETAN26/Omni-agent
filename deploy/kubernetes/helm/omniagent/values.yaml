@@ -1,0 +1,161 @@
+# Default values for OmniAgent. Every in-cluster datastore can be swapped for a
+# managed service: set `<store>.enabled: false` and `<store>.externalUrl`.
+
+nameOverride: ""
+fullnameOverride: ""
+
+imagePullSecrets: []
+
+backend:
+  replicaCount: 2
+  image:
+    repository: ghcr.io/jchetan26/omniagent-backend
+    tag: "0.4.0"
+    pullPolicy: IfNotPresent
+  port: 8000
+  resources:
+    requests: { cpu: 500m, memory: 1Gi }
+    limits: { cpu: "2", memory: 2Gi }
+  autoscaling:
+    enabled: false
+    minReplicas: 2
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 70
+  podDisruptionBudget:
+    enabled: true
+    minAvailable: 1
+  # Long-lived WebSocket sessions: give clients time to reconnect elsewhere.
+  terminationGracePeriodSeconds: 30
+  podAnnotations: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  extraEnv: []
+
+frontend:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: ghcr.io/jchetan26/omniagent-frontend
+    tag: "0.4.0"
+    pullPolicy: IfNotPresent
+  port: 8080
+  resources:
+    requests: { cpu: 50m, memory: 64Mi }
+    limits: { cpu: 500m, memory: 128Mi }
+
+# Non-secret runtime configuration (rendered into a ConfigMap; see .env.example).
+config:
+  llmProvider: heuristic          # heuristic | anthropic | openai
+  anthropicModel: claude-opus-5-5
+  llmBaseUrl: https://api.openai.com/v1
+  llmModel: ""
+  embeddingProvider: sentence-transformers   # sentence-transformers | openai | triton
+  inferenceBackend: mock          # mock | triton (set triton.enabled or triton.externalUrl)
+  rerankEnabled: false
+  agentMaxRetries: 2
+  logFormat: json
+  logLevel: INFO
+  otelExporterOtlpEndpoint: ""
+  wsMaxSessions: 1000
+  rateLimitCapacity: 20
+  rateLimitRefillPerS: 10
+
+# Secret values. Prefer `existingSecret` (created by your secret manager) in
+# production; it must contain the keys listed under `secrets.values`.
+secrets:
+  existingSecret: ""
+  values:
+    ANTHROPIC_API_KEY: ""
+    OPENAI_API_KEY: ""
+    LLM_API_KEY: ""
+    QDRANT_API_KEY: ""
+    ELASTICSEARCH_API_KEY: ""
+
+ingress:
+  enabled: true
+  className: nginx
+  host: omniagent.example.com
+  tls:
+    enabled: false
+    secretName: omniagent-tls
+  annotations:
+    # ingress-nginx proxies WebSocket upgrades natively; keep idle sessions open
+    # (the gateway's own heartbeat closes dead ones after 45 s).
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-http-version: "1.1"
+    nginx.ingress.kubernetes.io/proxy-buffering: "off"
+    nginx.ingress.kubernetes.io/proxy-body-size: "2m"
+
+qdrant:
+  enabled: true
+  externalUrl: ""
+  image: { repository: qdrant/qdrant, tag: v1.20.2 }
+  persistence: { size: 10Gi, storageClass: "" }
+  resources:
+    requests: { cpu: 250m, memory: 512Mi }
+    limits: { cpu: "1", memory: 2Gi }
+
+elasticsearch:
+  enabled: true
+  externalUrl: ""
+  image: { repository: docker.elastic.co/elasticsearch/elasticsearch, tag: "9.5.6" }
+  heapSize: 1g
+  # Security is off for the bundled single node, which only the backend can
+  # reach (see networkPolicy). Use a managed/secured cluster in production.
+  persistence: { size: 10Gi, storageClass: "" }
+  resources:
+    requests: { cpu: 500m, memory: 2Gi }
+    limits: { cpu: "2", memory: 2Gi }
+
+redis:
+  enabled: true
+  externalUrl: ""                 # e.g. rediss://:password@my-redis:6380/0 (put it in a secret!)
+  image: { repository: redis, tag: 8.10.3-alpine }
+  persistence: { size: 2Gi, storageClass: "" }
+  resources:
+    requests: { cpu: 100m, memory: 256Mi }
+    limits: { cpu: 500m, memory: 512Mi }
+
+triton:
+  enabled: false
+  externalUrl: ""                 # host:port of an existing Triton gRPC endpoint
+  image: { repository: nvcr.io/nvidia/tritonserver, tag: "" }   # e.g. "<yy.mm>-py3", required when enabled
+  gpu: false
+  # PVC holding model_server/model_repository (configs + exported model.onnx files).
+  modelRepositoryClaim: ""
+  resources:
+    requests: { cpu: "1", memory: 2Gi }
+    limits: { cpu: "4", memory: 4Gi }
+
+seed:
+  enabled: true                   # post-install/upgrade Job ingesting the bundled sample KB
+  path: samples
+
+networkPolicy:
+  enabled: true                   # datastores accept traffic only from backend + seed pods
+
+metrics:
+  podAnnotations: true            # prometheus.io/scrape for annotation-based Prometheus
+  serviceMonitor:
+    enabled: false                # requires the Prometheus Operator CRDs
+    interval: 15s
+  grafanaDashboard:
+    enabled: true                 # ConfigMap picked up by the Grafana dashboard sidecar
+    labels: { grafana_dashboard: "1" }
+
+serviceAccount:
+  create: true
+  name: ""
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 10001
+  fsGroup: 10001
+  seccompProfile: { type: RuntimeDefault }
+
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities: { drop: [ALL] }

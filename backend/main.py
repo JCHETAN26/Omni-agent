@@ -9,13 +9,15 @@ import hashlib
 import logging
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Response
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 from pydantic import BaseModel, Field
 
 from backend.agent.runner import AgentRunner
 from backend.api import agent_ws, streaming, websocket
 from backend.api.websocket import ConnectionManager
+from backend.core import metrics
 from backend.core.config import Settings, get_settings
 from backend.core.models import Document
 from backend.core.services import Services
@@ -43,6 +45,17 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     @asynccontextmanager
     async def lifespan(app: FastAPI):
         app.state.services = await Services.build(settings)
+        if settings.seed_path:
+            from backend.ingestion.loader import load_markdown_dir
+
+            docs = load_markdown_dir(settings.seed_path)
+            if docs:
+                report = await app.state.services.processor.ingest(docs)
+                app.state.services.index_version += 1
+                log.info(
+                    "seeded knowledge base",
+                    extra={"path": settings.seed_path, "chunks": report.chunks},
+                )
         app.state.connections = ConnectionManager(settings.ws_max_sessions)
         app.state.agent = AgentRunner.from_services(app.state.services)
         app.state.loop_lag = LoopLagMonitor()
@@ -57,6 +70,23 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(websocket.router)
     app.include_router(streaming.router)
     app.include_router(agent_ws.router)
+
+    @app.get("/livez", include_in_schema=False)
+    async def livez() -> dict:
+        return {"status": "ok"}
+
+    @app.get("/readyz", include_in_schema=False)
+    async def readyz(request: Request, response: Response) -> dict:
+        state = request.app.state
+        ready = hasattr(state, "agent") and await state.services.inference.ready()
+        response.status_code = 200 if ready else 503
+        return {"ready": ready}
+
+    @app.get("/metrics", include_in_schema=False)
+    async def prometheus_metrics(request: Request) -> Response:
+        lag = request.app.state.loop_lag.snapshot()
+        metrics.LOOP_LAG.set(lag.get("max_ms", 0) / 1000)
+        return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
     @app.get("/health")
     async def health(request: Request) -> dict:

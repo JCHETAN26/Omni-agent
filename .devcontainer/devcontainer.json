@@ -5,7 +5,7 @@
     "ghcr.io/devcontainers/features/node:1": { "version": "22" }
   },
   "hostRequirements": { "cpus": 4, "memory": "8gb" },
-  "postCreateCommand": "pip install --upgrade pip && pip install torch --index-url https://download.pytorch.org/whl/cpu && pip install -r requirements-dev.txt && ([ -f .env ] || cp .env.example .env)",
+  "postCreateCommand": "pip install --upgrade pip && pip install torch --index-url https://download.pytorch.org/whl/cpu && pip install -r requirements-dev.txt && (cd frontend && npm ci) && ([ -f .env ] || cp .env.example .env)",
   "postStartCommand": "python -c \"from sentence_transformers import SentenceTransformer as S; S('sentence-transformers/all-MiniLM-L6-v2')\" || true",
   "forwardPorts": [8000, 8001, 5173],
   "portsAttributes": {

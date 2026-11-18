@@ -11,6 +11,15 @@ Low-latency, multi-modal agentic copilot for enterprise technical support and di
 - **Phase 3:** LangGraph agent with tool routing (knowledge base, live logs,
   calculator), relevance and grounding graders, query-rewrite self-correction loops,
   Redis-backed conversation memory, and `/ws/agent` streaming.
+- **Phase 4:** React + TypeScript UI with a live observability inspector, Kubernetes
+  manifests and a Helm chart, Prometheus metrics with a Grafana dashboard, and a
+  one-command full-stack demo harness.
+
+```bash
+make install && make demo        # boot everything, drive 24 concurrent agent users
+make demo-ui                     # same, plus the UI, and keep everything running
+make verify                      # lint, tests, UI typecheck/build, browser e2e, helm lint
+```
 
 ## Layout
 
@@ -32,8 +41,12 @@ model_server/
   inference_client.py   async Triton gRPC client (+ in-process mock)
   local_triton.py       local server speaking Triton's gRPC protocol (dev/test/bench)
   export_onnx.py        exports both models to ONNX and verifies them against PyTorch
-samples/         small technical-support corpus used by tests and demos
-scripts/         demo_phase1.py, bench_phase2.py, demo_phase3.py
+frontend/        Vite + React 19 + TypeScript (strict) + Tailwind v4 UI, Playwright e2e
+deploy/
+  docker/        backend.Dockerfile (frontend/Dockerfile serves the UI via nginx)
+  kubernetes/    helm/omniagent (chart + Grafana dashboard), manifests/ (rendered), render.sh
+samples/         small technical-support corpus (+ logs/) used by tests and demos
+scripts/         demo_phase1.py, bench_phase2.py, demo_phase3.py, demo_full_stack.py
 tests/           pytest suite
 .devcontainer/   Codespaces config (Python 3.12, Node 22, CPU-only PyTorch)
 ```
@@ -240,6 +253,58 @@ restarts the app mid-conversation, and shows multi-turn follow-ups, log and calc
 routing, the retrieval fallback loop and the grounding loop. Part B uses a simulated
 LLM unless you pass `--llm anthropic`.
 
+## Frontend
+
+`frontend/` is a single-page app that talks to `/ws/agent` or `/ws/stream` on its own
+origin, so it works behind any Ingress or proxy.
+
+- **Chat:** answers stream token by token. When the agent self-corrects, the discarded
+  attempts stay visible but struck through.
+- **Inspector:** the tool routing decision, retrieval relevance scores for each
+  retrieval attempt, the query rewrites, grounding badges, the reasoning timeline, time
+  to first token, token rate, latency and trace id. It also shows connection health and
+  backend `/health`.
+- **Transport** (`src/lib/gatewayClient.ts`): reconnects with backoff, answers heartbeat
+  pings, and resumes the stored `thread_id`. It checks every frame's `seq` for gaps, and
+  checks each response's token indices and SHA-256 (the "stream verified" badge).
+
+Checks: a strict TypeScript build, 11 Vitest unit tests for the client and reducer, and
+6 Playwright tests that boot the real backend and the built UI, then drive Chromium
+through routing, memory across a reload, the self-correction loop and stream mode.
+
+## Kubernetes
+
+The Helm chart is in `deploy/kubernetes/helm/omniagent`, and plain manifests rendered
+from it are in `deploy/kubernetes/manifests/omniagent.yaml` (regenerate them with
+`make manifests`).
+
+| Component | Kind | Notes |
+|---|---|---|
+| backend | Deployment + Service (+ HPA, PDB) | `/livez` and `/readyz` probes, preStop drain, non-root, read-only root filesystem, rolling updates with `maxUnavailable: 0` |
+| frontend | Deployment + Service | nginx-unprivileged; proxies `/ws` with `Upgrade` and `Connection` headers |
+| qdrant, elasticsearch, redis | StatefulSet + headless and client Services + PVCs | each can be swapped for a managed service (`<store>.enabled=false`, `<store>.externalUrl`) |
+| triton | Deployment (optional) | GPU toggle; reads the model repository from a PVC |
+| ingress | Ingress | exposes only `/ws`, `/sse`, `/health` and `/`; WebSocket read and send timeouts of 3600 s |
+| seed | Job (post-install hook) | ingests the sample knowledge base once |
+| NetworkPolicy | — | datastores accept traffic only from backend and seed pods |
+| monitoring | ServiceMonitor (optional), dashboard ConfigMap | Grafana dashboard with 13 panels built on `/metrics` |
+
+Secrets go in `secrets.values`, or in an `existingSecret` you provide. An external Redis
+URL that contains credentials is placed in the Secret, never in the ConfigMap. The
+chart refuses to render inconsistent settings, such as Triton without an image tag or
+the Triton backend with no endpoint. `tests/test_helm_chart.py` renders the chart and
+checks the invariants: selectors match pod labels, every Service resolves to pods,
+workloads are hardened and have resource limits, the Ingress exposes only the gateway
+paths, every exported metric appears on the dashboard, and the committed manifests match
+the chart.
+
+```bash
+helm install omniagent deploy/kubernetes/helm/omniagent -n omniagent --create-namespace \
+  --set ingress.host=omniagent.example.com \
+  --set config.llmProvider=anthropic --set secrets.values.ANTHROPIC_API_KEY=$ANTHROPIC_API_KEY
+helm test omniagent -n omniagent
+```
+
 ## Observability
 
 - **Logs:** with `LOG_FORMAT=json`, logs are one JSON object per line, including
@@ -251,6 +316,10 @@ LLM unless you pass `--llm anthropic`.
   `OTEL_EXPORTER_OTLP_ENDPOINT`, or to the console with `OTEL_CONSOLE_EXPORT=true`.
 - **`/health`:** backends, inference readiness, WebSocket session counts, and event-loop
   lag percentiles. The lag figure is a direct check that nothing blocks the loop.
+- **`/metrics`** (Prometheus): WebSocket sessions and frames, tokens streamed, agent
+  turns by tool and outcome, self-correction rewrites, discarded answers, LLM fallbacks,
+  turn latency and time to first token, rerank fallbacks, Triton latency and errors, and
+  event-loop lag. `/livez` and `/readyz` serve the Kubernetes probes.
 
 ## Benchmark
 
@@ -302,6 +371,9 @@ curl -N 'localhost:8000/sse/stream?q=EIO-5+controller+timeout'
   available. It hasn't run against Claude or vLLM yet.
 - The live-logs tool reads `.log` files. A Loki or Elasticsearch backend still needs
   to be added.
+- The container images and the chart haven't been built or deployed on a real cluster
+  yet, because Docker wasn't running on the development machine. The chart is linted,
+  rendered and structurally tested, but it hasn't been schema-validated with kubeconform.
 - The in-process Qdrant and BM25 fallbacks run their search math on the event loop. That's
   fine for development, but production should point at real Qdrant and Elasticsearch.
 - The gRPC path has been tested against the local Triton-protocol server, not a real

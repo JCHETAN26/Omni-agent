@@ -1,0 +1,31 @@
+{{- $tritonUrl := include "omniagent.tritonUrl" . -}}
+{{- if and (eq .Values.config.inferenceBackend "triton") (not $tritonUrl) -}}
+{{- fail "config.inferenceBackend=triton requires triton.enabled=true or triton.externalUrl" -}}
+{{- end -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "omniagent.fullname" . }}-config
+  labels: {{- include "omniagent.labels" . | nindent 4 }}
+data:
+  QDRANT_URL: {{ include "omniagent.qdrantUrl" . | quote }}
+  ELASTICSEARCH_URL: {{ include "omniagent.elasticsearchUrl" . | quote }}
+  {{- if not (and (not .Values.redis.enabled) (contains "@" .Values.redis.externalUrl)) }}
+  REDIS_URL: {{ include "omniagent.redisUrl" . | quote }}
+  {{- end }}
+  TRITON_GRPC_URL: {{ $tritonUrl | quote }}
+  LLM_PROVIDER: {{ .Values.config.llmProvider | quote }}
+  ANTHROPIC_MODEL: {{ .Values.config.anthropicModel | quote }}
+  LLM_BASE_URL: {{ .Values.config.llmBaseUrl | quote }}
+  LLM_MODEL: {{ .Values.config.llmModel | quote }}
+  EMBEDDING_PROVIDER: {{ .Values.config.embeddingProvider | quote }}
+  INFERENCE_BACKEND: {{ .Values.config.inferenceBackend | quote }}
+  RERANK_ENABLED: {{ .Values.config.rerankEnabled | quote }}
+  AGENT_MAX_RETRIES: {{ .Values.config.agentMaxRetries | quote }}
+  LOG_FORMAT: {{ .Values.config.logFormat | quote }}
+  LOG_LEVEL: {{ .Values.config.logLevel | quote }}
+  OTEL_EXPORTER_OTLP_ENDPOINT: {{ .Values.config.otelExporterOtlpEndpoint | quote }}
+  WS_MAX_SESSIONS: {{ .Values.config.wsMaxSessions | quote }}
+  RATE_LIMIT_CAPACITY: {{ .Values.config.rateLimitCapacity | quote }}
+  RATE_LIMIT_REFILL_PER_S: {{ .Values.config.rateLimitRefillPerS | quote }}
+  AGENT_LOGS_PATH: "samples/logs"
