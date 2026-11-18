@@ -1,0 +1,4 @@
+# Only needed to export ONNX models for the Triton model repository.
+-r ../backend/requirements.txt
+onnx>=1.16
+onnxscript>=0.1

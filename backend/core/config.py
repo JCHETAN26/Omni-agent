@@ -32,7 +32,7 @@ class Settings(BaseSettings):
     cache_ttl_seconds: int = 300
 
     # --- Embeddings ---
-    embedding_provider: Literal["sentence-transformers", "openai", "hashing"] = (
+    embedding_provider: Literal["sentence-transformers", "openai", "hashing", "triton"] = (
         "sentence-transformers"
     )
     embedding_model: str = "sentence-transformers/all-MiniLM-L6-v2"
@@ -46,6 +46,38 @@ class Settings(BaseSettings):
     # --- Retrieval ---
     rrf_k: int = 60
     retrieval_candidates: int = 50  # per-retriever depth fed into RRF
+    rerank_enabled: bool = False  # cross-encoder rerank via the inference client
+    rerank_candidates: int = 10  # fused hits sent to the reranker
+    rerank_timeout_s: float = 1.5  # budget; on timeout/error fall back to RRF order
+
+    # --- Model inference (Triton) ---
+    inference_backend: Literal["mock", "triton"] = "mock"
+    triton_grpc_url: str = "localhost:8001"
+    triton_embed_model: str = "minilm_embedder"
+    triton_rerank_model: str = "cross_encoder_reranker"
+    triton_embed_tokenizer: str = "sentence-transformers/all-MiniLM-L6-v2"
+    triton_rerank_tokenizer: str = "cross-encoder/ms-marco-MiniLM-L-6-v2"
+    triton_timeout_s: float = 10.0
+    triton_max_in_flight: int = 128
+
+    # --- WebSocket gateway ---
+    ws_max_sessions: int = 1000
+    ws_buffer_size: int = 256  # ring buffer slots per session (oldest dropped when full)
+    ws_max_message_bytes: int = 1_048_576
+    ws_heartbeat_interval_s: float = 15.0
+    ws_heartbeat_timeout_s: float = 45.0  # close if nothing heard from the client this long
+
+    # --- Rate limiting (token bucket, per session) ---
+    rate_limit_capacity: float = 20.0
+    rate_limit_refill_per_s: float = 10.0
+    rate_limit_audio_cost: float = 0.05  # audio frames are small and frequent
+
+    # --- Observability ---
+    service_name: str = "omniagent"
+    log_format: Literal["json", "text"] = "json"
+    log_level: str = "INFO"
+    otel_exporter_otlp_endpoint: str | None = None  # e.g. http://localhost:4317
+    otel_console_export: bool = False
 
 
 @lru_cache

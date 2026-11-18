@@ -7,9 +7,10 @@
   "hostRequirements": { "cpus": 4, "memory": "8gb" },
   "postCreateCommand": "pip install --upgrade pip && pip install torch --index-url https://download.pytorch.org/whl/cpu && pip install -r requirements-dev.txt && ([ -f .env ] || cp .env.example .env)",
   "postStartCommand": "python -c \"from sentence_transformers import SentenceTransformer as S; S('sentence-transformers/all-MiniLM-L6-v2')\" || true",
-  "forwardPorts": [8000, 5173],
+  "forwardPorts": [8000, 8001, 5173],
   "portsAttributes": {
     "8000": { "label": "OmniAgent API" },
+    "8001": { "label": "Triton gRPC (local)" },
     "5173": { "label": "OmniAgent UI" }
   },
   "customizations": {
@@ -35,6 +36,8 @@
     "ELASTICSEARCH_URL": { "description": "Elasticsearch endpoint (leave unset for in-process BM25)" },
     "ELASTICSEARCH_API_KEY": { "description": "Elasticsearch API key" },
     "REDIS_URL": { "description": "Managed Redis URL, e.g. rediss://... (leave unset for in-memory cache)" },
-    "OPENAI_API_KEY": { "description": "Only needed when EMBEDDING_PROVIDER=openai" }
+    "OPENAI_API_KEY": { "description": "Only needed when EMBEDDING_PROVIDER=openai" },
+    "TRITON_GRPC_URL": { "description": "Triton gRPC endpoint host:port (only with INFERENCE_BACKEND=triton)" },
+    "OTEL_EXPORTER_OTLP_ENDPOINT": { "description": "OTLP gRPC collector, e.g. https://otel.example.com:4317" }
   }
 }

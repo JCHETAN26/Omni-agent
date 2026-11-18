@@ -28,6 +28,7 @@ class QdrantDenseStore:
     def __init__(self, client: AsyncQdrantClient, collection: str):
         self.client = client
         self.collection = collection
+        self._exists = False
 
     @classmethod
     def from_settings(cls, settings: Settings) -> QdrantDenseStore:
@@ -43,6 +44,7 @@ class QdrantDenseStore:
                 collection_name=self.collection,
                 vectors_config=VectorParams(size=dim, distance=Distance.COSINE),
             )
+        self._exists = True
 
     async def upsert(self, chunks: list[Chunk], vectors: list[list[float]]) -> None:
         points = [
@@ -52,6 +54,10 @@ class QdrantDenseStore:
         await self.client.upsert(collection_name=self.collection, points=points, wait=True)
 
     async def search(self, vector: list[float], limit: int) -> list[tuple[Chunk, float]]:
+        if not self._exists:  # nothing ingested yet (or created by another process)
+            self._exists = await self.client.collection_exists(self.collection)
+            if not self._exists:
+                return []
         resp = await self.client.query_points(
             collection_name=self.collection, query=vector, limit=limit, with_payload=True
         )

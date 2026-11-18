@@ -1,0 +1,5 @@
+# Triton gRPC client (async) + the local Triton-protocol server used in dev/tests.
+tritonclient[grpc]>=2.50
+numpy>=1.26
+# Runs model_repository/*/1/model.onnx in the local server (real Triton bundles its own).
+onnxruntime>=1.18
