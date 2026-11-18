@@ -1,0 +1,13 @@
+-r ../search/requirements.txt
+
+fastapi>=0.115
+uvicorn[standard]>=0.30
+pydantic-settings>=2.4
+httpx>=0.27
+redis>=5.0
+
+# Local embeddings. On Linux/Codespaces install CPU-only torch first to skip the
+# multi-GB CUDA wheel (the devcontainer does this automatically):
+#   pip install torch --index-url https://download.pytorch.org/whl/cpu
+torch>=2.3
+sentence-transformers>=3.0

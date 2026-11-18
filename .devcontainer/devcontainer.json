@@ -1,0 +1,40 @@
+{
+  "name": "OmniAgent",
+  "image": "mcr.microsoft.com/devcontainers/python:1-3.12-bookworm",
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": { "version": "22" }
+  },
+  "hostRequirements": { "cpus": 4, "memory": "8gb" },
+  "postCreateCommand": "pip install --upgrade pip && pip install torch --index-url https://download.pytorch.org/whl/cpu && pip install -r requirements-dev.txt && ([ -f .env ] || cp .env.example .env)",
+  "postStartCommand": "python -c \"from sentence_transformers import SentenceTransformer as S; S('sentence-transformers/all-MiniLM-L6-v2')\" || true",
+  "forwardPorts": [8000, 5173],
+  "portsAttributes": {
+    "8000": { "label": "OmniAgent API" },
+    "5173": { "label": "OmniAgent UI" }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "charliermarsh.ruff",
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "humao.rest-client"
+      ],
+      "settings": {
+        "python.defaultInterpreterPath": "/usr/local/bin/python",
+        "python.testing.pytestEnabled": true,
+        "[python]": { "editor.defaultFormatter": "charliermarsh.ruff" }
+      }
+    }
+  },
+  "secrets": {
+    "QDRANT_URL": { "description": "Qdrant Cloud cluster URL (leave unset for in-memory Qdrant)" },
+    "QDRANT_API_KEY": { "description": "Qdrant Cloud API key" },
+    "ELASTICSEARCH_URL": { "description": "Elasticsearch endpoint (leave unset for in-process BM25)" },
+    "ELASTICSEARCH_API_KEY": { "description": "Elasticsearch API key" },
+    "REDIS_URL": { "description": "Managed Redis URL, e.g. rediss://... (leave unset for in-memory cache)" },
+    "OPENAI_API_KEY": { "description": "Only needed when EMBEDDING_PROVIDER=openai" }
+  }
+}
