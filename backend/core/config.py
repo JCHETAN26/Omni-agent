@@ -60,6 +60,25 @@ class Settings(BaseSettings):
     triton_timeout_s: float = 10.0
     triton_max_in_flight: int = 128
 
+    # --- Agent (LangGraph) ---
+    # Reasoning backend for routing, grading, rewriting and generation.
+    # "heuristic" runs offline (no LLM); "anthropic" uses Claude; "openai" is any
+    # OpenAI-compatible endpoint (OpenAI, vLLM, ...).
+    llm_provider: Literal["heuristic", "anthropic", "openai"] = "heuristic"
+    anthropic_model: str = "claude-opus-5-5"
+    anthropic_api_key: str | None = None  # unset: SDK resolves env / `ant` profile
+    llm_base_url: str = "https://api.openai.com/v1"
+    llm_model: str | None = None
+    llm_api_key: str | None = None
+    llm_timeout_s: float = 60.0
+    agent_max_retries: int = 2  # query rewrite + re-retrieval loops per turn
+    agent_relevance_threshold: float = 0.5
+    agent_grounding_threshold: float = 0.6
+    agent_top_k: int = 4
+    agent_history_messages: int = 8  # recent messages given to the LLM
+    agent_memory_ttl_s: int = 7 * 24 * 3600
+    agent_logs_path: str = "samples/logs"
+
     # --- WebSocket gateway ---
     ws_max_sessions: int = 1000
     ws_buffer_size: int = 256  # ring buffer slots per session (oldest dropped when full)

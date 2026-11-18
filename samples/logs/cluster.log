@@ -1,0 +1,14 @@
+2026-11-18T08:58:11Z INFO  storage-07 omnid: replica sync complete lag=0.4s
+2026-11-18T09:01:42Z WARN  storage-07 kernel: ata3: controller queue depth 64, latency rising
+2026-11-18T09:02:03Z ERROR storage-07 kernel: ata3: EIO-5 timeout waiting for block write (lba=0x1f3a9c00)
+2026-11-18T09:02:04Z ERROR storage-07 kernel: ata3: EIO-5 timeout waiting for block write (lba=0x1f3a9c08)
+2026-11-18T09:02:09Z ERROR storage-07 omnid: write path degraded, retrying on replica storage-03
+2026-11-18T09:03:15Z INFO  storage-07 omnid: controller firmware version 4.1.7
+2026-11-18T09:05:00Z WARN  storage-03 omnid: replication lag 34s exceeds threshold 30s, marking replica stale
+2026-11-18T09:05:02Z INFO  storage-03 omnid: compaction=running segment=118
+2026-11-18T09:07:21Z WARN  edge-02 bgp: packet loss 3.2% on uplink eth1 (mtu=1500)
+2026-11-18T09:09:45Z ERROR api-gw-1 tls: handshake failure from 10.4.2.19: no shared cipher
+2026-11-18T09:11:30Z WARN  rack-b4 bmc: inlet temperature 37C exceeds 35C, CPU throttling active
+2026-11-18T09:12:02Z ERROR rack-b4 bmc: PSU2 redundancy lost (input power absent)
+2026-11-18T09:14:55Z INFO  storage-07 omnid: queue_depth set to 32 by operator
+2026-11-18T09:15:40Z INFO  storage-07 kernel: ata3: no timeouts in last 5m

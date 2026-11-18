@@ -30,6 +30,7 @@ import json
 import logging
 import time
 import uuid
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
 
 import anyio
@@ -80,6 +81,8 @@ class Session:
     messages_out: int = 0
     rate_limited: int = 0
     span: object = None
+    services: Services | None = None
+    handle_query: object = None
     _send_lock: asyncio.Lock = field(default_factory=asyncio.Lock)
     _audio_chunks: int = 0
     _audio_bytes: int = 0
@@ -121,8 +124,37 @@ class ConnectionManager:
         }
 
 
+QueryHandler = Callable[["Session", "QueryItem"], Awaitable[None]]
+
+
+async def _plain_query(session: Session, item: QueryItem) -> None:
+    await stream_answer(
+        session.services,
+        item.text,
+        item.top_k,
+        item.id,
+        session.send,
+        item.traceparent,
+        session.span,
+    )
+
+
 @router.websocket("/ws/stream")
 async def ws_stream(ws: WebSocket) -> None:
+    await serve_session(ws, _plain_query)
+
+
+async def serve_session(
+    ws: WebSocket,
+    handle_query: QueryHandler,
+    hello: dict | None = None,
+    on_open: Callable[[Session], Awaitable[None]] | None = None,
+) -> None:
+    """Run one WebSocket session: accept, register, then reader/worker/heartbeat.
+
+    `handle_query` answers each query (in arrival order). `hello` adds fields to
+    `session.created`; `on_open` runs right after it (for example to replay history).
+    """
     services: Services = ws.app.state.services
     manager: ConnectionManager = ws.app.state.connections
     s = services.settings
@@ -134,6 +166,8 @@ async def ws_stream(ws: WebSocket) -> None:
         return
 
     session = manager.register(ws, s.ws_buffer_size)
+    session.services = services
+    session.handle_query = handle_query
     tracer = get_tracer()
     with tracer.start_as_current_span(
         "ws.session", kind=SpanKind.SERVER, attributes={"ws.session_id": session.id}
@@ -152,8 +186,11 @@ async def ws_stream(ws: WebSocket) -> None:
                         "refill_per_s": s.rate_limit_refill_per_s,
                     },
                     "buffer_size": s.ws_buffer_size,
+                    **(hello or {}),
                 }
             )
+            if on_open is not None:
+                await on_open(session)
             # anyio task group: integrates with Starlette's cancel scopes, and the
             # first task to finish (normally the reader, on disconnect) stops the rest.
             async with anyio.create_task_group() as tg:
@@ -331,15 +368,7 @@ async def _worker(session: Session, services: Services) -> None:
             session._audio_chunks = session._audio_bytes = 0
             session._audio_hash = hashlib.sha256()
         elif isinstance(item, QueryItem):
-            await stream_answer(
-                services,
-                item.text,
-                item.top_k,
-                item.id,
-                session.send,
-                item.traceparent,
-                session.span,
-            )
+            await session.handle_query(session, item)
 
 
 async def _heartbeat(session: Session, services: Services) -> None:

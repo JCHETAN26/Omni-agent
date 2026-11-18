@@ -6,3 +6,4 @@ ruff>=0.6
 fakeredis[lua]>=2.26
 websockets>=13
 httpx>=0.27
+langgraph-checkpoint-conformance>=0.0.2

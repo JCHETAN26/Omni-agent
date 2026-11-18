@@ -31,24 +31,11 @@ from opentelemetry.trace import Link, SpanKind, get_current_span
 from backend.core.models import SearchHit
 from backend.core.services import Services
 from backend.core.telemetry import current_trace_id, extract_context, get_tracer
-from model_server.inference_client import InferenceError
+from search.pipeline import retrieve_with_rerank
 
 log = logging.getLogger(__name__)
 
 _TOKEN_RE = re.compile(r"\S+\s*")
-
-
-def _source(hit: SearchHit, rerank_score: float | None) -> dict:
-    c = hit.chunk
-    return {
-        "chunk_id": c.chunk_id,
-        "document_title": c.document_title,
-        "section_heading": c.section_heading,
-        "rrf_score": round(hit.score, 6),
-        "rerank_score": None if rerank_score is None else round(rerank_score, 6),
-        "dense_rank": hit.dense_rank,
-        "sparse_rank": hit.sparse_rank,
-    }
 
 
 def compose_answer(hits: list[SearchHit]) -> str:
@@ -59,6 +46,46 @@ def compose_answer(hits: list[SearchHit]) -> str:
 
 
 Emit = Callable[[dict], Awaitable[None]]
+
+
+class TokenEmitter:
+    """Emits `response.token` frames with contiguous indices and a running SHA-256.
+
+    `extra` fields (e.g. the agent's generation `attempt`) are added to every frame.
+    """
+
+    def __init__(self, emit: Emit, request_id: str, **extra):
+        self.emit = emit
+        self.request_id = request_id
+        self.extra = extra
+        self.count = 0
+        self._digest = hashlib.sha256()
+        self._parts: list[str] = []
+
+    async def __call__(self, text: str) -> None:
+        if not text:
+            return
+        self._digest.update(text.encode())
+        self._parts.append(text)
+        await self.emit(
+            {
+                "type": "response.token",
+                "id": self.request_id,
+                "index": self.count,
+                "text": text,
+                **self.extra,
+            }
+        )
+        self.count += 1
+        await asyncio.sleep(0)  # let other sessions interleave
+
+    @property
+    def sha256(self) -> str:
+        return self._digest.hexdigest()
+
+    @property
+    def text(self) -> str:
+        return "".join(self._parts)
 
 
 async def stream_answer(
@@ -96,61 +123,38 @@ async def stream_answer(
         t0 = time.perf_counter()
         await emit({"type": "response.start", "id": request_id, "trace_id": current_trace_id()})
         try:
-            s = services.settings
-            depth = max(top_k, s.rerank_candidates) if s.rerank_enabled else top_k
-            result = await services.retriever.search(query, depth)
-            hits = result.hits
-            rerank: list[float | None] = [None] * len(hits)
-            reranked, rerank_skipped = False, None
-            if s.rerank_enabled and hits:
-                try:
-                    scores = await asyncio.wait_for(
-                        services.inference.rerank(query, [h.chunk.text for h in hits]),
-                        s.rerank_timeout_s,
-                    )
-                    order = sorted(range(len(hits)), key=lambda i: scores[i], reverse=True)
-                    hits = [hits[i] for i in order]
-                    rerank = [scores[i] for i in order]
-                    reranked = True
-                except (TimeoutError, InferenceError) as exc:
-                    # Reranking is an enhancement: degrade to RRF order, never fail.
-                    rerank_skipped = "timeout" if isinstance(exc, TimeoutError) else "error"
-                    get_current_span().add_event("rerank.skipped", {"reason": rerank_skipped})
-                    log.warning(
-                        "rerank skipped (%s), using RRF order",
-                        rerank_skipped,
-                        extra={"request_id": request_id},
-                    )
-            hits, rerank = hits[:top_k], rerank[:top_k]
+            kb = await retrieve_with_rerank(
+                services.retriever,
+                services.inference,
+                services.settings,
+                query,
+                top_k,
+                request_id,
+            )
+            hits = kb.hits
             await emit(
                 {
                     "type": "response.sources",
                     "id": request_id,
-                    "sources": [_source(h, r) for h, r in zip(hits, rerank, strict=True)],
-                    "retrieval_ms": result.timings.total_ms,
-                    "reranked": reranked,
-                    "rerank_skipped": rerank_skipped,
+                    "sources": kb.sources(),
+                    "retrieval_ms": kb.retrieval_ms,
+                    "reranked": kb.reranked,
+                    "rerank_skipped": kb.rerank_skipped,
                 }
             )
 
-            digest = hashlib.sha256()
-            count = 0
+            tokens = TokenEmitter(emit, request_id)
             first_token_ms = None
             for token in _TOKEN_RE.findall(compose_answer(hits)):
                 if first_token_ms is None:
                     first_token_ms = round((time.perf_counter() - t0) * 1000, 2)
-                digest.update(token.encode())
-                await emit(
-                    {"type": "response.token", "id": request_id, "index": count, "text": token}
-                )
-                count += 1
-                await asyncio.sleep(0)  # let other sessions interleave
+                await tokens(token)
             await emit(
                 {
                     "type": "response.end",
                     "id": request_id,
-                    "tokens": count,
-                    "sha256": digest.hexdigest(),
+                    "tokens": tokens.count,
+                    "sha256": tokens.sha256,
                     "first_token_ms": first_token_ms,
                     "latency_ms": round((time.perf_counter() - t0) * 1000, 2),
                 }

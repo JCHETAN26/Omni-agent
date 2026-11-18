@@ -13,7 +13,8 @@ from fastapi import FastAPI, Request
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 from pydantic import BaseModel, Field
 
-from backend.api import streaming, websocket
+from backend.agent.runner import AgentRunner
+from backend.api import agent_ws, streaming, websocket
 from backend.api.websocket import ConnectionManager
 from backend.core.config import Settings, get_settings
 from backend.core.models import Document
@@ -43,16 +44,19 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     async def lifespan(app: FastAPI):
         app.state.services = await Services.build(settings)
         app.state.connections = ConnectionManager(settings.ws_max_sessions)
+        app.state.agent = AgentRunner.from_services(app.state.services)
         app.state.loop_lag = LoopLagMonitor()
         app.state.loop_lag.start()
         log.info("omniagent started", extra={"backends": app.state.services.backends})
         yield
         await app.state.loop_lag.stop()
+        await app.state.agent.close()
         await app.state.services.close()
 
-    app = FastAPI(title="OmniAgent", version="0.2.0", lifespan=lifespan)
+    app = FastAPI(title="OmniAgent", version="0.3.0", lifespan=lifespan)
     app.include_router(websocket.router)
     app.include_router(streaming.router)
+    app.include_router(agent_ws.router)
 
     @app.get("/health")
     async def health(request: Request) -> dict:
@@ -61,6 +65,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             "status": "ok",
             "backends": services.backends,
             "inference_ready": await services.inference.ready(),
+            "agent": {
+                "reasoner": request.app.state.agent.reasoner.name,
+                "memory": type(request.app.state.agent.checkpointer).__name__,
+            },
             "websocket": request.app.state.connections.snapshot(),
             "event_loop_lag": request.app.state.loop_lag.snapshot(),
         }

@@ -8,25 +8,32 @@ Low-latency, multi-modal agentic copilot for enterprise technical support and di
   token-bucket rate limiting), Triton model repository and async gRPC inference client,
   cross-encoder reranking, structured logging, and OpenTelemetry tracing across frames
   and gRPC calls.
+- **Phase 3:** LangGraph agent with tool routing (knowledge base, live logs,
+  calculator), relevance and grounding graders, query-rewrite self-correction loops,
+  Redis-backed conversation memory, and `/ws/agent` streaming.
 
 ## Layout
 
 ```
 backend/
-  api/           websocket.py (/ws/stream), streaming.py (event stream + /sse/stream),
-                 ring_buffer.py
+  agent/         workflow.py (LangGraph graph), reasoning.py (router/graders/rewriter/
+                 generator), runner.py (graph -> client events), memory.py (Redis
+                 checkpointer), tools.py (calculator, logs), llm*.py (Claude, OpenAI/vLLM)
+  api/           websocket.py (/ws/stream + shared session server), agent_ws.py
+                 (/ws/agent, /sse/agent), streaming.py (/sse/stream), ring_buffer.py
   core/          config, models, stores (Qdrant/ES), cache, rate_limit, telemetry, services
   ingestion/     chunker.py, embedder.py, processor.py (async ingestion pipeline)
   main.py        FastAPI app factory: REST + SSE + WebSocket
 search/
   hybrid_retriever.py   parallel dense + sparse retrieval, Reciprocal Rank Fusion
+  pipeline.py           retrieval + cross-encoder rerank with timeout fallback
 model_server/
   model_repository/     Triton configs: minilm_embedder, cross_encoder_reranker
   inference_client.py   async Triton gRPC client (+ in-process mock)
   local_triton.py       local server speaking Triton's gRPC protocol (dev/test/bench)
   export_onnx.py        exports both models to ONNX and verifies them against PyTorch
 samples/         small technical-support corpus used by tests and demos
-scripts/         demo_phase1.py, bench_phase2.py
+scripts/         demo_phase1.py, bench_phase2.py, demo_phase3.py
 tests/           pytest suite
 .devcontainer/   Codespaces config (Python 3.12, Node 22, CPU-only PyTorch)
 ```
@@ -174,6 +181,65 @@ python -m scripts.bench_phase2 --triton-url <host>:8001
 ```
 For GPU serving, change `instance_group.kind` to `KIND_GPU`.
 
+## Agent (LangGraph)
+
+`/ws/agent` (and `/sse/agent`) answer through a LangGraph workflow
+(`backend/agent/workflow.py`):
+
+```
+START → contextualize → route ─knowledge_base→ retrieve → grade_documents ─relevant→ generate
+                          │                       ↑               │
+                          │                 rewrite_query ←───────┘ not relevant (retries left)
+                          ├─live_logs→ inspect_logs → generate
+                          ├─calculator→ calculate ───→ generate
+                          └─direct──────────────────→ generate
+generate → grade_generation ─grounded→ finalize → END
+                 └─not grounded (retries left)→ rewrite_query
+```
+
+- **contextualize** rewrites follow-ups ("which firmware fixes it?") into standalone
+  questions using the conversation history.
+- **route** picks a tool: the knowledge base (hybrid retrieval plus cross-encoder rerank),
+  live logs, a calculator (arithmetic through an AST whitelist, which never executes
+  code), or a direct reply.
+- **grade_documents** checks whether the passages can answer the question. If not, the
+  agent rewrites the query and retrieves again.
+- **grade_generation** checks every claim in the answer against the sources. An
+  ungrounded answer is discarded (`agent.generation.discarded`), and the agent rewrites
+  the query, retrieves again and regenerates.
+- Both loops share `AGENT_MAX_RETRIES` (default 2). When retries run out, the agent
+  abstains (`insufficient_context`) or ends `ungrounded` with an `agent.warning`.
+
+**Reasoners.** `LLM_PROVIDER=anthropic` uses Claude (`claude-opus-5-5` by default):
+structured JSON outputs for decisions, streamed answers, effort set per step, and
+server-side refusal fallbacks enabled. `LLM_PROVIDER=openai` works with any
+OpenAI-compatible endpoint, including vLLM. `heuristic`, the default, runs offline with
+no LLM: rule-based routing, term-coverage or cross-encoder relevance grading, keyword
+and pseudo-relevance-feedback rewrites, and extractive answers. If an LLM call fails,
+that single step falls back to the heuristic, and the step event says
+`fallback: true`.
+
+**Events** (on top of the Phase 2 contract): `agent.step` (one per node, with its
+decision), `response.sources` and `response.token` (each carrying `attempt`),
+`agent.generation.discarded`, `agent.warning`, and `response.end` with `outcome`, `tool`,
+`retries`, `rewrites`, `relevance` and `grounding`. The token count and SHA-256 in
+`response.end` cover the final attempt.
+
+**Memory.** Conversations are LangGraph threads. Connect to `/ws/agent` to start one
+(`thread_id` comes back in `session.created`), or connect to
+`/ws/agent?thread_id=<id>` to resume one: the earlier turns are replayed as
+`agent.history`, and follow-ups resolve against them. With `REDIS_URL` set, checkpoints
+go to `RedisCheckpointSaver`. It uses only core Redis types (hashes and sorted sets), so
+it runs on any managed Redis; LangGraph's own Redis saver needs RedisJSON and RediSearch.
+It passes LangGraph's official checkpointer conformance suite, all 58 base tests, and
+conversations expire after `AGENT_MEMORY_TTL_S` of inactivity. Without Redis, the agent
+uses LangGraph's `InMemorySaver`.
+
+**Demo:** `python -m scripts.demo_phase3` runs the agent against a real `redis-server`,
+restarts the app mid-conversation, and shows multi-turn follow-ups, log and calculator
+routing, the retrieval fallback loop and the grounding loop. Part B uses a simulated
+LLM unless you pass `--llm anthropic`.
+
 ## Observability
 
 - **Logs:** with `LOG_FORMAT=json`, logs are one JSON object per line, including
@@ -224,9 +290,18 @@ curl -N 'localhost:8000/sse/stream?q=EIO-5+controller+timeout'
   and several API workers, other workers can serve stale cached results until the TTL
   expires.
 - Ingestion is a synchronous request, with no background job queue yet.
-- Answers are extractive placeholders until LLM generation lands, and audio isn't
+- `/ws/stream` and `/sse/stream` still stream extractive placeholder answers. Generated
+  answers come from `/ws/agent` with an LLM provider configured. Audio isn't
   transcribed yet.
-- There's no authentication on `/ws/stream` or the REST endpoints yet.
+- There's no authentication yet. That includes agent thread ids: anyone who has one can
+  resume that conversation.
+- The heuristic reasoner is a fallback, not a substitute for an LLM. Its
+  pseudo-relevance-feedback rewrite can drift when the first retrieval is poor, and its
+  answers are extractive.
+- The LLM reasoner has been tested with fake models only, because no API key was
+  available. It hasn't run against Claude or vLLM yet.
+- The live-logs tool reads `.log` files. A Loki or Elasticsearch backend still needs
+  to be added.
 - The in-process Qdrant and BM25 fallbacks run their search math on the event loop. That's
   fine for development, but production should point at real Qdrant and Elasticsearch.
 - The gRPC path has been tested against the local Triton-protocol server, not a real
