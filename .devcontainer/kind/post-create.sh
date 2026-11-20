@@ -10,6 +10,6 @@ curl -fsSLo /tmp/kind.sha256 "https://github.com/kubernetes-sigs/kind/releases/d
 (cd /tmp && echo "$(cut -d' ' -f1 kind.sha256)  kind" | sha256sum -c -)
 sudo install -m 0755 /tmp/kind /usr/local/bin/kind
 pip install --upgrade pip
-pip install torch --index-url https://download.pytorch.org/whl/cpu
+pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
 pip install -r requirements-dev.txt -r model_server/requirements-export.txt
 [ -f .env ] || cp .env.example .env
