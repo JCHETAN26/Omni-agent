@@ -114,7 +114,7 @@ async def test_errors_surface_as_inference_error(triton):
     await dead.close()
 
 
-async def test_event_loop_stays_responsive_under_load(triton):
+async def test_event_loop_stays_responsive_under_load(triton, record_property):
     _, client = triton
     # Production loads tokenizers at startup (Services.build -> warmup) before serving;
     # the first-use load holds the GIL in its worker thread and is not what we measure.
@@ -129,9 +129,12 @@ async def test_event_loop_stays_responsive_under_load(triton):
             lags.append(time.perf_counter() - t0 - 0.005)
 
     tick = asyncio.create_task(ticker())
+    start = time.perf_counter()
     await asyncio.gather(*(client.embed([f"load {i}"] * 4) for i in range(256)))
+    record_property("burst_wall_ms", round((time.perf_counter() - start) * 1000, 2))
     stop.set()
     await tick
+    record_property("event_loop_lag_max_ms", round(max(lags) * 1000, 2))
     assert max(lags) < 0.25, f"event loop blocked for {max(lags) * 1000:.0f} ms"
 
 

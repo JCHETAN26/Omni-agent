@@ -4,6 +4,8 @@ import json
 import pytest
 from fastapi.testclient import TestClient
 
+from backend.core.cache import InMemoryCache
+from backend.core.services import Services
 from backend.main import create_app
 from tests.conftest import load_samples, make_settings
 
@@ -23,6 +25,7 @@ def test_health_reports_fallback_backends(client):
         "rate_limiter": "in-memory",
         "embedder": "hashing-384",
         "inference": "mock",
+        "ranker": "rrf",
     }
     assert body["inference_ready"] is True
     assert body["websocket"]["active"] == 0
@@ -45,6 +48,66 @@ def test_ingest_then_search(client):
 def test_search_before_ingest_returns_no_hits(client):
     r = client.post("/search", json={"query": "anything"})
     assert r.status_code == 200 and r.json()["hits"] == []
+
+
+def test_search_invalidates_cached_empty_results_after_ingest(client):
+    payload = {"query": "PSU redundancy lost"}
+    assert client.post("/search", json=payload).json()["hits"] == []
+    client.post("/ingest", json={"documents": [d.model_dump() for d in load_samples()]})
+    assert client.post("/search", json=payload).json()["hits"]
+
+
+def test_local_indexes_do_not_share_cache_entries_between_workers():
+    shared_cache = InMemoryCache()
+    with (
+        TestClient(create_app(make_settings())) as first,
+        TestClient(create_app(make_settings())) as second,
+    ):
+        for api, suffix in ((first, "one"), (second, "two")):
+            api.app.state.services.cache = shared_cache
+            api.post(
+                "/ingest",
+                json={
+                    "documents": [
+                        {"doc_id": suffix, "title": suffix, "text": "Netdev queue timeout."}
+                    ]
+                },
+            ).raise_for_status()
+        payload = {"query": "Netdev queue timeout"}
+        first_hit = first.post("/search", json=payload).json()["hits"][0]
+        second_hit = second.post("/search", json=payload).json()["hits"][0]
+        assert [hit["chunk"]["doc_id"] for hit in (first_hit, second_hit)] == ["one", "two"]
+
+
+def test_partial_ingest_failure_invalidates_cached_results(client, monkeypatch):
+    payload = {"query": "PSU redundancy lost"}
+    assert client.post("/search", json=payload).json()["hits"] == []
+    processor = client.app.state.services.processor
+    original = processor._dense_branch
+
+    async def store_then_fail(chunks):
+        await original(chunks)
+        raise RuntimeError("late dense acknowledgement failure")
+
+    monkeypatch.setattr(processor, "_dense_branch", store_then_fail)
+    with pytest.raises(RuntimeError, match="late dense acknowledgement"):
+        client.post("/ingest", json={"documents": [d.model_dump() for d in load_samples()]})
+    assert client.post("/search", json=payload).json()["hits"]
+
+
+def test_shared_index_search_bypasses_worker_cache(monkeypatch):
+    build = Services.build
+
+    async def build_test_indexes(_):
+        return await build(make_settings())
+
+    async def unexpected_cache_lookup(_):
+        pytest.fail("a process-local generation can't validate a shared-index cache entry")
+
+    monkeypatch.setattr(Services, "build", build_test_indexes)
+    with TestClient(create_app(make_settings(qdrant_url="http://unused.invalid"))) as api:
+        monkeypatch.setattr(api.app.state.services.cache, "get", unexpected_cache_lookup)
+        assert api.post("/search", json={"query": "netdev timeout"}).status_code == 200
 
 
 def test_search_validation(client):
@@ -84,6 +147,61 @@ def test_sse_honours_traceparent_header(client, spans):
         headers={"traceparent": f"00-{trace_id}-b7ad6b7169203331-01"},
     )
     assert _parse_sse(r.text)[0]["trace_id"] == trace_id
+
+
+@pytest.mark.parametrize("endpoint", ["/sse/stream", "/sse/agent"])
+def test_conflicting_limits_are_cited_on_sse(client, endpoint):
+    client.post(
+        "/ingest",
+        json={
+            "documents": [
+                {
+                    "doc_id": str(value),
+                    "title": f"Runbook {value}",
+                    "text": f"max_connections = {value} for storage-07 in production.",
+                }
+                for value in (100, 256)
+            ]
+        },
+    ).raise_for_status()
+    events = _parse_sse(
+        client.get(
+            endpoint,
+            params={
+                "q": "What's the production connection limit for storage-07?",
+                "top_k": 1,
+            },
+        ).text
+    )
+    end = events[-1]
+    assert end["outcome"] == "abstained"
+    text = "".join(e["text"] for e in events if e["type"] == "response.token")
+    assert hashlib.sha256(text.encode()).hexdigest() == end["sha256"]
+    sources = next(e["sources"] for e in events if e["type"] == "response.sources")
+    assert len(sources) == 2
+    for i, source in enumerate(sources, 1):
+        assert f"`{source['document_title'].split()[-1]}` [{i}]" in text
+
+
+def test_scoped_agent_answer_excludes_other_environments(client):
+    documents = [
+        {
+            "doc_id": stage,
+            "title": f"{stage} storage limits",
+            "text": f"max_connections = {value} for storage-07 in {stage}.",
+        }
+        for stage, value in (("production", 900), ("staging", 75))
+    ]
+    client.post("/ingest", json={"documents": documents}).raise_for_status()
+    result = client.get(
+        "/sse/agent", params={"q": "What is max_connections for storage-07 in staging?"}
+    )
+    events = _parse_sse(result.text)
+    answer = "".join(e["text"] for e in events if e["type"] == "response.token")
+    assert events[-1]["outcome"] == "answered"
+    assert "75" in answer and "900" not in answer
+    sources = next(e["sources"] for e in events if e["type"] == "response.sources")
+    assert {source["doc_id"] for source in sources} == {"staging"}
 
 
 def test_probes_and_prometheus_metrics(client):

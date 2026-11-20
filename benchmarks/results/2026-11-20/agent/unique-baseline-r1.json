@@ -1,0 +1,45 @@
+{
+  "label": "baseline",
+  "workload": "unique",
+  "distinct_questions": 150,
+  "zipf_s": null,
+  "seed": 2026,
+  "backends": {
+    "dense": "qdrant",
+    "sparse": "elasticsearch",
+    "cache": "in-memory",
+    "rate_limiter": "in-memory",
+    "embedder": "sentence-transformers/all-MiniLM-L6-v2",
+    "inference": "mock",
+    "ranker": "rrf"
+  },
+  "levels": [
+    {
+      "clients": 16,
+      "turns": 150,
+      "completed": 150,
+      "errors": {},
+      "error_samples": [],
+      "wall_s": 75.18,
+      "turns_per_s": 1.995,
+      "ttft_ms": {
+        "p50": 7294.44,
+        "p95": 12252.63
+      },
+      "total_ms": {
+        "p50": 7313.97,
+        "p95": 12257.84,
+        "p99": 15616.95
+      },
+      "outcomes": {
+        "answered": 106,
+        "insufficient_context": 42,
+        "abstained": 2
+      },
+      "llm": {
+        "omniagent_llm_tokens_total{type=\"completion\"}": 69916,
+        "omniagent_llm_tokens_total{type=\"prompt\"}": 447877
+      }
+    }
+  ]
+}

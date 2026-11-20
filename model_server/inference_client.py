@@ -4,9 +4,8 @@
 (`tritonclient.grpc.aio`, native asyncio). The FastAPI event loop never runs
 model code:
 * tensor compute happens in Triton (another process or host),
-* tokenisation runs in a worker thread (`asyncio.to_thread`),
-* a semaphore caps in-flight requests so bursts queue in the client instead
-  of overloading the server.
+* tokenisation, padding, and input encoding run in worker threads,
+* a semaphore bounds preparation and in-flight RPCs together.
 
 Sequences are padded to a fixed length bucket (32/64/128/256). Triton's
 dynamic batcher only merges requests whose input shapes match, so bucketing
@@ -29,7 +28,7 @@ import numpy as np
 from opentelemetry.trace import SpanKind, Status, StatusCode
 
 from backend.core import metrics
-from backend.core.config import Settings
+from backend.core.config import DEFAULT_TRITON_MAX_IN_FLIGHT, Settings
 from backend.core.telemetry import get_tracer, inject_carrier
 
 log = logging.getLogger(__name__)
@@ -81,7 +80,7 @@ class TritonInferenceClient:
         embed_tokenizer: str = "sentence-transformers/all-MiniLM-L6-v2",
         rerank_tokenizer: str = "cross-encoder/ms-marco-MiniLM-L-6-v2",
         max_batch_size: int = 64,
-        max_in_flight: int = 128,
+        max_in_flight: int = DEFAULT_TRITON_MAX_IN_FLIGHT,
         timeout_s: float = 10.0,
     ):
         import tritonclient.grpc.aio as grpcclient
@@ -134,92 +133,82 @@ class TritonInferenceClient:
         except Exception:  # noqa: BLE001 - readiness probe must not raise
             return False
 
-    async def _infer(self, model: str, tensors: dict[str, np.ndarray], output: str) -> np.ndarray:
-        batch, seq = next(iter(tensors.values())).shape
-        tracer = get_tracer()
-        with tracer.start_as_current_span(
-            "triton.infer",
-            kind=SpanKind.CLIENT,
-            attributes={
-                "rpc.system": "grpc",
-                "rpc.service": "inference.GRPCInferenceService",
-                "rpc.method": "ModelInfer",
-                "triton.model": model,
-                "triton.batch_size": batch,
-                "triton.seq_len": seq,
-            },
-        ) as span:
-            inputs = []
-            for name, arr in tensors.items():
-                inp = self._grpc.InferInput(name, list(arr.shape), "INT64")
-                inp.set_data_from_numpy(arr)
-                inputs.append(inp)
-            outputs = [self._grpc.InferRequestedOutput(output)]
-            t0 = time.perf_counter()
-            try:
-                async with self._sem:
+    def _prepare_batch(self, tokenizer, texts: Sequence[str], query: str | None):
+        if query is None:
+            encoded = tokenizer(list(texts), truncation=True, max_length=256)
+            names = ("input_ids", "attention_mask")
+        else:
+            encoded = tokenizer([query] * len(texts), list(texts), truncation=True, max_length=256)
+            names = ("input_ids", "attention_mask", "token_type_ids")
+        length = bucket_length(max(map(len, encoded["input_ids"])))
+        inputs = []
+        for name in names:
+            arr = _pad(encoded[name], length)
+            inp = self._grpc.InferInput(name, list(arr.shape), "INT64")
+            inp.set_data_from_numpy(arr)
+            inputs.append(inp)
+        return inputs, length
+
+    async def _infer(
+        self,
+        model: str,
+        tokenizer,
+        texts: Sequence[str],
+        output: str,
+        query: str | None,
+    ) -> np.ndarray:
+        t0 = time.perf_counter()
+        async with self._sem:
+            inputs, length = await asyncio.to_thread(self._prepare_batch, tokenizer, texts, query)
+            tracer = get_tracer()
+            with tracer.start_as_current_span(
+                "triton.infer",
+                kind=SpanKind.CLIENT,
+                attributes={
+                    "triton.model": model,
+                    "triton.batch_size": len(texts),
+                    "triton.seq_len": length,
+                },
+            ) as span:
+                try:
                     result = await self.client.infer(
                         model,
                         inputs,
-                        outputs=outputs,
+                        outputs=[self._grpc.InferRequestedOutput(output)],
                         headers=inject_carrier(),
                         client_timeout=self.timeout_s,
                     )
-            except Exception as exc:
-                metrics.TRITON_ERRORS.labels(model).inc()
-                span.record_exception(exc)
-                span.set_status(Status(StatusCode.ERROR, str(exc)))
-                raise InferenceError(f"{model}: {exc}") from exc
-            elapsed = time.perf_counter() - t0
-            metrics.TRITON_SECONDS.labels(model).observe(elapsed)
-            span.set_attribute("triton.latency_ms", elapsed * 1000)
-            return result.as_numpy(output)
+                except Exception as exc:
+                    metrics.TRITON_ERRORS.labels(model).inc()
+                    span.record_exception(exc)
+                    span.set_status(Status(StatusCode.ERROR, str(exc)))
+                    raise InferenceError(f"{model}: {exc}") from exc
+                elapsed = time.perf_counter() - t0
+                metrics.TRITON_SECONDS.labels(model).observe(elapsed)
+                span.set_attribute("triton.latency_ms", elapsed * 1000)
+                return result.as_numpy(output)
+
+    async def _infer_batches(
+        self, kind: str, model: str, output: str, texts: Sequence[str], query: str | None = None
+    ) -> np.ndarray:
+        tokenizer = await self._tokenizer(kind)
+        batches = await asyncio.gather(
+            *(
+                self._infer(model, tokenizer, texts[i : i + self.max_batch_size], output, query)
+                for i in range(0, len(texts), self.max_batch_size)
+            )
+        )
+        return np.concatenate(batches, axis=0) if len(batches) > 1 else batches[0]
 
     async def embed(self, texts: Sequence[str]) -> np.ndarray:
         if not texts:
             return np.zeros((0, 384), dtype=np.float32)
-        tok = await self._tokenizer("embed")
-        enc = await asyncio.to_thread(tok, list(texts), truncation=True, max_length=256)
-        chunks = []
-        for i in range(0, len(texts), self.max_batch_size):
-            ids = enc["input_ids"][i : i + self.max_batch_size]
-            length = bucket_length(max(len(r) for r in ids))
-            chunks.append(
-                self._infer(
-                    self.embed_model,
-                    {
-                        "input_ids": _pad(ids, length),
-                        "attention_mask": _pad(enc["attention_mask"][i : i + len(ids)], length),
-                    },
-                    "sentence_embedding",
-                )
-            )
-        return np.concatenate(await asyncio.gather(*chunks), axis=0)
+        return await self._infer_batches("embed", self.embed_model, "sentence_embedding", texts)
 
     async def rerank(self, query: str, passages: Sequence[str]) -> list[float]:
         if not passages:
             return []
-        tok = await self._tokenizer("rerank")
-        enc = await asyncio.to_thread(
-            tok, [query] * len(passages), list(passages), truncation=True, max_length=256
-        )
-        chunks = []
-        for i in range(0, len(passages), self.max_batch_size):
-            sl = slice(i, i + self.max_batch_size)
-            ids = enc["input_ids"][sl]
-            length = bucket_length(max(len(r) for r in ids))
-            chunks.append(
-                self._infer(
-                    self.rerank_model,
-                    {
-                        "input_ids": _pad(ids, length),
-                        "attention_mask": _pad(enc["attention_mask"][sl], length),
-                        "token_type_ids": _pad(enc["token_type_ids"][sl], length),
-                    },
-                    "logits",
-                )
-            )
-        logits = np.concatenate(await asyncio.gather(*chunks), axis=0)
+        logits = await self._infer_batches("rerank", self.rerank_model, "logits", passages, query)
         return logits.reshape(-1).astype(float).tolist()
 
     async def close(self) -> None:

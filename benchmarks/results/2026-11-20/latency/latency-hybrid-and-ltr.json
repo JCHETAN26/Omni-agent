@@ -1,0 +1,117 @@
+{
+  "server": "http://127.0.0.1:8200",
+  "requests_per_level": 2000,
+  "levels": [
+    {
+      "path": "/search",
+      "clients": 1,
+      "requests": 2000,
+      "errors": 0,
+      "qps": 24.24,
+      "client_ms": {
+        "p50": 28.7,
+        "p95": 58.29,
+        "p99": 112.93
+      },
+      "server_ms": {
+        "p50": 26.27,
+        "p95": 55.59,
+        "p99": 110.56
+      }
+    },
+    {
+      "path": "/search",
+      "clients": 4,
+      "requests": 2000,
+      "errors": 0,
+      "qps": 42.31,
+      "client_ms": {
+        "p50": 91.67,
+        "p95": 128.18,
+        "p99": 150.8
+      },
+      "server_ms": {
+        "p50": 86.24,
+        "p95": 120.9,
+        "p99": 141.62
+      }
+    },
+    {
+      "path": "/search",
+      "clients": 16,
+      "requests": 2000,
+      "errors": 0,
+      "qps": 39.72,
+      "client_ms": {
+        "p50": 400.9,
+        "p95": 507.68,
+        "p99": 825.97
+      },
+      "server_ms": {
+        "p50": 390.14,
+        "p95": 488.73,
+        "p99": 808.67
+      }
+    },
+    {
+      "path": "/search/ranked",
+      "clients": 1,
+      "requests": 2000,
+      "errors": 0,
+      "qps": 22.12,
+      "client_ms": {
+        "p50": 42.87,
+        "p95": 63.09,
+        "p99": 77.21
+      },
+      "server_ms": {
+        "p50": 40.53,
+        "p95": 60.35,
+        "p99": 74.86
+      }
+    },
+    {
+      "path": "/search/ranked",
+      "clients": 4,
+      "requests": 2000,
+      "errors": 0,
+      "qps": 24.12,
+      "client_ms": {
+        "p50": 162.89,
+        "p95": 213.37,
+        "p99": 240.48
+      },
+      "server_ms": {
+        "p50": 157.67,
+        "p95": 205.79,
+        "p99": 232.66
+      }
+    },
+    {
+      "path": "/search/ranked",
+      "clients": 16,
+      "requests": 2000,
+      "errors": 0,
+      "qps": 22.64,
+      "client_ms": {
+        "p50": 696.85,
+        "p95": 827.94,
+        "p99": 1099.43
+      },
+      "server_ms": {
+        "p50": 669.45,
+        "p95": 798.58,
+        "p99": 1081.83
+      }
+    }
+  ],
+  "backends": {
+    "dense": "faiss-hnsw",
+    "sparse": "elasticsearch",
+    "cache": "in-memory",
+    "rate_limiter": "in-memory",
+    "embedder": "sentence-transformers/all-MiniLM-L6-v2",
+    "inference": "mock",
+    "ranker": "ltr"
+  }
+}

@@ -12,15 +12,12 @@
     generate -> grade_generation --grounded--> finalize -> END
                        '--not grounded (knowledge_base, retries left)--> rewrite_query
 
-* At most `max_retries` rewrites per turn, shared by both loops. When retries run
-  out: on low relevance the answer is generated with an "insufficient context"
-  flag (it abstains), and on failed grounding the turn ends `ungrounded` with a
-  warning to the client.
+* Both loops share the rewrite budget. Exhausted relevance or grounding checks
+  produce deterministic abstentions. Detected conflicts get a cited abstention.
 * Every decision goes through the configured `Reasoner`. If an LLM call fails,
   that single step falls back to the `HeuristicReasoner` and the step event
   records `fallback: true`.
-* Progress, sources and answer tokens are pushed through LangGraph's custom
-  stream (`get_stream_writer`). `runner.py` turns them into WebSocket/SSE events.
+* LangGraph streams progress. The runner releases answer text after finalization.
 * `messages` is the only field that accumulates across turns. It is persisted
   by the checkpointer and keyed by `thread_id`.
 """
@@ -36,13 +33,22 @@ from langgraph.config import get_stream_writer
 from langgraph.graph import END, START, StateGraph
 
 from backend.agent.llm import LLMError
-from backend.agent.reasoning import Generation, HeuristicReasoner, Reasoner, ToolContext
+from backend.agent.reasoning import (
+    Generation,
+    HeuristicReasoner,
+    Reasoner,
+    RelevanceGrade,
+    ToolContext,
+)
 from backend.agent.tools import CalculatorError, LogStore, calculate, extract_expression
 from backend.core.services import Services
 from backend.core.telemetry import get_tracer
 from search.pipeline import retrieve_with_rerank
 
 log = logging.getLogger(__name__)
+
+INSUFFICIENT_ANSWER = "I couldn't find enough information in the knowledge base to answer that."
+UNVERIFIED_ANSWER = "I couldn't verify an answer against the available evidence."
 
 
 class AgentState(TypedDict, total=False):
@@ -54,6 +60,7 @@ class AgentState(TypedDict, total=False):
     tool_argument: str
     passages: list[dict]
     sources: list[dict]
+    conflict: str
     tool_output: str
     answer: str
     abstained: bool
@@ -115,7 +122,12 @@ def _context(state: AgentState) -> ToolContext:
             passages=state.get("passages", []),
             insufficient=not state.get("relevance", {}).get("relevant", False),
         )
-    return ToolContext(tool, text=state.get("tool_output", ""))  # type: ignore[arg-type]
+    output = state.get("tool_output", "")
+    return ToolContext(tool, text=output, insufficient=tool == "live_logs" and not output)
+
+
+async def _discard_delta(_: str) -> None:
+    """Provider deltas are drafts. The final answer is emitted by the runner."""
 
 
 def build_graph(deps: AgentDeps) -> StateGraph:
@@ -139,6 +151,7 @@ def build_graph(deps: AgentDeps) -> StateGraph:
                 "rewrites": [],
                 "passages": [],
                 "sources": [],
+                "conflict": "",
                 "tool_output": "",
                 "answer": "",
                 "abstained": False,
@@ -170,7 +183,13 @@ def build_graph(deps: AgentDeps) -> StateGraph:
         with tracer.start_as_current_span("agent.retrieve") as span:
             s = deps.services
             kb = await retrieve_with_rerank(
-                s.retriever, s.inference, s.settings, state["query"], deps.top_k
+                s.retriever,
+                s.inference,
+                s.settings,
+                state["query"],
+                deps.top_k,
+                evidence_question=state["standalone"],
+                ltr=s.ltr,
             )
             passages = [_passage(h, r) for h, r in zip(kb.hits, kb.rerank_scores, strict=True)]
             span.set_attribute("agent.hits", len(passages))
@@ -181,13 +200,18 @@ def build_graph(deps: AgentDeps) -> StateGraph:
                 hits=[p["section_heading"] for p in passages],
                 reranked=kb.reranked,
             )
-            return {"passages": passages, "sources": kb.sources()}
+            return {"passages": passages, "sources": kb.sources(), "conflict": kb.conflict}
 
     async def grade_documents(state: AgentState) -> dict:
         with tracer.start_as_current_span("agent.grade_documents") as span:
-            grade, fb = await _decide(
-                deps, "grade_relevance", state["standalone"], state.get("passages", [])
-            )
+            passages = state.get("passages", [])
+            fb = False
+            if state.get("conflict"):
+                grade = RelevanceGrade(score=1, relevant=True, reason="matching sources disagree")
+            elif not passages:
+                grade = RelevanceGrade(score=0, relevant=False, reason="no passages retrieved")
+            else:
+                grade, fb = await _decide(deps, "grade_relevance", state["standalone"], passages)
             span.set_attributes({"agent.relevance": grade.score, "agent.relevant": grade.relevant})
             _step(
                 "grade_documents",
@@ -232,22 +256,14 @@ def build_graph(deps: AgentDeps) -> StateGraph:
     async def inspect_logs(state: AgentState) -> dict:
         with tracer.start_as_current_span("agent.inspect_logs"):
             host = state.get("tool_argument", "").strip() or None
-            if host and host not in deps.logs.hosts():
-                host_note = f"No log source named {host}. "
-                host = None
-            else:
-                host_note = ""
             wants_errors = any(w in state["standalone"].lower() for w in ("error", "fail", "warn"))
             lines = deps.logs.search(host=host, min_level="WARN" if wants_errors else None)
+            output = ""
             if lines:
                 where = f" on {host}" if host else ""
-                output = (
-                    host_note
-                    + f"Found {len(lines)} recent log lines{where}:\n"
-                    + "\n".join(ln.render() for ln in lines)
+                output = f"Found {len(lines)} recent log lines{where}:\n" + "\n".join(
+                    ln.render() for ln in lines
                 )
-            else:
-                output = host_note + "I couldn't find matching log lines."
             _step("inspect_logs", host=host, lines=len(lines))
             return {"tool_output": output}
 
@@ -268,39 +284,39 @@ def build_graph(deps: AgentDeps) -> StateGraph:
         with tracer.start_as_current_span("agent.generate") as span:
             attempt = state.get("attempts", 0) + 1
             ctx = _context(state)
-            writer = get_stream_writer()
-
-            async def on_token(text: str) -> None:
-                writer({"kind": "token", "attempt": attempt, "text": text})
-
-            writer(
-                {
-                    "kind": "generation.start",
-                    "attempt": attempt,
-                    "sources": state.get("sources", []) if ctx.kind == "knowledge_base" else [],
-                }
-            )
             history = state.get("messages", [])
             fb = False
-            try:
-                gen: Generation = await deps.reasoner.generate(
-                    state["standalone"], ctx, history, on_token
+            if conflict := state.get("conflict"):
+                gen = Generation(conflict, abstained=True)
+            elif ctx.insufficient:
+                text = (
+                    INSUFFICIENT_ANSWER
+                    if ctx.kind == "knowledge_base"
+                    else ("I couldn't find matching log lines for that request.")
                 )
-            except LLMError as exc:
-                if deps.reasoner is deps.fallback:
-                    raise
-                log.warning("generation failed (%s); regenerating with heuristic fallback", exc)
-                writer(
-                    {
-                        "kind": "generation.discarded",
-                        "attempt": attempt,
-                        "reason": f"generation error: {exc}",
-                    }
+                gen = Generation(text, abstained=True)
+            elif ctx.kind == "direct":
+                # Open-ended generation has no evidence or grounding step on this route.
+                gen = await deps.fallback.generate(
+                    state["standalone"], ctx, history, _discard_delta
                 )
-                attempt += 1
-                writer({"kind": "generation.start", "attempt": attempt, "sources": []})
-                gen = await deps.fallback.generate(state["standalone"], ctx, history, on_token)
-                fb = True
+            else:
+                try:
+                    gen: Generation = await deps.reasoner.generate(
+                        state["standalone"], ctx, history, _discard_delta
+                    )
+                except LLMError as exc:
+                    if deps.reasoner is deps.fallback:
+                        raise
+                    log.warning("generation failed (%s); regenerating with heuristic fallback", exc)
+                    _emit("generation.discarded", attempt=attempt, reason="generation error")
+                    attempt += 1
+                    gen = await deps.fallback.generate(
+                        state["standalone"], ctx, history, _discard_delta
+                    )
+                    fb = True
+                if gen.abstained:
+                    gen = Generation(UNVERIFIED_ANSWER, abstained=True)
             span.set_attribute("agent.attempt", attempt)
             _step(
                 "generate",
@@ -320,7 +336,9 @@ def build_graph(deps: AgentDeps) -> StateGraph:
                     "score": 1.0,
                     "grounded": True,
                     "unsupported_claims": [],
-                    "reason": "answer abstains; nothing to verify",
+                    "reason": "cited sources disagree"
+                    if state.get("conflict")
+                    else "answer abstains",
                 }
                 fb = False
             else:
@@ -328,6 +346,19 @@ def build_graph(deps: AgentDeps) -> StateGraph:
                     deps, "grade_grounding", state["standalone"], state["answer"], ctx
                 )
                 grade = g.model_dump()
+                if (
+                    grade["unsupported_claims"]
+                    or not grade["grounded"]
+                    or grade["score"] < deps.services.settings.agent_grounding_threshold
+                    or not state["answer"].strip()
+                ):
+                    # Grader reasons and claim lists can quote rejected drafts.
+                    grade.update(
+                        score=0.0 if grade["grounded"] else grade["score"],
+                        grounded=False,
+                        unsupported_claims=[],
+                        reason="the answer could not be verified against the evidence",
+                    )
             span.set_attributes(
                 {"agent.grounded": grade["grounded"], "agent.grounding": grade["score"]}
             )
@@ -354,17 +385,13 @@ def build_graph(deps: AgentDeps) -> StateGraph:
             feedback = (
                 ""
                 if grade["grounded"]
-                else (
-                    "previous answer was not supported by the retrieved passages; unsupported: "
-                    + "; ".join(grade["unsupported_claims"][:3])
-                )
+                else "previous answer was not supported by the retrieved evidence"
             )
             return {"grounding": grade, "feedback": feedback}
 
     async def finalize(state: AgentState) -> dict:
-        relevant = state.get("relevance", {}).get("relevant", True)
         grounded = state.get("grounding", {}).get("grounded", True)
-        if state.get("tool") == "knowledge_base" and not relevant:
+        if _context(state).insufficient:
             outcome = "insufficient_context"
         elif not grounded:
             outcome = "ungrounded"
@@ -372,6 +399,7 @@ def build_graph(deps: AgentDeps) -> StateGraph:
             outcome = "abstained"
         else:
             outcome = "answered"
+        answer = state.get("answer", "") if grounded else UNVERIFIED_ANSWER
         _step(
             "finalize",
             outcome=outcome,
@@ -380,11 +408,13 @@ def build_graph(deps: AgentDeps) -> StateGraph:
         )
         return {
             "outcome": outcome,
+            "answer": answer,
+            "abstained": state.get("abstained", False) or not grounded,
             "messages": [
                 {"role": "user", "content": state["question"], "standalone": state["standalone"]},
                 {
                     "role": "assistant",
-                    "content": state.get("answer", ""),
+                    "content": answer,
                     "tool": state.get("tool"),
                     "outcome": outcome,
                 },

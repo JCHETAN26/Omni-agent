@@ -7,6 +7,7 @@ the message is rejected and `retry_after_s` says when it would succeed.
 
 from __future__ import annotations
 
+import asyncio
 import time
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -111,6 +112,8 @@ class RedisTokenBucket:
         self.prefix = prefix
         self.clock = clock
         self._script = client.register_script(_LUA_TOKEN_BUCKET)
+        # A WebSocket burst can otherwise open a Redis connection for each ready reader.
+        self._redis_requests = asyncio.Semaphore(8)
 
     @classmethod
     def from_url(cls, url: str, capacity: float, refill_per_s: float) -> RedisTokenBucket:
@@ -119,10 +122,11 @@ class RedisTokenBucket:
         return cls(redis.from_url(url, decode_responses=True), capacity, refill_per_s)
 
     async def acquire(self, key: str, cost: float = 1.0) -> RateDecision:
-        allowed, remaining, retry = await self._script(
-            keys=[self.prefix + key],
-            args=[self.capacity, self.refill_per_s, self.clock(), cost],
-        )
+        async with self._redis_requests:
+            allowed, remaining, retry = await self._script(
+                keys=[self.prefix + key],
+                args=[self.capacity, self.refill_per_s, self.clock(), cost],
+            )
         return RateDecision(bool(int(allowed)), float(remaining), float(retry))
 
     async def close(self) -> None:

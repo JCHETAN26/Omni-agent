@@ -84,10 +84,18 @@ async def live_server(ingest: bool = True, **overrides):
     import uvicorn
 
     from backend.main import create_app
+    from backend.uvicorn_protocol import PacedHttpToolsProtocol
 
     app = create_app(make_settings(**overrides))
     server = uvicorn.Server(
-        uvicorn.Config(app, host="127.0.0.1", port=0, log_level="warning", lifespan="on")
+        uvicorn.Config(
+            app,
+            host="127.0.0.1",
+            port=0,
+            log_level="warning",
+            lifespan="on",
+            http=PacedHttpToolsProtocol,
+        )
     )
     task = asyncio.create_task(server.serve())
     while not server.started:

@@ -21,6 +21,82 @@ make demo-ui                     # same, plus the UI, and keep everything runnin
 make verify                      # lint, tests, UI typecheck/build, browser e2e, helm lint
 ```
 
+## Architecture
+
+```mermaid
+flowchart LR
+    subgraph Clients
+        UI["React + TypeScript UI"]
+        CLI["omni CLI (Go, Cobra)<br/>connect · sources add · ask"]
+    end
+
+    subgraph Gateway["FastAPI gateway"]
+        WS["/ws/agent · /sse/agent<br/>sessions, replay, rate limits"]
+        ING["POST /ingest"]
+        SRCH["POST /search · /search/ranked"]
+    end
+
+    subgraph Ingestion
+        CHUNK["Chunker"] --> EMB["MiniLM embedder"]
+    end
+
+    subgraph Search["Hybrid search + LTR"]
+        DENSE["Dense ANN<br/>Qdrant or Faiss HNSW"]
+        BM25["BM25<br/>Elasticsearch"]
+        RRF["Reciprocal Rank Fusion"]
+        CE["Cross-encoder rerank<br/>(optional, timeout fallback)"]
+        LTR["PyTorch LTR<br/>15 query-relative features"]
+        DENSE --> RRF
+        BM25 --> RRF
+        RRF --> CE --> LTR
+    end
+
+    subgraph Agent["Agentic RAG (LangGraph)"]
+        ROUTE["Route: knowledge base · logs · calculator"]
+        GRADE["Relevance grader<br/>rewrite and retry"]
+        GEN["Generate, then grounding check"]
+        ROUTE --> GRADE --> GEN
+    end
+
+    subgraph Models
+        TRITON["Triton gRPC<br/>embedder · cross-encoder (ONNX)"]
+        CACHE["LLM cache<br/>exact match + single-flight"]
+        LLM["LLM API<br/>OpenAI · Anthropic · vLLM"]
+        CACHE --> LLM
+    end
+
+    REDIS[("Redis<br/>memory checkpoints · cache")]
+
+    UI --> WS
+    CLI --> WS
+    CLI --> ING
+    ING --> CHUNK
+    EMB --> DENSE
+    CHUNK --> BM25
+    EMB -.-> TRITON
+    SRCH --> RRF
+    WS --> ROUTE
+    GRADE --> RRF
+    CE -.-> TRITON
+    ROUTE --> CACHE
+    GRADE --> CACHE
+    GEN --> CACHE
+    Agent --> REDIS
+```
+
+- **Ingestion:** documents are chunked and embedded, then written to the dense index (Qdrant
+  or Faiss) and to Elasticsearch for BM25.
+- **Search:** both retrievers run in parallel and are fused with RRF. An optional cross-encoder
+  reorders the pool, then a PyTorch learning-to-rank model produces the final order.
+  `/search/ranked` reports per-stage timings.
+- **Agent:** LangGraph routes each question to a tool. For knowledge-base questions it grades
+  the retrieved passages, rewrites the query when they are weak, and checks that the answer is
+  grounded before streaming it.
+- **Models:** every LLM call goes through the cache, which also coalesces identical in-flight
+  requests. Conversation state is checkpointed in Redis.
+- **Developer tooling:** the `omni` CLI (see [cli/README.md](cli/README.md)) also scaffolds new
+  services (`omni new service`) and runs security checks (`omni check`, `omni hooks install`).
+
 ## Layout
 
 ```
@@ -70,7 +146,8 @@ Then:
 pytest -m "not slow"              # fast suite
 pytest                            # + real MiniLM and ONNX parity tests
 python -m scripts.demo_phase1     # ingest samples + run hybrid searches
-uvicorn backend.main:app --reload # API on :8000, docs at /docs
+uvicorn backend.main:server_app --factory --reload \
+  --http backend.uvicorn_protocol:PacedHttpToolsProtocol
 ```
 
 To serve the real models over gRPC:
@@ -80,7 +157,8 @@ pip install -r model_server/requirements-export.txt
 python -m model_server.export_onnx          # writes model_repository/*/1/model.onnx (~87 MB each)
 python -m model_server.local_triton --port 8001
 INFERENCE_BACKEND=triton EMBEDDING_PROVIDER=triton RERANK_ENABLED=true \
-  uvicorn backend.main:app
+  uvicorn backend.main:server_app --factory \
+  --http backend.uvicorn_protocol:PacedHttpToolsProtocol
 ```
 
 ## Services, with no Docker required
@@ -196,6 +274,10 @@ For GPU serving, change `instance_group.kind` to `KIND_GPU`.
 
 ## Agent (LangGraph)
 
+For a terminal client, see the [`omni` CLI](cli/README.md) (Go, Cobra). Besides
+connecting to a gateway, ingesting a Markdown directory and asking follow-ups on
+the same thread, it scaffolds new services and runs security checks.
+
 `/ws/agent` (and `/sse/agent`) answer through a LangGraph workflow
 (`backend/agent/workflow.py`):
 
@@ -217,11 +299,15 @@ generate → grade_generation ─grounded→ finalize → END
   code), or a direct reply.
 - **grade_documents** checks whether the passages can answer the question. If not, the
   agent rewrites the query and retrieves again.
+- Retrieval reserves space for high-signal identifiers and can preserve the strongest
+  sparse hit from the fused context when reranking a broad query. Matching explicit
+  settings that disagree for the same known scope produce a cited abstention.
 - **grade_generation** checks every claim in the answer against the sources. An
   ungrounded answer is discarded (`agent.generation.discarded`), and the agent rewrites
   the query, retrieves again and regenerates.
 - Both loops share `AGENT_MAX_RETRIES` (default 2). When retries run out, the agent
-  abstains (`insufficient_context`) or ends `ungrounded` with an `agent.warning`.
+  sends a fixed abstention for missing evidence (`insufficient_context`) or a failed
+  grounding check (`ungrounded`).
 
 **Reasoners.** `LLM_PROVIDER=anthropic` uses Claude (`claude-opus-5-5` by default):
 structured JSON outputs for decisions, streamed answers, effort set per step, and
@@ -236,7 +322,8 @@ that single step falls back to the heuristic, and the step event says
 decision), `response.sources` and `response.token` (each carrying `attempt`),
 `agent.generation.discarded`, `agent.warning`, and `response.end` with `outcome`, `tool`,
 `retries`, `rewrites`, `relevance` and `grounding`. The token count and SHA-256 in
-`response.end` cover the final attempt.
+`response.end` cover the final attempt. Clients receive progress during grading and
+receive answer tokens only after grading and thread-lease verification.
 
 **Memory.** Conversations are LangGraph threads. Connect to `/ws/agent` to start one
 (`thread_id` comes back in `session.created`), or connect to
@@ -258,8 +345,8 @@ LLM unless you pass `--llm anthropic`.
 `frontend/` is a single-page app that talks to `/ws/agent` or `/ws/stream` on its own
 origin, so it works behind any Ingress or proxy.
 
-- **Chat:** answers stream token by token. When the agent self-corrects, the discarded
-  attempts stay visible but struck through.
+- **Chat:** verified answers stream token by token after grading. When the agent
+  self-corrects, the chat shows why the earlier attempt was discarded.
 - **Inspector:** the tool routing decision, retrieval relevance scores for each
   retrieval attempt, the query rewrites, grounding badges, the reasoning timeline, time
   to first token, token rate, latency and trace id. It also shows connection health and
@@ -355,9 +442,8 @@ curl -N 'localhost:8000/sse/stream?q=EIO-5+controller+timeout'
 
 ## Known limitations
 
-- The search cache key is invalidated by an in-process counter on each ingest. With Redis
-  and several API workers, other workers can serve stale cached results until the TTL
-  expires.
+- Search result caching applies to process-local indexes and is bypassed for shared
+  indexes. Dense and sparse writes can become visible at different times during ingestion.
 - Ingestion is a synchronous request, with no background job queue yet.
 - `/ws/stream` and `/sse/stream` still stream extractive placeholder answers. Generated
   answers come from `/ws/agent` with an LLM provider configured. Audio isn't

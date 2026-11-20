@@ -982,6 +982,33 @@ data:
                 "type": "prometheus",
                 "uid": "${datasource}"
               }
+            },
+            {
+              "refId": "D",
+              "expr": "sum by (reason) (rate(omniagent_ltr_skipped_total{namespace=~\"$namespace\"}[5m]))",
+              "legendFormat": "LTR skipped: {{reason}}",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              }
+            },
+            {
+              "refId": "E",
+              "expr": "sum by (outcome) (rate(omniagent_llm_cache_total{namespace=~\"$namespace\"}[5m]))",
+              "legendFormat": "LLM cache: {{outcome}}",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              }
+            },
+            {
+              "refId": "F",
+              "expr": "sum by (type) (rate(omniagent_llm_tokens_total{namespace=~\"$namespace\"}[5m]))",
+              "legendFormat": "LLM tokens / s: {{type}}",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              }
             }
           ]
         }

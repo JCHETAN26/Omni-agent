@@ -1,0 +1,13 @@
+IMAGE ?= [[.Name]]:dev
+
+.PHONY: run test build image check
+run:
+	go run .
+test:
+	go test -race ./...
+build:
+	CGO_ENABLED=0 go build -trimpath -o bin/[[.Name]] .
+image:
+	docker build -t $(IMAGE) .
+check:
+	omni check .

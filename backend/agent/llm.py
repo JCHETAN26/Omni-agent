@@ -78,6 +78,10 @@ def chat_model_from_settings(s: Settings) -> ChatModel | None:
         if not s.llm_model:
             raise ValueError("LLM_PROVIDER=openai requires LLM_MODEL")
         return OpenAICompatibleChatModel(
-            s.llm_base_url, s.llm_api_key or s.openai_api_key, s.llm_model, s.llm_timeout_s
+            s.llm_base_url,
+            s.llm_api_key or s.openai_api_key,
+            s.llm_model,
+            s.llm_timeout_s,
+            s.llm_temperature,
         )
     return None

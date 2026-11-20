@@ -2,12 +2,19 @@
 
 from __future__ import annotations
 
+import uuid
 from dataclasses import dataclass, field
+from pathlib import Path
 
 from backend.core.cache import Cache, cache_from_settings
 from backend.core.config import Settings
 from backend.core.rate_limit import RateLimiter, rate_limiter_from_settings
-from backend.core.stores import QdrantDenseStore, SparseIndex, sparse_index_from_settings
+from backend.core.stores import (
+    DenseStore,
+    SparseIndex,
+    dense_store_from_settings,
+    sparse_index_from_settings,
+)
 from backend.ingestion.embedder import Embedder, embedder_from_settings
 from backend.ingestion.processor import IngestionProcessor
 from model_server.inference_client import (
@@ -16,20 +23,24 @@ from model_server.inference_client import (
     inference_client_from_settings,
 )
 from search.hybrid_retriever import HybridRetriever
+from search.ltr import LtrModel
 
 
 @dataclass
 class Services:
     settings: Settings
     embedder: Embedder
-    dense: QdrantDenseStore
+    dense: DenseStore
     sparse: SparseIndex
     cache: Cache
     inference: InferenceClient
     rate_limiter: RateLimiter
     processor: IngestionProcessor
     retriever: HybridRetriever
+    ltr: LtrModel | None = None  # learning-to-rank stage; None disables it
     index_version: int = 0  # bumped on ingest to invalidate cached searches
+    index_writes: int = 0
+    search_cache_namespace: str = field(default_factory=lambda: uuid.uuid4().hex)
     backends: dict[str, str] = field(default_factory=dict)
 
     @classmethod
@@ -43,7 +54,7 @@ class Services:
         )
         if s.embedding_provider == "sentence-transformers":
             await embedder.embed(["warm-up"])  # load model weights before serving traffic
-        dense = QdrantDenseStore.from_settings(s)
+        dense = dense_store_from_settings(s)
         sparse = sparse_index_from_settings(s)
         services = cls(
             settings=s,
@@ -55,14 +66,26 @@ class Services:
             rate_limiter=rate_limiter_from_settings(s),
             processor=IngestionProcessor(embedder, dense, sparse, s.chunk_size, s.chunk_overlap),
             retriever=HybridRetriever(embedder, dense, sparse, s.rrf_k, s.retrieval_candidates),
+            ltr=LtrModel.load(Path(s.ltr_model_path)) if s.ltr_model_path else None,
         )
+        if services.ltr is not None and services.ltr.uses_ce and not s.rerank_enabled:
+            raise ValueError("LTR_MODEL_PATH needs cross-encoder scores; set RERANK_ENABLED=true")
         services.backends = {
-            "dense": "qdrant" if s.qdrant_url else "qdrant-in-memory",
+            "dense": (
+                "faiss-hnsw"
+                if s.dense_backend == "faiss"
+                else ("qdrant" if s.qdrant_url else "qdrant-in-memory")
+            ),
             "sparse": "elasticsearch" if s.elasticsearch_url else "bm25-in-memory",
             "cache": "redis" if s.redis_url else "in-memory",
             "rate_limiter": "redis" if s.redis_url else "in-memory",
             "embedder": embedder.name,
             "inference": inference.name,
+            "ranker": (
+                ("ltr+cross-encoder" if services.ltr.uses_ce else "ltr")
+                if services.ltr is not None
+                else ("cross-encoder" if s.rerank_enabled else "rrf")
+            ),
         }
         return services
 

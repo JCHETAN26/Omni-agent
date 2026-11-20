@@ -27,9 +27,10 @@ class SentenceTransformerEmbedder:
     event loop stays free while PyTorch is busy.
     """
 
-    def __init__(self, model_name: str, batch_size: int = 64):
+    def __init__(self, model_name: str, batch_size: int = 64, device: str | None = None):
         self.name = model_name
         self.batch_size = batch_size
+        self.device = device  # None lets sentence-transformers pick (cuda > mps > cpu)
         self._model = None
         self._lock = asyncio.Lock()
 
@@ -38,7 +39,9 @@ class SentenceTransformerEmbedder:
             if self._model is None:
                 from sentence_transformers import SentenceTransformer
 
-                self._model = await asyncio.to_thread(SentenceTransformer, self.name)
+                self._model = await asyncio.to_thread(
+                    SentenceTransformer, self.name, device=self.device
+                )
         return self._model
 
     async def embed(self, texts: list[str]) -> list[list[float]]:
@@ -103,4 +106,4 @@ def embedder_from_settings(settings: Settings) -> Embedder:
         return OpenAIEmbedder(settings.openai_api_key, settings.openai_embedding_model)
     if settings.embedding_provider == "hashing":
         return HashingEmbedder()
-    return SentenceTransformerEmbedder(settings.embedding_model)
+    return SentenceTransformerEmbedder(settings.embedding_model, device=settings.embedding_device)

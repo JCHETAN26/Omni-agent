@@ -9,3 +9,4 @@ dist/
 .DS_Store
 # Exported models: regenerate with `python -m model_server.export_onnx`
 model_server/model_repository/*/1/*.onnx
+cli/bin/

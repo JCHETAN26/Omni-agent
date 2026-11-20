@@ -19,7 +19,7 @@ from collections.abc import Sequence
 from pydantic import BaseModel
 
 from backend.core.models import Chunk, SearchHit
-from backend.core.stores import QdrantDenseStore, SparseIndex
+from backend.core.stores import DenseStore, SparseIndex
 from backend.ingestion.embedder import Embedder
 
 log = logging.getLogger(__name__)
@@ -65,7 +65,7 @@ class HybridRetriever:
     def __init__(
         self,
         embedder: Embedder,
-        dense: QdrantDenseStore,
+        dense: DenseStore,
         sparse: SparseIndex,
         rrf_k: int = DEFAULT_RRF_K,
         candidates: int = 50,
@@ -101,12 +101,16 @@ class HybridRetriever:
         chunks = {c.chunk_id: c for c, _ in sparse_hits} | {c.chunk_id: c for c, _ in dense_hits}
         dense_rank = {cid: i for i, cid in enumerate(dense_ids, start=1)}
         sparse_rank = {cid: i for i, cid in enumerate(sparse_ids, start=1)}
+        dense_score = {c.chunk_id: score for c, score in dense_hits}
+        sparse_score = {c.chunk_id: score for c, score in sparse_hits}
         hits = [
             SearchHit(
                 chunk=chunks[cid],
                 score=score,
                 dense_rank=dense_rank.get(cid),
                 sparse_rank=sparse_rank.get(cid),
+                dense_score=dense_score.get(cid),
+                sparse_score=sparse_score.get(cid),
             )
             for cid, score in fused
         ]

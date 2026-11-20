@@ -27,3 +27,5 @@ class SearchHit(BaseModel):
     score: float
     dense_rank: int | None = None  # 1-based rank in the dense list, None if absent
     sparse_rank: int | None = None  # 1-based rank in the BM25 list, None if absent
+    dense_score: float | None = None  # cosine similarity from the dense store
+    sparse_score: float | None = None  # raw BM25 score from the sparse index

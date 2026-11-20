@@ -1,0 +1,50 @@
+{
+  "label": "cache",
+  "workload": "storm",
+  "distinct_questions": 36,
+  "zipf_s": 1.1,
+  "seed": 2026,
+  "backends": {
+    "dense": "qdrant",
+    "sparse": "elasticsearch",
+    "cache": "in-memory",
+    "rate_limiter": "in-memory",
+    "embedder": "sentence-transformers/all-MiniLM-L6-v2",
+    "inference": "mock",
+    "ranker": "rrf"
+  },
+  "levels": [
+    {
+      "clients": 16,
+      "turns": 300,
+      "completed": 300,
+      "errors": {},
+      "error_samples": [],
+      "wall_s": 45.04,
+      "turns_per_s": 6.661,
+      "ttft_ms": {
+        "p50": 500.93,
+        "p95": 9226.73
+      },
+      "total_ms": {
+        "p50": 565.22,
+        "p95": 9249.65,
+        "p99": 12175.38
+      },
+      "outcomes": {
+        "insufficient_context": 80,
+        "answered": 220
+      },
+      "llm": {
+        "omniagent_llm_cache_total{kind=\"json\",outcome=\"coalesced\"}": 94,
+        "omniagent_llm_cache_total{kind=\"json\",outcome=\"hit\"}": 974,
+        "omniagent_llm_cache_total{kind=\"json\",outcome=\"miss\"}": 154,
+        "omniagent_llm_cache_total{kind=\"stream\",outcome=\"coalesced\"}": 19,
+        "omniagent_llm_cache_total{kind=\"stream\",outcome=\"hit\"}": 174,
+        "omniagent_llm_cache_total{kind=\"stream\",outcome=\"miss\"}": 24,
+        "omniagent_llm_tokens_total{type=\"completion\"}": 16506,
+        "omniagent_llm_tokens_total{type=\"prompt\"}": 106238
+      }
+    }
+  ]
+}

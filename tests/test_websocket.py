@@ -220,6 +220,24 @@ async def test_oversized_message_closes_with_1009():
             assert info.value.rcvd.code == 1009
 
 
+async def test_upgrade_traceparent_parents_the_single_session_span(spans):
+    trace_id = "4bf92f3577b34da6a3ce929d0e0e4736"
+    parent_id = "00f067aa0ba902b7"
+    async with live_server(ingest=False) as (ws_url, _, _):
+        async with connect(
+            ws_url, additional_headers={"traceparent": f"00-{trace_id}-{parent_id}-01"}
+        ) as ws:
+            assert (await recv(ws))["type"] == "session.created"
+
+    trace_spans = [
+        span for span in spans.get_finished_spans() if f"{span.context.trace_id:032x}" == trace_id
+    ]
+    assert [span.name for span in trace_spans] == ["ws.session"]
+    session = trace_spans[0]
+    assert f"{session.parent.span_id:016x}" == parent_id
+    assert session.attributes["http.route"] == "/ws/stream"
+
+
 async def test_traceparent_in_frame_propagates_to_server_spans(spans):
     trace_id = "4bf92f3577b34da6a3ce929d0e0e4736"
     traceparent = f"00-{trace_id}-00f067aa0ba902b7-01"

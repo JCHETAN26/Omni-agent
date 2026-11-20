@@ -1,0 +1,14 @@
+IMAGE ?= [[.Name]]:dev
+PY ?= .venv/bin/python
+
+.PHONY: venv run test image check
+venv:
+	python3 -m venv .venv && $(PY) -m pip install -q -r requirements-dev.txt
+run:
+	$(PY) -m uvicorn app.main:app --reload --port [[.Port]]
+test:
+	$(PY) -m pytest -q
+image:
+	docker build -t $(IMAGE) .
+check:
+	omni check .

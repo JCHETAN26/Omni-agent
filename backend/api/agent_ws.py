@@ -41,7 +41,7 @@ async def ws_agent(ws: WebSocket, thread_id: str | None = None) -> None:
         await ws.close(code=CLOSE_POLICY, reason="invalid thread_id")
         return
     thread = thread_id or uuid.uuid4().hex
-    history = await agent.history(thread)
+    history = await agent.history(thread) if thread_id is not None else []
 
     async def on_open(session: Session) -> None:
         if history:

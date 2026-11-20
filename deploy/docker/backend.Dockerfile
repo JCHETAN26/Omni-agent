@@ -40,6 +40,7 @@ ENV HF_HUB_OFFLINE=1 \
     TMPDIR=/tmp
 
 EXPOSE 8000
-CMD ["uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8000", \
+CMD ["uvicorn", "backend.main:server_app", "--factory", "--host", "0.0.0.0", "--port", "8000", \
+     "--http", "backend.uvicorn_protocol:PacedHttpToolsProtocol", \
      "--proxy-headers", "--forwarded-allow-ips", "*", "--ws-max-size", "1048576", \
      "--timeout-graceful-shutdown", "20"]

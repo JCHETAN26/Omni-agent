@@ -140,6 +140,7 @@ async def stream_answer(
                 query,
                 top_k,
                 request_id,
+                ltr=services.ltr,
             )
             hits = kb.hits
             await emit(
@@ -155,7 +156,7 @@ async def stream_answer(
 
             tokens = TokenEmitter(emit, request_id)
             first_token_ms = None
-            for token in _TOKEN_RE.findall(compose_answer(hits)):
+            for token in _TOKEN_RE.findall(kb.conflict or compose_answer(hits)):
                 if first_token_ms is None:
                     first_token_ms = round((time.perf_counter() - t0) * 1000, 2)
                 await tokens(token)
@@ -167,6 +168,13 @@ async def stream_answer(
                     "sha256": tokens.sha256,
                     "first_token_ms": first_token_ms,
                     "latency_ms": _observe_turn(t0, first_token_ms),
+                    **(
+                        {"outcome": "abstained"}
+                        if kb.conflict
+                        else {"outcome": "insufficient_context"}
+                        if not hits
+                        else {}
+                    ),
                 }
             )
         except Exception as exc:

@@ -12,10 +12,19 @@ from collections.abc import AsyncIterator
 import httpx
 
 from backend.agent.llm import Effort, LLMError, Message, T, strict_json_schema
+from backend.core import metrics
 
 
 class OpenAICompatibleChatModel:
-    def __init__(self, base_url: str, api_key: str | None, model: str, timeout_s: float = 60.0):
+    def __init__(
+        self,
+        base_url: str,
+        api_key: str | None,
+        model: str,
+        timeout_s: float = 60.0,
+        temperature: float | None = 0.0,
+    ):
+        self.temperature = temperature  # None for reasoning models, which reject it
         headers = {"Authorization": f"Bearer {api_key}"} if api_key else {}
         self.client = httpx.AsyncClient(
             base_url=base_url.rstrip("/"), headers=headers, timeout=timeout_s
@@ -37,11 +46,14 @@ class OpenAICompatibleChatModel:
                     "strict": True,
                 },
             },
+            **self._sampling(),
         }
         try:
             r = await self.client.post("/chat/completions", json=body)
             r.raise_for_status()
-            choice = r.json()["choices"][0]
+            payload = r.json()
+            choice = payload["choices"][0]
+            _count_usage(payload.get("usage"))
         except (httpx.HTTPError, KeyError, IndexError, ValueError) as exc:
             raise LLMError(f"chat completion failed: {exc}") from exc
         if choice.get("finish_reason") == "length":
@@ -58,6 +70,8 @@ class OpenAICompatibleChatModel:
             "model": self.model,
             "messages": [{"role": "system", "content": system}, *messages],
             "stream": True,
+            "stream_options": {"include_usage": True},
+            **self._sampling(),
         }
         try:
             async with self.client.stream("POST", "/chat/completions", json=body) as r:
@@ -68,11 +82,24 @@ class OpenAICompatibleChatModel:
                     data = line[5:].strip()
                     if data == "[DONE]":
                         break
-                    delta = json.loads(data)["choices"][0].get("delta", {}).get("content")
+                    event = json.loads(data)
+                    _count_usage(event.get("usage"))
+                    if not event.get("choices"):
+                        continue  # the final usage-only event
+                    delta = event["choices"][0].get("delta", {}).get("content")
                     if delta:
                         yield delta
         except (httpx.HTTPError, KeyError, IndexError, ValueError) as exc:
             raise LLMError(f"chat stream failed: {exc}") from exc
 
+    def _sampling(self) -> dict:
+        return {} if self.temperature is None else {"temperature": self.temperature}
+
     async def close(self) -> None:
         await self.client.aclose()
+
+
+def _count_usage(usage: dict | None) -> None:
+    if usage:
+        metrics.LLM_TOKENS.labels("prompt").inc(usage.get("prompt_tokens") or 0)
+        metrics.LLM_TOKENS.labels("completion").inc(usage.get("completion_tokens") or 0)

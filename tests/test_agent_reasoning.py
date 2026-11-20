@@ -61,6 +61,14 @@ async def test_heuristic_contextualizes_follow_ups_only():
     assert await h.contextualize("which firmware fixes it?", []) == "which firmware fixes it?"
 
 
+async def test_runbook_followup_with_new_host_carries_setting_without_old_host():
+    question = "and on storage-08?"
+    history = [{"role": "user", "content": "What is max_connections on storage-07?"}]
+    standalone = await HeuristicReasoner().contextualize(question, history)
+    assert "max_connections" in standalone and "storage-08" in standalone
+    assert "storage-07" not in standalone and "07" not in standalone
+
+
 @pytest.mark.parametrize(
     "question,tool,argument",
     [
@@ -210,7 +218,7 @@ async def test_llm_reasoner_contextualize_skips_llm_without_history():
     assert "EIO-5 errors?" in model.calls[0][2][0]["content"]
 
 
-async def test_llm_reasoner_streams_generation_with_history_and_context():
+async def test_llm_reasoner_streams_generation_from_current_evidence():
     model = FakeModel(stream_reply="I couldn't find the keystore procedure.")
     r = LLMReasoner(model, history_messages=2)
     history = [
@@ -226,5 +234,51 @@ async def test_llm_reasoner_streams_generation_with_history_and_context():
     )
     assert gen.abstained
     _, _, messages = model.calls[0]
-    assert messages[0] == {"role": "user", "content": "u1"}  # extra keys stripped, starts with user
+    assert len(messages) == 1 and messages[0]["role"] == "user"
     assert "did not find clearly relevant" in messages[-1]["content"]
+
+
+class _StreamingModel:
+    name = "fake"
+
+    def __init__(self, text):
+        self.text = text
+
+    async def complete_json(self, *a, **k):
+        raise AssertionError("not used")
+
+    async def stream_text(self, system, messages, effort="medium"):
+        for word in self.text.split(" "):
+            yield word + " "
+
+    async def close(self):
+        pass
+
+
+@pytest.mark.parametrize(
+    "text,abstained",
+    [
+        # Real models hedge before a cited, useful answer: that is an answer.
+        ("I couldn't find a single command for this. However, run tar over ssh [2].", False),
+        ("I couldn't find anything about the flux capacitor in the knowledge base.", True),
+        ("I couldn't find it; see [9].", True),  # a citation outside the passages is not evidence
+        ("Run tar over ssh [1].", False),
+    ],
+)
+async def test_llm_abstention_requires_no_valid_citation(text, abstained):
+    from backend.agent.reasoning import LLMReasoner, ToolContext
+
+    passages = [
+        {"chunk_id": str(i), "document_title": "t", "section_heading": "s", "text": "x"}
+        for i in range(3)
+    ]
+    out: list[str] = []
+
+    async def on_token(delta):
+        out.append(delta)
+
+    gen = await LLMReasoner(_StreamingModel(text)).generate(
+        "q", ToolContext("knowledge_base", passages), [], on_token
+    )
+    assert gen.abstained is abstained
+    assert "".join(out).strip() == text

@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: [[.Name]]
+  labels: {app: [[.Name]]}
+spec:
+  replicas: 2
+  selector:
+    matchLabels: {app: [[.Name]]}
+  template:
+    metadata:
+      labels: {app: [[.Name]]}
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile: {type: RuntimeDefault}
+      terminationGracePeriodSeconds: 30
+      volumes: [{name: tmp, emptyDir: {}}]
+      containers:
+        - name: [[.Name]]
+          image: [[.Name]]:0.1.0
+          ports: [{containerPort: [[.Port]]}]
+          readinessProbe:
+            httpGet: {path: /readyz, port: [[.Port]]}
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: {path: /healthz, port: [[.Port]]}
+            periodSeconds: 10
+          resources:
+            requests: {cpu: 50m, memory: 96Mi}
+            limits: {memory: 256Mi}
+          volumeMounts: [{name: tmp, mountPath: /tmp}]
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: {drop: [ALL]}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: [[.Name]]
+spec:
+  selector: {app: [[.Name]]}
+  ports: [{port: 80, targetPort: [[.Port]]}]

@@ -2,7 +2,7 @@
 PY ?= .venv/bin/python
 FE := frontend
 
-.PHONY: help install test lint fe-check e2e demo demo-ui export-models helm-lint manifests images verify
+.PHONY: help install test lint fe-check e2e demo demo-ui export-models helm-lint manifests images cli cli-test security verify
 
 help:  ## List targets
 	@grep -E '^[a-z-]+:.*##' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  %-14s %s\n", $$1, $$2}'
@@ -40,8 +40,17 @@ helm-lint:  ## Lint the Helm chart (default + production-style values)
 manifests:  ## Regenerate deploy/kubernetes/manifests from the chart
 	deploy/kubernetes/render.sh
 
+cli:  ## Build the Go omni CLI into cli/bin/omni
+	cd cli && go build -trimpath -ldflags "-X github.com/JCHETAN26/Omni-agent/cli/internal/cmd.Version=$$(git describe --always --dirty)" -o bin/omni ./cmd/omni
+
+cli-test:  ## Go CLI: vet, gofmt, tests
+	cd cli && go vet ./... && test -z "$$(gofmt -l .)" && go test ./...
+
+security: cli  ## omni check on this repo (secrets, Dockerfile, Kubernetes, deps)
+	cli/bin/omni check --fast .
+
 images:  ## Build container images (needs a running Docker daemon)
 	docker build -f deploy/docker/backend.Dockerfile -t omniagent-backend:dev .
 	docker build -t omniagent-frontend:dev $(FE)
 
-verify: lint test fe-check e2e helm-lint  ## Everything CI would run
+verify: lint test cli-test security fe-check e2e helm-lint  ## Everything CI would run

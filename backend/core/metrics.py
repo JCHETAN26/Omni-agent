@@ -40,6 +40,13 @@ TTFT_SECONDS = Histogram(
 RERANK_SKIPPED = Counter(
     "omniagent_rerank_skipped_total", "Rerank fallbacks to RRF order", ["reason"]
 )
+LLM_CACHE = Counter(
+    "omniagent_llm_cache_total",
+    "LLM calls by cache outcome (hit, miss, coalesced)",
+    ["kind", "outcome"],
+)
+LLM_TOKENS = Counter("omniagent_llm_tokens_total", "LLM tokens reported by the provider", ["type"])
+LTR_SKIPPED = Counter("omniagent_ltr_skipped_total", "Learning-to-rank stages skipped", ["reason"])
 TRITON_SECONDS = Histogram(
     "omniagent_triton_request_seconds",
     "Triton gRPC inference latency",

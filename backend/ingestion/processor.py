@@ -13,7 +13,7 @@ import time
 from pydantic import BaseModel
 
 from backend.core.models import Chunk, Document
-from backend.core.stores import QdrantDenseStore, SparseIndex
+from backend.core.stores import DenseStore, SparseIndex
 from backend.ingestion.chunker import chunk_document
 from backend.ingestion.embedder import Embedder
 
@@ -34,7 +34,7 @@ class IngestionProcessor:
     def __init__(
         self,
         embedder: Embedder,
-        dense: QdrantDenseStore,
+        dense: DenseStore,
         sparse: SparseIndex,
         chunk_size: int = 800,
         chunk_overlap: int = 120,
@@ -87,9 +87,17 @@ class IngestionProcessor:
                 total_ms=chunk_ms,
             )
 
-        (dim, dense_ms), sparse_ms = await asyncio.gather(
-            self._dense_branch(chunks), self._sparse_branch(chunks)
+        dense_result, sparse_result = await asyncio.gather(
+            self._dense_branch(chunks), self._sparse_branch(chunks), return_exceptions=True
         )
+        # A failed branch may leave visible writes. Let both finish before the API
+        # allows its search cache to be populated again.
+        if isinstance(dense_result, BaseException):
+            raise dense_result
+        if isinstance(sparse_result, BaseException):
+            raise sparse_result
+        dim, dense_ms = dense_result
+        sparse_ms = sparse_result
         report = IngestReport(
             documents=len(documents),
             chunks=len(chunks),

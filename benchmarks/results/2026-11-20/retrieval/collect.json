@@ -1,0 +1,8 @@
+{
+  "queries": 13145,
+  "candidates": 100,
+  "pool": 50,
+  "wall_s": 436.7838526840005,
+  "retrieval_ms_p50": 101.12,
+  "ce_ms_p50": null
+}

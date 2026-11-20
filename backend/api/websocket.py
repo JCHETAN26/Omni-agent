@@ -35,6 +35,8 @@ from dataclasses import dataclass, field
 
 import anyio
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
+from opentelemetry import context as otel_context
+from opentelemetry import propagate
 from opentelemetry.trace import SpanKind
 from starlette.websockets import WebSocketState
 
@@ -174,7 +176,10 @@ async def serve_session(
     session.handle_query = handle_query
     tracer = get_tracer()
     with tracer.start_as_current_span(
-        "ws.session", kind=SpanKind.SERVER, attributes={"ws.session_id": session.id}
+        "ws.session",
+        context=propagate.extract(ws.headers, context=otel_context.get_current()),
+        kind=SpanKind.SERVER,
+        attributes={"http.route": endpoint, "ws.session_id": session.id},
     ) as span:
         session.span = span
         log.info("ws session opened", extra={"session_id": session.id})
