@@ -57,3 +57,15 @@ TRITON_ERRORS = Counter("omniagent_triton_errors_total", "Failed Triton inferenc
 LOOP_LAG = Gauge(
     "omniagent_event_loop_lag_max_seconds", "Max event-loop lag over the recent window"
 )
+
+FRAMES = Counter(
+    "omniagent_frames_total",
+    "Live frames handled on /ws/frames",
+    ["outcome"],  # classified | unavailable | invalid
+)
+FRAME_SECONDS = Histogram(
+    "omniagent_frame_seconds",
+    "Server time per frame on /ws/frames, by stage",
+    ["stage"],  # preprocess | infer | total
+    buckets=(0.002, 0.005, 0.01, 0.025, 0.05, 0.1, 0.2, 0.4, 0.8, 1.6, 3.2),
+)

@@ -171,6 +171,7 @@ def test_optional_features_render():
     [
         (["triton.enabled=true"], "triton.image.tag is required"),
         (["config.inferenceBackend=triton"], "requires triton.enabled"),
+        (["config.visionBackend=triton"], "requires triton.enabled"),
     ],
 )
 def test_misconfiguration_fails_fast(sets, message):
@@ -197,3 +198,33 @@ def test_committed_manifests_match_the_chart():
     rendered = render()
     committed = [d for d in yaml.safe_load_all(MANIFESTS.read_text()) if d]
     assert committed == rendered, "run deploy/kubernetes/render.sh"
+
+
+def test_triton_with_baked_models_runs_hardened_without_a_pvc():
+    docs = render(
+        "triton.enabled=true",
+        "triton.image.repository=omniagent-triton",
+        "triton.image.tag=dev",
+        "config.visionBackend=triton",
+    )
+    spec = by_kind(docs, "Deployment")["omniagent-triton"]["spec"]["template"]["spec"]
+    assert {v["name"] for v in spec["volumes"]} == {"shm", "tmp"}
+    container = spec["containers"][0]
+    assert container["securityContext"]["readOnlyRootFilesystem"] is True
+    assert spec["securityContext"]["runAsNonRoot"] is True
+    config = by_kind(docs, "ConfigMap")["omniagent-config"]["data"]
+    assert (
+        config["VISION_BACKEND"] == "triton"
+        and config["TRITON_GRPC_URL"] == "omniagent-triton:8001"
+    )
+    policies = by_kind(docs, "NetworkPolicy")
+    assert policies["omniagent-triton"]["spec"]["ingress"][0]["ports"][0]["port"] == 8001
+
+
+def test_qdrant_root_filesystem_is_read_only():
+    qdrant = by_kind(render(), "StatefulSet")["omniagent-qdrant"]["spec"]["template"]["spec"]
+    container = qdrant["containers"][0]
+    assert container["securityContext"]["readOnlyRootFilesystem"] is True
+    env = {e["name"]: e["value"] for e in container["env"]}
+    mounts = {m["mountPath"] for m in container["volumeMounts"]}
+    assert env["QDRANT_INIT_FILE_PATH"].startswith("/qdrant/init/") and "/qdrant/init" in mounts

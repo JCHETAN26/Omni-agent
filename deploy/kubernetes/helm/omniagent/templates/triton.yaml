@@ -1,7 +1,7 @@
 {{- if .Values.triton.enabled }}
 {{- $fullname := include "omniagent.fullname" . -}}
 {{- $tag := required "triton.image.tag is required when triton.enabled (e.g. \"<yy.mm>-py3\")" .Values.triton.image.tag -}}
-{{- $claim := required "triton.modelRepositoryClaim is required: a PVC with model_server/model_repository" .Values.triton.modelRepositoryClaim -}}
+{{- $claim := .Values.triton.modelRepositoryClaim -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -18,11 +18,20 @@ spec:
         prometheus.io/scrape: "true"
         prometheus.io/port: "8002"
     spec:
+      automountServiceAccountToken: false
+      securityContext:
+        # NGC Triton images ship a non-root "triton-server" user (UID 1000).
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        seccompProfile: { type: RuntimeDefault }
       containers:
         - name: triton
           image: "{{ .Values.triton.image.repository }}:{{ $tag }}"
-          args: ["tritonserver", "--model-repository=/models", "--strict-readiness=true",
-                 "--trace-config=mode=opentelemetry"]
+          imagePullPolicy: {{ .Values.triton.image.pullPolicy | default "IfNotPresent" }}
+          # Models come from a PVC (modelRepositoryClaim) or are baked into the
+          # image at /models (deploy/docker/triton.Dockerfile).
+          args: ["tritonserver", "--model-repository=/models", "--strict-readiness=true"]
           ports:
             - { name: http, containerPort: 8000 }
             - { name: grpc, containerPort: 8001 }
@@ -30,6 +39,10 @@ spec:
           readinessProbe:
             httpGet: { path: /v2/health/ready, port: http }
             periodSeconds: 5
+          startupProbe:
+            httpGet: { path: /v2/health/ready, port: http }
+            periodSeconds: 5
+            failureThreshold: 60      # model loading can take minutes on CPU
           livenessProbe:
             httpGet: { path: /v2/health/live, port: http }
             periodSeconds: 15
@@ -41,14 +54,23 @@ spec:
             {{- toYaml $res | nindent 12 }}
           securityContext:
             allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: { drop: [ALL] }
           volumeMounts:
+            {{- if $claim }}
             - { name: models, mountPath: /models, readOnly: true }
+            {{- end }}
             - { name: shm, mountPath: /dev/shm }
+            - { name: tmp, mountPath: /tmp }
       volumes:
+        {{- if $claim }}
         - name: models
           persistentVolumeClaim: { claimName: {{ $claim }}, readOnly: true }
+        {{- end }}
         - name: shm
           emptyDir: { medium: Memory, sizeLimit: 1Gi }
+        - name: tmp
+          emptyDir: {}
 ---
 apiVersion: v1
 kind: Service

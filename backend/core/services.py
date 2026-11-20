@@ -17,11 +17,13 @@ from backend.core.stores import (
 )
 from backend.ingestion.embedder import Embedder, embedder_from_settings
 from backend.ingestion.processor import IngestionProcessor
+from backend.vision.preprocess import Preprocessor
 from model_server.inference_client import (
     InferenceClient,
     TritonEmbedder,
     inference_client_from_settings,
 )
+from model_server.vision_client import VisionClient, vision_client_from_settings
 from search.hybrid_retriever import HybridRetriever
 from search.ltr import LtrModel
 
@@ -38,6 +40,8 @@ class Services:
     processor: IngestionProcessor
     retriever: HybridRetriever
     ltr: LtrModel | None = None  # learning-to-rank stage; None disables it
+    vision: VisionClient | None = None  # live-frame classifier; None disables /ws/frames
+    preprocessor: Preprocessor | None = None
     index_version: int = 0  # bumped on ingest to invalidate cached searches
     index_writes: int = 0
     search_cache_namespace: str = field(default_factory=lambda: uuid.uuid4().hex)
@@ -67,6 +71,8 @@ class Services:
             processor=IngestionProcessor(embedder, dense, sparse, s.chunk_size, s.chunk_overlap),
             retriever=HybridRetriever(embedder, dense, sparse, s.rrf_k, s.retrieval_candidates),
             ltr=LtrModel.load(Path(s.ltr_model_path)) if s.ltr_model_path else None,
+            vision=vision_client_from_settings(s),
+            preprocessor=Preprocessor() if s.vision_backend != "off" else None,
         )
         if services.ltr is not None and services.ltr.uses_ce and not s.rerank_enabled:
             raise ValueError("LTR_MODEL_PATH needs cross-encoder scores; set RERANK_ENABLED=true")
@@ -86,6 +92,11 @@ class Services:
                 if services.ltr is not None
                 else ("cross-encoder" if s.rerank_enabled else "rrf")
             ),
+            "vision": (
+                f"{services.vision.name} + {services.preprocessor.name}"
+                if services.vision is not None and services.preprocessor is not None
+                else "off"
+            ),
         }
         return services
 
@@ -95,3 +106,5 @@ class Services:
         await self.cache.close()
         await self.rate_limiter.close()
         await self.inference.close()
+        if self.vision is not None:
+            await self.vision.close()

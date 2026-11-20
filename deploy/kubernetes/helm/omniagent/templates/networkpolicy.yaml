@@ -1,6 +1,6 @@
 {{- if .Values.networkPolicy.enabled }}
 {{- $root := . -}}
-{{- range $store, $port := dict "qdrant" 6333 "elasticsearch" 9200 "redis" 6379 }}
+{{- range $store, $port := dict "qdrant" 6333 "elasticsearch" 9200 "redis" 6379 "triton" 8001 }}
 {{- if (index $root.Values $store).enabled }}
 ---
 apiVersion: networking.k8s.io/v1

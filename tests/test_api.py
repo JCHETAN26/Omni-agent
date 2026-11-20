@@ -26,6 +26,7 @@ def test_health_reports_fallback_backends(client):
         "embedder": "hashing-384",
         "inference": "mock",
         "ranker": "rrf",
+        "vision": "off",
     }
     assert body["inference_ready"] is True
     assert body["websocket"]["active"] == 0

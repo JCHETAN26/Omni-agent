@@ -2,3 +2,6 @@
 -r ../backend/requirements.txt
 onnx>=1.16
 onnxscript>=0.1
+# ViT-B/16 image model (export_vit.py). Install from the CPU index next to torch:
+#   pip install torchvision --index-url https://download.pytorch.org/whl/cpu
+torchvision>=0.18

@@ -185,6 +185,8 @@ data:
   EMBEDDING_PROVIDER: "sentence-transformers"
   INFERENCE_BACKEND: "mock"
   RERANK_ENABLED: "false"
+  VISION_BACKEND: "off"
+  TRITON_VISION_MODEL: "vit_b16"
   AGENT_MAX_RETRIES: "2"
   LOG_FORMAT: "json"
   LOG_LEVEL: "INFO"
@@ -1011,6 +1013,98 @@ data:
               }
             }
           ]
+        },
+        {
+          "type": "timeseries",
+          "title": "Live frames (/ws/frames)",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "gridPos": {
+            "x": 0,
+            "y": 28,
+            "w": 12,
+            "h": 8
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "short",
+              "custom": {
+                "stacking": {
+                  "mode": "none"
+                },
+                "fillOpacity": 10
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "legend": {
+              "displayMode": "list",
+              "placement": "bottom"
+            },
+            "tooltip": {
+              "mode": "multi"
+            }
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "sum by (outcome) (rate(omniagent_frames_total{namespace=~\"$namespace\"}[5m]))",
+              "legendFormat": "{{outcome}} / s",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              }
+            }
+          ]
+        },
+        {
+          "type": "timeseries",
+          "title": "Frame latency p95 by stage",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "gridPos": {
+            "x": 12,
+            "y": 28,
+            "w": 12,
+            "h": 8
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "s",
+              "custom": {
+                "stacking": {
+                  "mode": "none"
+                },
+                "fillOpacity": 10
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "legend": {
+              "displayMode": "list",
+              "placement": "bottom"
+            },
+            "tooltip": {
+              "mode": "multi"
+            }
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "histogram_quantile(0.95, sum by (le, stage) (rate(omniagent_frame_seconds_bucket{namespace=~\"$namespace\"}[5m])))",
+              "legendFormat": "{{stage}}",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              }
+            }
+          ]
         }
       ]
     }
@@ -1225,7 +1319,7 @@ spec:
         app.kubernetes.io/part-of: omniagent
         app.kubernetes.io/component: backend
       annotations:
-        checksum/config: 5b17187b621e36f0f491ccb76704c35aa372cf0128e5ec31db91d2948558643e
+        checksum/config: a768389e73d69323695fbc52118b29a41bba4aac2724b561826e821d679fee29
         checksum/secret: a5711b76b6dd7745382848711a4bff4f31ad50b57c23011fee93f766e98a61ac
         prometheus.io/scrape: "true"
         prometheus.io/port: "8000"
@@ -1495,6 +1589,8 @@ spec:
             - { name: grpc, containerPort: 6334 }
           env:
             - { name: QDRANT__TELEMETRY_DISABLED, value: "true" }
+            # The root filesystem is read-only: the first-start marker goes to an emptyDir.
+            - { name: QDRANT_INIT_FILE_PATH, value: /qdrant/init/.qdrant-initialized }
           readinessProbe:
             httpGet: { path: /readyz, port: http }
             periodSeconds: 5
@@ -1510,12 +1606,19 @@ spec:
               memory: 512Mi
           securityContext:
             allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
             capabilities: { drop: [ALL] }
           volumeMounts:
             - { name: data, mountPath: /qdrant/storage }
             - { name: snapshots, mountPath: /qdrant/snapshots }
+            - { name: init, mountPath: /qdrant/init }
+            - { name: tmp, mountPath: /tmp }
       volumes:
         - name: snapshots
+          emptyDir: {}
+        - name: init
+          emptyDir: {}
+        - name: tmp
           emptyDir: {}
   volumeClaimTemplates:
     - metadata: { name: data }
