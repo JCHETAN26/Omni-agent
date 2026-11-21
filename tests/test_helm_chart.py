@@ -89,6 +89,7 @@ FULL = (
     "triton.image.tag=0.4.0",
     "kafka.enabled=true",
     "ingestion.enabled=true",
+    "controlPlane.enabled=true",
 )
 
 
@@ -298,3 +299,34 @@ def test_qdrant_root_filesystem_is_read_only():
     env = {e["name"]: e["value"] for e in container["env"]}
     mounts = {m["mountPath"] for m in container["volumeMounts"]}
     assert env["QDRANT_INIT_FILE_PATH"].startswith("/qdrant/init/") and "/qdrant/init" in mounts
+
+
+def test_control_plane_is_hardened_and_wired_for_failover():
+    docs = render(*FULL)
+    dep = by_kind(docs, "Deployment")["omniagent-controlplane"]
+    assert dep["spec"]["replicas"] == 3
+    assert dep["spec"]["strategy"]["rollingUpdate"]["maxUnavailable"] == 0
+    pod = dep["spec"]["template"]["spec"]
+    c = pod["containers"][0]
+    assert pod["securityContext"]["runAsNonRoot"] and pod["securityContext"]["runAsUser"] == 65532
+    assert c["securityContext"]["readOnlyRootFilesystem"] is True
+    assert c["readinessProbe"]["grpc"] == {"port": 9000, "service": "omni.control.v1.Router"}
+    env = {e["name"]: e.get("value") for e in c["env"]}
+    assert env["GATEWAY_HOST"] == "omniagent-gateway-endpoints"
+    assert env["PEER_HOST"] == "omniagent-controlplane"
+    assert env["ELASTICSEARCH_URL"] == "http://omniagent-elasticsearch:9200"  # BM25 fallback
+    services = by_kind(docs, "Service")
+    assert services["omniagent-controlplane"]["spec"]["clusterIP"] == "None"
+    gw = services["omniagent-gateway-endpoints"]["spec"]
+    assert gw["clusterIP"] == "None" and gw["selector"]["app.kubernetes.io/component"] == "backend"
+    pdb = by_kind(docs, "PodDisruptionBudget")["omniagent-controlplane"]["spec"]
+    assert pdb["maxUnavailable"] == 1
+    policies = by_kind(docs, "NetworkPolicy")
+    grpc_rule = policies["omniagent-controlplane"]["spec"]["ingress"][0]
+    peers = [f["podSelector"]["matchLabels"] for f in grpc_rule["from"]]
+    assert {"omniagent.io/controlplane-client": "true"} in peers
+    assert any(p.get("app.kubernetes.io/component") == "controlplane" for p in peers)  # heartbeats
+    es = policies["omniagent-elasticsearch"]["spec"]["ingress"][0]["from"]
+    es_clients = {f["podSelector"]["matchLabels"]["app.kubernetes.io/component"] for f in es}
+    assert "controlplane" in es_clients
+    assert "omniagent-controlplane" not in by_kind(render(), "Deployment")  # off by default

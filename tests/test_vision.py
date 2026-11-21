@@ -221,3 +221,24 @@ def test_ws_frames_closes_when_vision_is_off():
             with c.websocket_connect("/ws/frames") as ws:
                 ws.receive_json()
         assert exc.value.code == 1008
+
+
+# --- POST /vision/classify (the control plane's Vision dispatch) --------------
+
+
+def test_http_classify_records_context_and_maps_failures(monkeypatch):
+    with TestClient(create_app(make_settings(vision_backend="mock"))) as c:
+        frame = _jpeg(_frame(240, 320))
+        r = c.post("/vision/classify?thread_id=vision-http-1&seq=3", content=frame)
+        assert r.status_code == 200 and len(r.json()["labels"]) == 5
+        assert set(r.json()["timings"]) == {"preprocess_ms", "infer_ms"}
+        assert c.post("/vision/classify", content=b"not a jpeg").status_code == 400
+        assert c.post("/vision/classify?thread_id=bad id", content=b"x").status_code == 422
+
+        async def down(_pixels):
+            raise VisionUnavailable("vit_b16: connection refused")
+
+        monkeypatch.setattr(c.app.state.services.vision, "classify", down)
+        assert c.post("/vision/classify", content=_jpeg(_frame(64, 64))).status_code == 503
+    with TestClient(create_app(make_settings())) as c:
+        assert c.post("/vision/classify", content=b"x").status_code == 503
