@@ -19,10 +19,11 @@ profile=${3:-60s@2,180s@12,150s@0}
 mkdir -p "$out"
 log="$out/operator-bench.log"
 : > "$log"
+elapsed() { awk -v a="$1" -v b="$(date +%s%N)" 'BEGIN { printf "%.2f", (b - a) / 1e9 }'; }
 cp_ready() { kubectl -n "$ns" get deploy omniagent-controlplane -o jsonpath='{.status.readyReplicas}' 2>/dev/null; }
 wait_ready() { # seconds from $1 (epoch ns) until 3 control-plane nodes are Ready
   until [ "$(cp_ready)" = "3" ]; do sleep 0.2; done
-  echo "scale=2; ($(date +%s%N) - $1) / 1000000000" | bc
+  elapsed "$1"
 }
 wait_gone() {
   while kubectl -n "$ns" get deploy omniagent-controlplane >/dev/null 2>&1 ||
@@ -75,7 +76,7 @@ for i in $(seq 1 "$trials"); do
   # Recreated = a Deployment with a different UID exists again.
   until now=$(kubectl -n "$ns" get deploy omniagent-controlplane -o jsonpath='{.metadata.uid}' 2>/dev/null) &&
     [ -n "$now" ] && [ "$now" != "$uid" ]; do sleep 0.1; done
-  recreated=$(echo "scale=2; ($(date +%s%N) - $t0) / 1000000000" | bc)
+  recreated=$(elapsed "$t0")
   note "self-heal trial $i: Deployment recreated in $recreated s, 3 nodes Ready in $(wait_ready "$t0") s"
   sleep 5
 done
