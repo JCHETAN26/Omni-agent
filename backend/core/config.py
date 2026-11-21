@@ -133,6 +133,15 @@ class Settings(BaseSettings):
     ws_heartbeat_interval_s: float = 15.0
     ws_heartbeat_timeout_s: float = 45.0  # close if nothing heard from the client this long
 
+    # --- Collaborative incident rooms (/rooms, /ws/rooms/{id}) ---
+    rooms_max_events: int = Field(default=1000, ge=10)  # replayable history per room
+    rooms_ttl_s: int = Field(default=86_400, ge=60)  # room state expires after this much inactivity
+    rooms_queue_size: int = Field(default=512, ge=8)  # per-session send queue (overflow -> resync)
+    rooms_presence_ttl_s: float = 45.0  # presence without a heartbeat this long is swept
+    rooms_max_sessions: int = Field(default=5000, ge=1)  # per replica
+    rooms_msgs_per_s: float = 20.0  # per-session rate limit (burst 2x)
+    rooms_redis_max_connections: int = Field(default=64, ge=4)  # per replica (blocking pool)
+
     # --- Rate limiting (token bucket, per session) ---
     rate_limit_capacity: float = 20.0
     rate_limit_refill_per_s: float = 10.0

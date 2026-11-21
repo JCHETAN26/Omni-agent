@@ -21,9 +21,10 @@ spec:
     - host: {{ .Values.ingress.host | quote }}
       http:
         paths:
-          # Only the client-facing gateway paths are public. /ingest, /search and
-          # /metrics stay cluster-internal (no auth on them yet).
-          {{- range list "/ws" "/sse" }}
+          # Only the client-facing gateway paths are public (/rooms: incident-room
+          # creation and snapshots). /ingest, /search and /metrics stay
+          # cluster-internal (no auth on them yet).
+          {{- range list "/ws" "/sse" "/rooms" }}
           - path: {{ . }}
             pathType: Prefix
             backend:

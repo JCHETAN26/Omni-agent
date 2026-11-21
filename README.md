@@ -14,6 +14,10 @@ Low-latency, multi-modal agentic copilot for enterprise technical support and di
 - **Phase 4:** React + TypeScript UI with a live observability inspector, Kubernetes
   manifests and a Helm chart, Prometheus metrics with a Grafana dashboard, and a
   one-command full-stack demo harness.
+- **Since then:** PyTorch learning-to-rank, an LLM response cache, the Go `omni` CLI,
+  multimodal frames (C++ OpenCV + ViT on Triton), Go + Kafka ingestion, a Go gRPC
+  control plane, a Kubernetes operator, and collaborative incident rooms. Measured results
+  live in `benchmarks/results/`.
 
 ```bash
 make install && make demo        # boot everything, drive 24 concurrent agent users
@@ -24,64 +28,86 @@ make verify                      # lint, tests, UI typecheck/build, browser e2e,
 ## Architecture
 
 ```mermaid
-flowchart LR
+flowchart TB
     subgraph Clients
-        UI["React + TypeScript UI"]
-        CLI["omni CLI (Go, Cobra)<br/>connect · sources add · ask"]
+        UI["React + TypeScript UI<br/>assistant · incident rooms"]
+        CLI["omni CLI (Go, Cobra)<br/>ask · new service · check"]
+        GRPCC["gRPC clients<br/>round-robin + health checks + retries"]
     end
 
-    subgraph Gateway["FastAPI gateway"]
-        WS["/ws/agent · /sse/agent<br/>sessions, replay, rate limits"]
-        ING["POST /ingest"]
-        SRCH["POST /search · /search/ranked"]
+    subgraph CP["Go gRPC control plane (omni.control.v1, 3 nodes)"]
+        ROUTER["Router: Search · Chat stream · Vision<br/>deadlines, request IDs, bounded retries"]
+        HEALTH["Gateway health: probes + circuit breaker<br/>degrade to BM25 / stale cache"]
+        PEERS["Cluster: heartbeats, failure detection,<br/>shared ejections"]
     end
 
-    subgraph Ingestion
-        CHUNK["Chunker"] --> EMB["MiniLM embedder"]
+    OP["Kubernetes operator (Go, Operator SDK)<br/>OmniAgentCluster: provisions the control plane,<br/>scales gateways (HPA or in-flight autoscaler)"]
+
+    subgraph Gateway["FastAPI gateway replicas"]
+        WS["/ws/agent · /sse/agent · /ws/stream<br/>sessions, replay, rate limits"]
+        ROOMS["/ws/rooms · /rooms<br/>collaborative incident rooms"]
+        FRAMES["/ws/frames · /vision/classify"]
+        SRCH["/search · /search/ranked"]
+    end
+
+    PRE["C++17 OpenCV preprocessing<br/>(pybind11, GIL released)"]
+
+    subgraph Ingest["Go + Kafka ingestion"]
+        OI["omni-ingest<br/>HTTP to Kafka, acks=all"]
+        KAFKA[("Kafka (KRaft)<br/>omni.documents · DLQ · indexed")]
+        IDX["omni-indexer consumer group<br/>chunk, embed, write both stores,<br/>then commit offsets"]
+        OI --> KAFKA --> IDX
     end
 
     subgraph Search["Hybrid search + LTR"]
         DENSE["Dense ANN<br/>Qdrant or Faiss HNSW"]
         BM25["BM25<br/>Elasticsearch"]
         RRF["Reciprocal Rank Fusion"]
-        CE["Cross-encoder rerank<br/>(optional, timeout fallback)"]
-        LTR["PyTorch LTR<br/>15 query-relative features"]
+        LTR["Cross-encoder (optional) + PyTorch LTR"]
         DENSE --> RRF
         BM25 --> RRF
-        RRF --> CE --> LTR
+        RRF --> LTR
     end
 
     subgraph Agent["Agentic RAG (LangGraph)"]
         ROUTE["Route: knowledge base · logs · calculator"]
-        GRADE["Relevance grader<br/>rewrite and retry"]
-        GEN["Generate, then grounding check"]
+        GRADE["Relevance grader, rewrite and retry"]
+        GEN["Generate, grounding check<br/>+ visual context from frames"]
         ROUTE --> GRADE --> GEN
     end
 
     subgraph Models
-        TRITON["Triton gRPC<br/>embedder · cross-encoder (ONNX)"]
+        TRITON["Triton<br/>MiniLM embedder · cross-encoder · ViT-B/16<br/>(dynamic batching)"]
         CACHE["LLM cache<br/>exact match + single-flight"]
         LLM["LLM API<br/>OpenAI · Anthropic · vLLM"]
         CACHE --> LLM
     end
 
-    REDIS[("Redis<br/>memory checkpoints · cache")]
+    REDIS[("Redis<br/>memory · cache · visual context<br/>room state, seq + Pub/Sub fan-out")]
 
     UI --> WS
+    UI --> ROOMS
+    UI --> FRAMES
     CLI --> WS
-    CLI --> ING
-    ING --> CHUNK
-    EMB --> DENSE
-    CHUNK --> BM25
-    EMB -.-> TRITON
+    GRPCC --> ROUTER
+    ROUTER --> SRCH
+    ROUTER --> WS
+    ROUTER --> FRAMES
+    HEALTH -. "BM25 fallback" .-> BM25
+    OP -. manages .-> CP
+    OP -. scales .-> Gateway
+    FRAMES --> PRE --> TRITON
+    ROOMS --> REDIS
+    ROOMS --> ROUTE
     SRCH --> RRF
     WS --> ROUTE
     GRADE --> RRF
-    CE -.-> TRITON
-    ROUTE --> CACHE
-    GRADE --> CACHE
     GEN --> CACHE
     Agent --> REDIS
+    IDX --> DENSE
+    IDX --> BM25
+    IDX -.-> TRITON
+    DENSE -.-> TRITON
 ```
 
 - **Ingestion:** documents are chunked and embedded, then written to the dense index (Qdrant
@@ -94,6 +120,18 @@ flowchart LR
   grounded before streaming it.
 - **Models:** every LLM call goes through the cache, which also coalesces identical in-flight
   requests. Conversation state is checkpointed in Redis.
+- **Live frames:** camera or screen frames are preprocessed by a C++ OpenCV extension and
+  classified by ViT-B/16 on Triton (dynamic batching); the labels become the conversation's
+  visual context for the agent.
+- **Ingestion at scale:** `omni-ingest` (Go) publishes uploads to Kafka; a consumer group of
+  `omni-indexer` workers chunks, embeds and writes Elasticsearch and Qdrant, committing offsets
+  only after both writes, with a dead-letter queue and idempotent chunk IDs.
+- **Control plane:** a multi-node Go gRPC tier routes Search, Chat and Vision to healthy
+  gateways with deadlines, retries, circuit breaking, peer heartbeats and degraded modes.
+  A Go operator (`OmniAgentCluster`) provisions it and autoscales the gateways.
+- **Incident rooms:** many users share one incident: presence, typing, a sequenced timeline,
+  pinned evidence and the agent's streamed answers, kept in Redis and fanned out to every
+  gateway replica through Pub/Sub. Clients reconnect with `last_seq` and catch up gap-free.
 - **Developer tooling:** the `omni` CLI (see [cli/README.md](cli/README.md)) also scaffolds new
   services (`omni new service`) and runs security checks (`omni check`, `omni hooks install`).
 
@@ -105,7 +143,11 @@ backend/
                  generator), runner.py (graph -> client events), memory.py (Redis
                  checkpointer), tools.py (calculator, logs), llm*.py (Claude, OpenAI/vLLM)
   api/           websocket.py (/ws/stream + shared session server), agent_ws.py
-                 (/ws/agent, /sse/agent), streaming.py (/sse/stream), ring_buffer.py
+                 (/ws/agent, /sse/agent), streaming.py (/sse/stream), ring_buffer.py,
+                 frames.py (/ws/frames, /vision/classify), rooms.py (/rooms, /ws/rooms)
+  rooms/         store.py (Redis/in-memory room state, atomic seq + Pub/Sub), hub.py
+                 (per-replica fan-out with bounded queues)
+  vision/        preprocessing (C++ extension or OpenCV) and per-thread visual context
   core/          config, models, stores (Qdrant/ES), cache, rate_limit, telemetry, services
   ingestion/     chunker.py, embedder.py, processor.py (async ingestion pipeline)
   main.py        FastAPI app factory: REST + SSE + WebSocket
@@ -117,6 +159,11 @@ model_server/
   inference_client.py   async Triton gRPC client (+ in-process mock)
   local_triton.py       local server speaking Triton's gRPC protocol (dev/test/bench)
   export_onnx.py        exports both models to ONNX and verifies them against PyTorch
+native/vision/   C++17 pybind11 OpenCV preprocessing extension (omni_vision)
+ingestion/       Go: omni-ingest, omni-indexer (Kafka consumer group), omni-ingest-bench
+controlplane/    Go gRPC control plane (proto omni.control.v1), failover client, cp-loadgen
+operator/        Go Kubernetes operator (Operator SDK): OmniAgentCluster CRD + controller
+cli/             Go `omni` CLI (Cobra): ask, new service, check, hooks
 frontend/        Vite + React 19 + TypeScript (strict) + Tailwind v4 UI, Playwright e2e
 deploy/
   docker/        backend.Dockerfile (frontend/Dockerfile serves the UI via nginx)

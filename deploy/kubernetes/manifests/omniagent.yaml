@@ -1105,6 +1105,107 @@ data:
               }
             }
           ]
+        },
+        {
+          "type": "timeseries",
+          "title": "Incident rooms: sessions and slow consumers",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "gridPos": {
+            "x": 0,
+            "y": 36,
+            "w": 12,
+            "h": 8
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "short",
+              "custom": {
+                "stacking": {
+                  "mode": "none"
+                },
+                "fillOpacity": 10
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "legend": {
+              "displayMode": "list",
+              "placement": "bottom"
+            },
+            "tooltip": {
+              "mode": "multi"
+            }
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "sum(omniagent_room_sessions{namespace=~\"$namespace\"})",
+              "legendFormat": "room sessions",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              }
+            },
+            {
+              "refId": "B",
+              "expr": "sum(rate(omniagent_room_slow_consumers_total{namespace=~\"$namespace\"}[5m]))",
+              "legendFormat": "slow-consumer resyncs / s",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              }
+            }
+          ]
+        },
+        {
+          "type": "timeseries",
+          "title": "Incident room events / s by type",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "gridPos": {
+            "x": 12,
+            "y": 36,
+            "w": 12,
+            "h": 8
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "short",
+              "custom": {
+                "stacking": {
+                  "mode": "none"
+                },
+                "fillOpacity": 10
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "legend": {
+              "displayMode": "list",
+              "placement": "bottom"
+            },
+            "tooltip": {
+              "mode": "multi"
+            }
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "sum by (type) (rate(omniagent_room_events_total{namespace=~\"$namespace\"}[1m]))",
+              "legendFormat": "{{type}}",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              }
+            }
+          ]
         }
       ]
     }
@@ -1720,13 +1821,18 @@ spec:
     - host: "omniagent.example.com"
       http:
         paths:
-          # Only the client-facing gateway paths are public. /ingest, /search and
-          # /metrics stay cluster-internal (no auth on them yet).
+          # Only the client-facing gateway paths are public (/rooms: incident-room
+          # creation and snapshots). /ingest, /search and /metrics stay
+          # cluster-internal (no auth on them yet).
           - path: /ws
             pathType: Prefix
             backend:
               service: { name: omniagent-backend, port: { name: http } }
           - path: /sse
+            pathType: Prefix
+            backend:
+              service: { name: omniagent-backend, port: { name: http } }
+          - path: /rooms
             pathType: Prefix
             backend:
               service: { name: omniagent-backend, port: { name: http } }

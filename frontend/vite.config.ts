@@ -12,6 +12,7 @@ const proxy = {
   '/health': { target: backend, changeOrigin: true },
   '/search': { target: backend, changeOrigin: true },
   '/ingest': { target: backend, changeOrigin: true },
+  '/rooms': { target: backend, changeOrigin: true },
 }
 
 export default defineConfig({
@@ -19,7 +20,7 @@ export default defineConfig({
   server: { proxy },
   preview: { proxy },
   test: {
-    include: ['src/**/*.test.ts'],
+    include: ['src/**/*.test.ts', 'src/**/*.test.tsx'],
     environment: 'node',
   },
 })

@@ -1,0 +1,336 @@
+ERROR:    Traceback (most recent call last):
+  File "/Users/chetan/Documents/Omni-agent/.venv/lib/python3.12/site-packages/redis/asyncio/retry.py", line 69, in call_with_retry
+    return await do()
+           ^^^^^^^^^^
+  File "/Users/chetan/Documents/Omni-agent/.venv/lib/python3.12/site-packages/redis/asyncio/connection.py", line 1294, in read_response
+    response = await self._read_response_from_parser(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chetan/Documents/Omni-agent/.venv/lib/python3.12/site-packages/redis/asyncio/connection.py", line 1335, in _read_response_from_parser
+    return await self._parser.read_response(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chetan/Documents/Omni-agent/.venv/lib/python3.12/site-packages/redis/_parsers/resp3.py", line 185, in read_response
+    response = await self._read_response(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chetan/Documents/Omni-agent/.venv/lib/python3.12/site-packages/redis/_parsers/resp3.py", line 197, in _read_response
+    raw = await self._readline()
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chetan/Documents/Omni-agent/.venv/lib/python3.12/site-packages/redis/_parsers/base.py", line 589, in _readline
+    raise ConnectionError(SERVER_CLOSED_CONNECTION_ERROR)
+redis.exceptions.ConnectionError: Connection closed by server.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/chetan/Documents/Omni-agent/.venv/lib/python3.12/site-packages/starlette/routing.py", line 661, in lifespan
+    async with self.lifespan_context(app) as maybe_state:
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/contextlib.py", line 211, in __aexit__
+    await anext(self.gen)
+  File "/Users/chetan/Documents/Omni-agent/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 248, in merged_lifespan
+    async with original_context(app) as maybe_original_state:
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/contextlib.py", line 211, in __aexit__
+    await anext(self.gen)
+  File "/Users/chetan/Documents/Omni-agent/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 248, in merged_lifespan
+    async with original_context(app) as maybe_original_state:
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/contextlib.py", line 211, in __aexit__
+    await anext(self.gen)
+  File "/Users/chetan/Documents/Omni-agent/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 248, in merged_lifespan
+    async with original_context(app) as maybe_original_state:
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/contextlib.py", line 211, in __aexit__
+    await anext(self.gen)
+  File "/Users/chetan/Documents/Omni-agent/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 248, in merged_lifespan
+    async with original_context(app) as maybe_original_state:
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/contextlib.py", line 211, in __aexit__
+    await anext(self.gen)
+  File "/Users/chetan/Documents/Omni-agent/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 248, in merged_lifespan
+    async with original_context(app) as maybe_original_state:
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/contextlib.py", line 211, in __aexit__
+    await anext(self.gen)
+  File "/Users/chetan/Documents/Omni-agent/backend/main.py", line 95, in lifespan
+    await app.state.agent.close()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chetan/Documents/Omni-agent/backend/api/rooms.py", line 453, in stop
+    await self.hub.stop()
+  File "/Users/chetan/Documents/Omni-agent/backend/rooms/hub.py", line 87, in stop
+    await self._reader
+  File "/Users/chetan/Documents/Omni-agent/backend/rooms/hub.py", line 113, in _read
+    async for room, raw in self.sub.messages():
+  File "/Users/chetan/Documents/Omni-agent/backend/rooms/store.py", line 206, in messages
+    msg = await self.ps.get_message(timeout=1.0)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chetan/Documents/Omni-agent/.venv/lib/python3.12/site-packages/redis/asyncio/client.py", line 1618, in get_message
+    response = await self.parse_response(block=(timeout is None), timeout=timeout)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chetan/Documents/Omni-agent/.venv/lib/python3.12/site-packages/redis/asyncio/client.py", line 1448, in parse_response
+    response = await self._execute(
+               ^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chetan/Documents/Omni-agent/.venv/lib/python3.12/site-packages/redis/asyncio/client.py", line 1354, in _execute
+    response = await conn.retry.call_with_retry(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chetan/Documents/Omni-agent/.venv/lib/python3.12/site-packages/redis/asyncio/retry.py", line 76, in call_with_retry
+    await fail(error, failures)
+  File "/Users/chetan/Documents/Omni-agent/.venv/lib/python3.12/site-packages/redis/asyncio/client.py", line 1328, in _reconnect
+    await conn.connect()
+  File "/Users/chetan/Documents/Omni-agent/.venv/lib/python3.12/site-packages/redis/asyncio/connection.py", line 819, in connect
+    await self.retry.call_with_retry(
+  File "/Users/chetan/Documents/Omni-agent/.venv/lib/python3.12/site-packages/redis/asyncio/retry.py", line 81, in call_with_retry
+    raise error
+  File "/Users/chetan/Documents/Omni-agent/.venv/lib/python3.12/site-packages/redis/asyncio/retry.py", line 69, in call_with_retry
+    return await do()
+           ^^^^^^^^^^
+  File "/Users/chetan/Documents/Omni-agent/.venv/lib/python3.12/site-packages/redis/asyncio/connection.py", line 876, in connect_check_health
+    raise e
+redis.exceptions.ConnectionError: Error 61 connecting to 127.0.0.1:6391. Connection refused.
+
+ERROR:    Traceback (most recent call last):
+  File "/Users/chetan/Documents/Omni-agent/.venv/lib/python3.12/site-packages/redis/asyncio/retry.py", line 69, in call_with_retry
+    return await do()
+           ^^^^^^^^^^
+  File "/Users/chetan/Documents/Omni-agent/.venv/lib/python3.12/site-packages/redis/asyncio/connection.py", line 1294, in read_response
+    response = await self._read_response_from_parser(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chetan/Documents/Omni-agent/.venv/lib/python3.12/site-packages/redis/asyncio/connection.py", line 1335, in _read_response_from_parser
+    return await self._parser.read_response(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chetan/Documents/Omni-agent/.venv/lib/python3.12/site-packages/redis/_parsers/resp3.py", line 185, in read_response
+    response = await self._read_response(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chetan/Documents/Omni-agent/.venv/lib/python3.12/site-packages/redis/_parsers/resp3.py", line 197, in _read_response
+    raw = await self._readline()
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chetan/Documents/Omni-agent/.venv/lib/python3.12/site-packages/redis/_parsers/base.py", line 589, in _readline
+    raise ConnectionError(SERVER_CLOSED_CONNECTION_ERROR)
+redis.exceptions.ConnectionError: Connection closed by server.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/chetan/Documents/Omni-agent/.venv/lib/python3.12/site-packages/starlette/routing.py", line 661, in lifespan
+    async with self.lifespan_context(app) as maybe_state:
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/contextlib.py", line 211, in __aexit__
+    await anext(self.gen)
+  File "/Users/chetan/Documents/Omni-agent/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 248, in merged_lifespan
+    async with original_context(app) as maybe_original_state:
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/contextlib.py", line 211, in __aexit__
+    await anext(self.gen)
+  File "/Users/chetan/Documents/Omni-agent/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 248, in merged_lifespan
+    async with original_context(app) as maybe_original_state:
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/contextlib.py", line 211, in __aexit__
+    await anext(self.gen)
+  File "/Users/chetan/Documents/Omni-agent/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 248, in merged_lifespan
+    async with original_context(app) as maybe_original_state:
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/contextlib.py", line 211, in __aexit__
+    await anext(self.gen)
+  File "/Users/chetan/Documents/Omni-agent/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 248, in merged_lifespan
+    async with original_context(app) as maybe_original_state:
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/contextlib.py", line 211, in __aexit__
+    await anext(self.gen)
+  File "/Users/chetan/Documents/Omni-agent/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 248, in merged_lifespan
+    async with original_context(app) as maybe_original_state:
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/contextlib.py", line 211, in __aexit__
+    await anext(self.gen)
+  File "/Users/chetan/Documents/Omni-agent/backend/main.py", line 95, in lifespan
+    await app.state.agent.close()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chetan/Documents/Omni-agent/backend/api/rooms.py", line 453, in stop
+    await self.hub.stop()
+  File "/Users/chetan/Documents/Omni-agent/backend/rooms/hub.py", line 87, in stop
+    await self._reader
+  File "/Users/chetan/Documents/Omni-agent/backend/rooms/hub.py", line 113, in _read
+    async for room, raw in self.sub.messages():
+  File "/Users/chetan/Documents/Omni-agent/backend/rooms/store.py", line 206, in messages
+    msg = await self.ps.get_message(timeout=1.0)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chetan/Documents/Omni-agent/.venv/lib/python3.12/site-packages/redis/asyncio/client.py", line 1618, in get_message
+    response = await self.parse_response(block=(timeout is None), timeout=timeout)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chetan/Documents/Omni-agent/.venv/lib/python3.12/site-packages/redis/asyncio/client.py", line 1448, in parse_response
+    response = await self._execute(
+               ^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chetan/Documents/Omni-agent/.venv/lib/python3.12/site-packages/redis/asyncio/client.py", line 1354, in _execute
+    response = await conn.retry.call_with_retry(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chetan/Documents/Omni-agent/.venv/lib/python3.12/site-packages/redis/asyncio/retry.py", line 76, in call_with_retry
+    await fail(error, failures)
+  File "/Users/chetan/Documents/Omni-agent/.venv/lib/python3.12/site-packages/redis/asyncio/client.py", line 1328, in _reconnect
+    await conn.connect()
+  File "/Users/chetan/Documents/Omni-agent/.venv/lib/python3.12/site-packages/redis/asyncio/connection.py", line 819, in connect
+    await self.retry.call_with_retry(
+  File "/Users/chetan/Documents/Omni-agent/.venv/lib/python3.12/site-packages/redis/asyncio/retry.py", line 81, in call_with_retry
+    raise error
+  File "/Users/chetan/Documents/Omni-agent/.venv/lib/python3.12/site-packages/redis/asyncio/retry.py", line 69, in call_with_retry
+    return await do()
+           ^^^^^^^^^^
+  File "/Users/chetan/Documents/Omni-agent/.venv/lib/python3.12/site-packages/redis/asyncio/connection.py", line 876, in connect_check_health
+    raise e
+redis.exceptions.ConnectionError: Error 61 connecting to 127.0.0.1:6391. Connection refused.
+
+ERROR:    Application shutdown failed. Exiting.
+ERROR:    Application shutdown failed. Exiting.
+ERROR:    Traceback (most recent call last):
+  File "/Users/chetan/Documents/Omni-agent/.venv/lib/python3.12/site-packages/redis/asyncio/retry.py", line 69, in call_with_retry
+    return await do()
+           ^^^^^^^^^^
+  File "/Users/chetan/Documents/Omni-agent/.venv/lib/python3.12/site-packages/redis/asyncio/connection.py", line 1294, in read_response
+    response = await self._read_response_from_parser(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chetan/Documents/Omni-agent/.venv/lib/python3.12/site-packages/redis/asyncio/connection.py", line 1335, in _read_response_from_parser
+    return await self._parser.read_response(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chetan/Documents/Omni-agent/.venv/lib/python3.12/site-packages/redis/_parsers/resp3.py", line 185, in read_response
+    response = await self._read_response(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chetan/Documents/Omni-agent/.venv/lib/python3.12/site-packages/redis/_parsers/resp3.py", line 197, in _read_response
+    raw = await self._readline()
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chetan/Documents/Omni-agent/.venv/lib/python3.12/site-packages/redis/_parsers/base.py", line 589, in _readline
+    raise ConnectionError(SERVER_CLOSED_CONNECTION_ERROR)
+redis.exceptions.ConnectionError: Connection closed by server.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/chetan/Documents/Omni-agent/.venv/lib/python3.12/site-packages/starlette/routing.py", line 661, in lifespan
+    async with self.lifespan_context(app) as maybe_state:
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/contextlib.py", line 211, in __aexit__
+    await anext(self.gen)
+  File "/Users/chetan/Documents/Omni-agent/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 248, in merged_lifespan
+    async with original_context(app) as maybe_original_state:
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/contextlib.py", line 211, in __aexit__
+    await anext(self.gen)
+  File "/Users/chetan/Documents/Omni-agent/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 248, in merged_lifespan
+    async with original_context(app) as maybe_original_state:
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/contextlib.py", line 211, in __aexit__
+    await anext(self.gen)
+  File "/Users/chetan/Documents/Omni-agent/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 248, in merged_lifespan
+    async with original_context(app) as maybe_original_state:
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/contextlib.py", line 211, in __aexit__
+    await anext(self.gen)
+  File "/Users/chetan/Documents/Omni-agent/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 248, in merged_lifespan
+    async with original_context(app) as maybe_original_state:
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/contextlib.py", line 211, in __aexit__
+    await anext(self.gen)
+  File "/Users/chetan/Documents/Omni-agent/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 248, in merged_lifespan
+    async with original_context(app) as maybe_original_state:
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/contextlib.py", line 211, in __aexit__
+    await anext(self.gen)
+  File "/Users/chetan/Documents/Omni-agent/backend/main.py", line 95, in lifespan
+    await app.state.agent.close()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chetan/Documents/Omni-agent/backend/api/rooms.py", line 453, in stop
+    await self.hub.stop()
+  File "/Users/chetan/Documents/Omni-agent/backend/rooms/hub.py", line 87, in stop
+    await self._reader
+  File "/Users/chetan/Documents/Omni-agent/backend/rooms/hub.py", line 113, in _read
+    async for room, raw in self.sub.messages():
+  File "/Users/chetan/Documents/Omni-agent/backend/rooms/store.py", line 206, in messages
+    msg = await self.ps.get_message(timeout=1.0)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chetan/Documents/Omni-agent/.venv/lib/python3.12/site-packages/redis/asyncio/client.py", line 1618, in get_message
+    response = await self.parse_response(block=(timeout is None), timeout=timeout)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chetan/Documents/Omni-agent/.venv/lib/python3.12/site-packages/redis/asyncio/client.py", line 1448, in parse_response
+    response = await self._execute(
+               ^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chetan/Documents/Omni-agent/.venv/lib/python3.12/site-packages/redis/asyncio/client.py", line 1354, in _execute
+    response = await conn.retry.call_with_retry(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chetan/Documents/Omni-agent/.venv/lib/python3.12/site-packages/redis/asyncio/retry.py", line 76, in call_with_retry
+    await fail(error, failures)
+  File "/Users/chetan/Documents/Omni-agent/.venv/lib/python3.12/site-packages/redis/asyncio/client.py", line 1328, in _reconnect
+    await conn.connect()
+  File "/Users/chetan/Documents/Omni-agent/.venv/lib/python3.12/site-packages/redis/asyncio/connection.py", line 819, in connect
+    await self.retry.call_with_retry(
+  File "/Users/chetan/Documents/Omni-agent/.venv/lib/python3.12/site-packages/redis/asyncio/retry.py", line 81, in call_with_retry
+    raise error
+  File "/Users/chetan/Documents/Omni-agent/.venv/lib/python3.12/site-packages/redis/asyncio/retry.py", line 69, in call_with_retry
+    return await do()
+           ^^^^^^^^^^
+  File "/Users/chetan/Documents/Omni-agent/.venv/lib/python3.12/site-packages/redis/asyncio/connection.py", line 876, in connect_check_health
+    raise e
+redis.exceptions.ConnectionError: Error 61 connecting to 127.0.0.1:6391. Connection refused.
+
+ERROR:    Application shutdown failed. Exiting.
+ERROR:    Traceback (most recent call last):
+  File "/Users/chetan/Documents/Omni-agent/.venv/lib/python3.12/site-packages/redis/asyncio/retry.py", line 69, in call_with_retry
+    return await do()
+           ^^^^^^^^^^
+  File "/Users/chetan/Documents/Omni-agent/.venv/lib/python3.12/site-packages/redis/asyncio/connection.py", line 1294, in read_response
+    response = await self._read_response_from_parser(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chetan/Documents/Omni-agent/.venv/lib/python3.12/site-packages/redis/asyncio/connection.py", line 1335, in _read_response_from_parser
+    return await self._parser.read_response(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chetan/Documents/Omni-agent/.venv/lib/python3.12/site-packages/redis/_parsers/resp3.py", line 185, in read_response
+    response = await self._read_response(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chetan/Documents/Omni-agent/.venv/lib/python3.12/site-packages/redis/_parsers/resp3.py", line 197, in _read_response
+    raw = await self._readline()
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chetan/Documents/Omni-agent/.venv/lib/python3.12/site-packages/redis/_parsers/base.py", line 589, in _readline
+    raise ConnectionError(SERVER_CLOSED_CONNECTION_ERROR)
+redis.exceptions.ConnectionError: Connection closed by server.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/chetan/Documents/Omni-agent/.venv/lib/python3.12/site-packages/starlette/routing.py", line 661, in lifespan
+    async with self.lifespan_context(app) as maybe_state:
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/contextlib.py", line 211, in __aexit__
+    await anext(self.gen)
+  File "/Users/chetan/Documents/Omni-agent/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 248, in merged_lifespan
+    async with original_context(app) as maybe_original_state:
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/contextlib.py", line 211, in __aexit__
+    await anext(self.gen)
+  File "/Users/chetan/Documents/Omni-agent/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 248, in merged_lifespan
+    async with original_context(app) as maybe_original_state:
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/contextlib.py", line 211, in __aexit__
+    await anext(self.gen)
+  File "/Users/chetan/Documents/Omni-agent/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 248, in merged_lifespan
+    async with original_context(app) as maybe_original_state:
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/contextlib.py", line 211, in __aexit__
+    await anext(self.gen)
+  File "/Users/chetan/Documents/Omni-agent/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 248, in merged_lifespan
+    async with original_context(app) as maybe_original_state:
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/contextlib.py", line 211, in __aexit__
+    await anext(self.gen)
+  File "/Users/chetan/Documents/Omni-agent/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 248, in merged_lifespan
+    async with original_context(app) as maybe_original_state:
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/contextlib.py", line 211, in __aexit__
+    await anext(self.gen)
+  File "/Users/chetan/Documents/Omni-agent/backend/main.py", line 95, in lifespan
+    await app.state.agent.close()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chetan/Documents/Omni-agent/backend/api/rooms.py", line 453, in stop
+    await self.hub.stop()
+  File "/Users/chetan/Documents/Omni-agent/backend/rooms/hub.py", line 87, in stop
+    await self._reader
+  File "/Users/chetan/Documents/Omni-agent/backend/rooms/hub.py", line 113, in _read
+    async for room, raw in self.sub.messages():
+  File "/Users/chetan/Documents/Omni-agent/backend/rooms/store.py", line 206, in messages
+    msg = await self.ps.get_message(timeout=1.0)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chetan/Documents/Omni-agent/.venv/lib/python3.12/site-packages/redis/asyncio/client.py", line 1618, in get_message
+    response = await self.parse_response(block=(timeout is None), timeout=timeout)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chetan/Documents/Omni-agent/.venv/lib/python3.12/site-packages/redis/asyncio/client.py", line 1448, in parse_response
+    response = await self._execute(
+               ^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chetan/Documents/Omni-agent/.venv/lib/python3.12/site-packages/redis/asyncio/client.py", line 1354, in _execute
+    response = await conn.retry.call_with_retry(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chetan/Documents/Omni-agent/.venv/lib/python3.12/site-packages/redis/asyncio/retry.py", line 76, in call_with_retry
+    await fail(error, failures)
+  File "/Users/chetan/Documents/Omni-agent/.venv/lib/python3.12/site-packages/redis/asyncio/client.py", line 1328, in _reconnect
+    await conn.connect()
+  File "/Users/chetan/Documents/Omni-agent/.venv/lib/python3.12/site-packages/redis/asyncio/connection.py", line 819, in connect
+    await self.retry.call_with_retry(
+  File "/Users/chetan/Documents/Omni-agent/.venv/lib/python3.12/site-packages/redis/asyncio/retry.py", line 81, in call_with_retry
+    raise error
+  File "/Users/chetan/Documents/Omni-agent/.venv/lib/python3.12/site-packages/redis/asyncio/retry.py", line 69, in call_with_retry
+    return await do()
+           ^^^^^^^^^^
+  File "/Users/chetan/Documents/Omni-agent/.venv/lib/python3.12/site-packages/redis/asyncio/connection.py", line 876, in connect_check_health
+    raise e
+redis.exceptions.ConnectionError: Error 61 connecting to 127.0.0.1:6391. Connection refused.
+
+ERROR:    Application shutdown failed. Exiting.

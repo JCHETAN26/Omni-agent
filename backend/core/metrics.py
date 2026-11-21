@@ -69,3 +69,14 @@ FRAME_SECONDS = Histogram(
     ["stage"],  # preprocess | infer | total
     buckets=(0.002, 0.005, 0.01, 0.025, 0.05, 0.1, 0.2, 0.4, 0.8, 1.6, 3.2),
 )
+
+
+# --- collaborative incident rooms ----------------------------------------------
+ROOM_SESSIONS = Gauge("omniagent_room_sessions", "Room WebSocket sessions on this replica")
+ROOM_EVENTS = Counter(
+    "omniagent_room_events_total", "Room events published by this replica", ["type"]
+)
+ROOM_SLOW_CONSUMERS = Counter(
+    "omniagent_room_slow_consumers_total",
+    "Room sessions closed for a resync because their send queue overflowed",
+)
