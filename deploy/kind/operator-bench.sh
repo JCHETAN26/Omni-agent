@@ -46,6 +46,7 @@ for d in docs:
 yaml.safe_dump_all(out, open(sys.argv[1], "w"))
 PY
 
+if [ -z "${SKIP_PROVISIONING:-}" ]; then
 note "=== provisioning: manual apply of the operator's objects (no operator)"
 kubectl -n "$ns" delete oac omniagent --ignore-not-found --wait=true >/dev/null
 wait_gone
@@ -81,6 +82,9 @@ for i in $(seq 1 "$trials"); do
   sleep 5
 done
 
+fi # SKIP_PROVISIONING
+kubectl apply -f deploy/kind/omniagentcluster.yaml >/dev/null
+kubectl -n "$ns" wait --for=condition=Ready oac/omniagent --timeout=180s >/dev/null
 for mode in hpa operator; do
   note "=== autoscaling: $mode mode, profile $profile"
   kubectl -n "$ns" patch oac omniagent --type=merge -p "{\"spec\":{\"autoscaling\":{\"mode\":\"$mode\"}}}" >/dev/null
@@ -109,9 +113,10 @@ kubectl -n "$ns" scale deploy/omniagent-backend --replicas=2 >/dev/null
 python3 - "$out" <<'PY'
 import csv, json, re, statistics, sys
 out = sys.argv[1]
-lines = open(f"{out}/operator-bench.log").read()
+import glob
+lines = "".join(open(f).read() for f in sorted(glob.glob(f"{out}/../operator*/operator-bench.log")))
 def times(prefix):
-    return [float(x) for x in re.findall(rf"{prefix} trial \d+: .*?ready in ([0-9.]+) s", lines)]
+    return [float(x) for x in re.findall(rf"{prefix} trial \d+: .*?ready in ([0-9.]+) s", lines, re.I)]
 summary = {"provisioning_s": {}, "autoscaling": {}}
 for k, p in (("manual_apply", "manual"), ("operator_reconcile", "operator"), ("self_heal_ready", "self-heal")):
     v = times(p)
