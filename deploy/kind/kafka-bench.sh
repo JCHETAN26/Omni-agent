@@ -11,8 +11,19 @@ ns=omniagent
 corpus=.cache/fiqa/corpus.jsonl
 if [ ! -s "$corpus" ]; then
   mkdir -p .cache/fiqa
-  curl -fsSL -o .cache/fiqa.zip https://public.ukp.informatik.tu-darmstadt.de/thakur/BEIR/datasets/fiqa.zip
-  unzip -p .cache/fiqa.zip fiqa/corpus.jsonl > "$corpus"
+  # BEIR's Hugging Face mirror (Parquet, checksum-verified); the original TU
+  # Darmstadt host is often unreachable. Needs pyarrow (pip install pyarrow).
+  curl -fsSL -o .cache/fiqa/corpus.parquet \
+    https://huggingface.co/datasets/BeIR/fiqa/resolve/main/corpus/corpus-00000-of-00001.parquet
+  echo "b36bb07dab3bfad488190818828e749a52faf5ba391c1d51dac8b06064576f99  .cache/fiqa/corpus.parquet" | sha256sum -c -
+  python3 - "$corpus" <<'PY'
+import json, sys
+import pyarrow.parquet as pq
+with open(sys.argv[1], "w") as f:
+    for r in pq.read_table(".cache/fiqa/corpus.parquet").to_pylist():
+        doc = {"_id": str(r["_id"]), "title": r.get("title") or "", "text": r["text"]}
+        f.write(json.dumps(doc, ensure_ascii=False) + "\n")
+PY
 fi
 if [ -z "${SKIP_BUILD:-}" ]; then
   docker build -q -f deploy/docker/ingestion.Dockerfile --target bench -t omniagent-ingest-bench:dev . >/dev/null

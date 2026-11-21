@@ -22,10 +22,11 @@ mkdir -p "$out"
 log="$out/faults.log"
 : > "$log"
 note() { echo "$(date -u +%FT%T.%3NZ) $*" | tee -a "$log"; }
-kill9() { # kill9 <pkill pattern args...>: SIGKILL matching processes in the node
+kill9() { # kill9 <pgrep args...>: SIGKILL matching processes in the node
   local pids
   pids=$(docker exec "$node" pgrep "$@" | tr '\n' ' ')
-  [ -n "$pids" ] && docker exec "$node" kill -9 $pids
+  # The node image has no kill binary: use the shell builtin.
+  [ -n "$pids" ] && docker exec "$node" sh -c "kill -9 $pids"
   echo "$pids"
 }
 restarts() {
@@ -49,7 +50,7 @@ sleep 30
 note "FAULT 2: SIGKILL Kafka broker: pids $(kill9 -f kafka.Kafka)"
 sleep 40
 two=$(docker exec "$node" pgrep -x omni-indexer | head -2 | tr '\n' ' ')
-docker exec "$node" kill -9 $two
+docker exec "$node" sh -c "kill -9 $two"
 note "FAULT 3: SIGKILL two indexers: pids $two"
 sleep 30
 note "FAULT 4: SIGKILL broker and all indexers: pids $(kill9 -f kafka.Kafka) $(kill9 -x omni-indexer)"
