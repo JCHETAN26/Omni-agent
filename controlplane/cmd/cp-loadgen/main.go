@@ -23,10 +23,15 @@ import (
 	"os"
 	"sort"
 	"strconv"
+	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/resolver"
 	"google.golang.org/grpc/resolver/dns"
+	"google.golang.org/grpc/resolver/manual"
 	"google.golang.org/grpc/status"
 
 	"github.com/JCHETAN26/Omni-agent/controlplane/client"
@@ -62,11 +67,13 @@ func pct(v []float64, q float64) float64 {
 func main() {
 	mode := flag.String("mode", "grpc", "grpc (through the control plane) or direct (gateway HTTP)")
 	target := flag.String("target", "dns:///omniagent-controlplane:9000", "control-plane target (grpc mode)")
-	directURL := flag.String("direct-url", "http://omniagent-backend:8000", "gateway base URL (direct mode)")
+	directURL := flag.String("direct-url", "http://omniagent-backend:8000", "gateway base URL(s), comma-separated (direct mode)")
 	workers := flag.Int("workers", 8, "concurrent closed-loop workers")
 	duration := flag.Duration("duration", 2*time.Minute, "")
 	timeout := flag.Duration("timeout", 3*time.Second, "per-call deadline")
 	label := flag.String("label", "run", "")
+	addrs := flag.String("addrs", "", "grpc mode: comma-separated node addresses instead of --target DNS")
+	unique := flag.Bool("unique", false, "make every query distinct (defeats the gateway's result cache)")
 	flag.Parse()
 	log := slog.New(slog.NewJSONHandler(os.Stderr, nil))
 	// Replaced control-plane pods get new IPs: re-resolve DNS within a second of
@@ -76,7 +83,18 @@ func main() {
 	var do func(ctx context.Context, q string) (degr, node string, err error)
 	switch *mode {
 	case "grpc":
-		conn, router, err := client.Dial(*target)
+		var opts []grpc.DialOption
+		dialTarget := *target
+		if *addrs != "" {
+			r := manual.NewBuilderWithScheme("static")
+			var ra []resolver.Address
+			for _, a := range strings.Split(*addrs, ",") {
+				ra = append(ra, resolver.Address{Addr: a})
+			}
+			r.InitialState(resolver.State{Addresses: ra})
+			opts, dialTarget = append(opts, grpc.WithResolvers(r)), "static:///nodes"
+		}
+		conn, router, err := client.Dial(dialTarget, opts...)
 		if err != nil {
 			log.Error("dial", "err", err)
 			os.Exit(1)
@@ -95,9 +113,12 @@ func main() {
 		}
 	case "direct":
 		hc := &http.Client{Transport: &http.Transport{MaxIdleConnsPerHost: 256}}
+		urls := strings.Split(*directURL, ",")
+		var rr atomic.Int64
 		do = func(ctx context.Context, q string) (string, string, error) {
 			body, _ := json.Marshal(map[string]any{"query": q, "top_k": 10})
-			req, _ := http.NewRequestWithContext(ctx, http.MethodPost, *directURL+"/search", bytes.NewReader(body))
+			base := urls[int(rr.Add(1))%len(urls)] // round-robin, like the control plane spreads load
+			req, _ := http.NewRequestWithContext(ctx, http.MethodPost, base+"/search", bytes.NewReader(body))
 			req.Header.Set("Content-Type", "application/json")
 			resp, err := hc.Do(req)
 			if err != nil {
@@ -137,7 +158,11 @@ func main() {
 			for i := w; time.Now().Before(end); i += *workers {
 				t := time.Now()
 				ctx, cancel := context.WithTimeout(context.Background(), *timeout)
-				degr, node, err := do(ctx, queries[i%len(queries)])
+				q := queries[i%len(queries)]
+				if *unique {
+					q = fmt.Sprintf("%s %d", q, i)
+				}
+				degr, node, err := do(ctx, q)
 				cancel()
 				c := call{startUs: t.Sub(start).Microseconds(), ms: float64(time.Since(t).Microseconds()) / 1000,
 					code: "OK", degr: degr, node: node}
@@ -210,7 +235,7 @@ func main() {
 	sort.Float64s(lat)
 	elapsed := time.Since(start).Seconds()
 	report := map[string]any{
-		"label": *label, "mode": *mode, "workers": *workers, "duration_s": duration.Seconds(),
+		"label": *label, "mode": *mode, "workers": *workers, "duration_s": duration.Seconds(), "unique_queries": *unique,
 		"timeout_ms": timeout.Milliseconds(), "start_unix_ms": start.UnixMilli(),
 		"calls": len(calls), "calls_per_s": float64(int(float64(len(calls))/elapsed*10)) / 10,
 		"by_code": byCode, "failed": len(calls) - byCode["OK"], "degraded": degraded,

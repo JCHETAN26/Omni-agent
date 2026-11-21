@@ -1,0 +1,19 @@
+2026-11-21T18:30:22.890+00:00 === start 2 gateways, seed, start 3 control-plane nodes
+8101 3352 chunks
+8102 3352 chunks
+2026-11-21T18:30:29.147+00:00 nodes: 9101:up 9102:up 9103:up 
+2026-11-21T18:30:29.169+00:00 === 1. routing overhead (8 workers, 30 s, unique queries)
+2026-11-21T18:31:29.357+00:00 round 1 done
+2026-11-21T18:32:29.516+00:00 round 2 done
+2026-11-21T18:32:29.537+00:00 === 1b. per-hop overhead without concurrency (1 worker, 30 s)
+2026-11-21T18:34:29.773+00:00 === 2. node failover: SIGKILL at +20/+45/+70 s, restart after 3 s
+2026-11-21T18:34:50.943+00:00 SIGKILL n1 (pid 52973) at 1795286090912
+2026-11-21T18:34:53.984+00:00 restarted n1
+2026-11-21T18:35:16.114+00:00 SIGKILL n2 (pid 52974) at 1795286116083
+2026-11-21T18:35:19.155+00:00 restarted n2
+2026-11-21T18:35:41.288+00:00 SIGKILL n3 (pid 52975) at 1795286141257
+2026-11-21T18:35:44.331+00:00 restarted n3
+2026-11-21T18:35:59.917+00:00 === 3. gateway failover: SIGKILL gateway 8101 at +20 s, restart at +40 s
+2026-11-21T18:36:21.014+00:00 SIGKILL gateway 8101 at 1795286180986
+2026-11-21T18:36:43.528+00:00 gateway 8101 restarted at 1795286201067, ready+seeded at 1795286203501
+2026-11-21T18:37:00.442+00:00 done

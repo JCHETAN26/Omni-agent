@@ -1,0 +1,257 @@
+{
+  "overhead": {
+    "runs": {
+      "overhead-direct-1": {
+        "calls_per_s": 473,
+        "failed": 0,
+        "latency_ms": {
+          "max": 44.55,
+          "p50": 16.4,
+          "p95": 29.85,
+          "p99": 34.54
+        }
+      },
+      "overhead-direct-2": {
+        "calls_per_s": 867.1,
+        "failed": 0,
+        "latency_ms": {
+          "max": 95.26,
+          "p50": 6.93,
+          "p95": 24.86,
+          "p99": 31.05
+        }
+      },
+      "overhead-grpc-1": {
+        "calls_per_s": 674.6,
+        "failed": 0,
+        "latency_ms": {
+          "max": 52.75,
+          "p50": 11.84,
+          "p95": 22.91,
+          "p99": 27.58
+        }
+      },
+      "overhead-grpc-2": {
+        "calls_per_s": 1064.6,
+        "failed": 0,
+        "latency_ms": {
+          "max": 61.41,
+          "p50": 5.06,
+          "p95": 21.04,
+          "p99": 25.92
+        }
+      }
+    },
+    "direct": {
+      "calls": 40230,
+      "calls_per_s_mean": 670.0,
+      "p50": 10.71,
+      "p95": 27.66,
+      "p99": 32.94
+    },
+    "grpc": {
+      "calls": 52216,
+      "calls_per_s_mean": 869.6,
+      "p50": 7.73,
+      "p95": 21.93,
+      "p99": 26.77
+    },
+    "added_ms": {
+      "p50": -2.98,
+      "p95": -5.73,
+      "p99": -6.17
+    },
+    "throughput_ratio_grpc_over_direct": 1.298
+  },
+  "overhead_1_worker": {
+    "runs": {
+      "overhead1-direct-1": {
+        "calls_per_s": 1025.5,
+        "failed": 0,
+        "latency_ms": {
+          "max": 12.82,
+          "p50": 0.35,
+          "p95": 4.04,
+          "p99": 5.46
+        }
+      },
+      "overhead1-direct-2": {
+        "calls_per_s": 1229.2,
+        "failed": 0,
+        "latency_ms": {
+          "max": 11.82,
+          "p50": 0.32,
+          "p95": 3.72,
+          "p99": 5.46
+        }
+      },
+      "overhead1-grpc-1": {
+        "calls_per_s": 1075.8,
+        "failed": 0,
+        "latency_ms": {
+          "max": 14,
+          "p50": 0.52,
+          "p95": 3.82,
+          "p99": 5.64
+        }
+      },
+      "overhead1-grpc-2": {
+        "calls_per_s": 1177.2,
+        "failed": 0,
+        "latency_ms": {
+          "max": 19.06,
+          "p50": 0.51,
+          "p95": 3.74,
+          "p99": 5.67
+        }
+      }
+    },
+    "direct": {
+      "calls": 67664,
+      "calls_per_s_mean": 1127.3,
+      "p50": 0.33,
+      "p95": 3.85,
+      "p99": 5.46
+    },
+    "grpc": {
+      "calls": 67611,
+      "calls_per_s_mean": 1126.5,
+      "p50": 0.52,
+      "p95": 3.77,
+      "p99": 5.65
+    },
+    "added_ms": {
+      "p50": 0.19,
+      "p95": -0.08,
+      "p99": 0.19
+    },
+    "throughput_ratio_grpc_over_direct": 0.999
+  },
+  "failover": {
+    "calls": 72098,
+    "failed": 0,
+    "by_code": {
+      "OK": 72098
+    },
+    "error_rate": "0",
+    "calls_per_s": 800.7,
+    "latency_ms": {
+      "max": 92.64,
+      "p50": 9.56,
+      "p95": 23.31,
+      "p99": 27.83
+    },
+    "baseline_before_first_kill_ms": {
+      "p50": 1.61,
+      "p99": 23.36
+    },
+    "served_by": {
+      "n1": 24123,
+      "n2": 23926,
+      "n3": 24049
+    },
+    "kills": [
+      {
+        "kill_unix_ms": 1795286090912,
+        "calls_in_flight_at_kill": 8,
+        "in_flight_failed": 0,
+        "in_flight_max_latency_ms": 89.8,
+        "calls_until_next_kill": 11478,
+        "errors_until_next_kill": 0,
+        "errors_from_5s_after_kill": 0,
+        "p99_first_1s_after_kill_ms": 22.27,
+        "peer_detection_ms": [
+          1177,
+          1177
+        ]
+      },
+      {
+        "kill_unix_ms": 1795286116083,
+        "calls_in_flight_at_kill": 8,
+        "in_flight_failed": 0,
+        "in_flight_max_latency_ms": 92.6,
+        "calls_until_next_kill": 11226,
+        "errors_until_next_kill": 0,
+        "errors_from_5s_after_kill": 0,
+        "p99_first_1s_after_kill_ms": 23.63,
+        "peer_detection_ms": [
+          1004,
+          1419
+        ]
+      },
+      {
+        "kill_unix_ms": 1795286141257,
+        "calls_in_flight_at_kill": 8,
+        "in_flight_failed": 0,
+        "in_flight_max_latency_ms": 85.0,
+        "calls_until_next_kill": 8526,
+        "errors_until_next_kill": 0,
+        "errors_from_5s_after_kill": 0,
+        "p99_first_1s_after_kill_ms": 25.14,
+        "peer_detection_ms": [
+          1244,
+          1408
+        ]
+      }
+    ],
+    "peer_detection_ms": {
+      "samples": [
+        1177,
+        1177,
+        1004,
+        1419,
+        1244,
+        1408
+      ],
+      "median": 1210.5,
+      "max": 1419
+    },
+    "restarts": [
+      "local",
+      "harness:",
+      "nodes",
+      "restarted",
+      "by",
+      "the",
+      "script",
+      "3",
+      "s",
+      "after",
+      "each",
+      "kill"
+    ],
+    "ok_latency_ms": {
+      "p50": 9.56,
+      "p99": 27.82
+    }
+  },
+  "gateway_failover": {
+    "calls": 44630,
+    "failed": 0,
+    "by_code": {
+      "OK": 44630
+    },
+    "latency_ms": {
+      "max": 60.28,
+      "p50": 8.85,
+      "p95": 25.75,
+      "p99": 30.12
+    },
+    "calls_in_flight_at_kill": 8,
+    "in_flight_max_latency_ms": 60.3,
+    "first_ejection_per_node_ms_after_kill": [
+      36,
+      39,
+      39
+    ],
+    "readmitted_per_node_ms_after_gateway_ready": [
+      9840,
+      10500,
+      10665
+    ],
+    "p99_first_1s_after_kill_ms": 35
+  },
+  "degradation": {
+    "missing": "[Errno 2] No such file or directory: 'benchmarks/results/2026-11-21/grpc-control-plane/local-harness/degradation.json'"
+  }
+}

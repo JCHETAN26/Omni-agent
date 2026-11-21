@@ -29,10 +29,10 @@ def pct(v: list[float], q: float) -> float | None:
     return round(v[int(q * (len(v) - 1) + 0.5)], 2)
 
 
-def overhead(out: Path) -> dict:
+def overhead(out: Path, prefix: str = "overhead-") -> dict:
     res: dict = {"runs": {}}
     by_mode: dict[str, list[dict]] = {"direct": [], "grpc": []}
-    for p in sorted(out.glob("overhead-*.json")):
+    for p in sorted(out.glob(f"{prefix}*.json")):
         r = load(p)
         by_mode[r["mode"]].append(r)
         res["runs"][p.stem] = {
@@ -40,7 +40,11 @@ def overhead(out: Path) -> dict:
             "failed": r["failed"],
             "latency_ms": r["latency_ms"],
         }
+    if not by_mode["direct"] and not by_mode["grpc"]:
+        raise FileNotFoundError(f"no {prefix}*.json runs")
     for mode, runs in by_mode.items():
+        if not runs:
+            continue
         lat = [c[1] for r in runs for c in calls(r) if c[2] == "OK"]
         res[mode] = {
             "calls": len(lat),
@@ -116,6 +120,38 @@ def failover(out: Path) -> dict:
     }
 
 
+def gateway_failover(out: Path) -> dict:
+    r = load(out / "gateway-failover.json")
+    cs = calls(r)
+    ev = dict(x.split() for x in (out / "gateway-events.txt").read_text().splitlines() if x.strip())
+    kill, ready = int(ev["gateway_kill"]), int(ev["gateway_ready"])
+    ejected, healthy = [], []
+    for line in (out / "gateway-transitions.log").read_text().splitlines():
+        ms = re.search(r'"unix_ms":(\d+)', line)
+        to = re.search(r'"to":"([A-Z_]+)"', line)
+        if not (ms and to):
+            continue
+        t = int(ms.group(1))
+        if to.group(1) == "UPSTREAM_STATE_EJECTED" and kill <= t < ready:
+            ejected.append(t - kill)
+        if to.group(1) == "UPSTREAM_STATE_HEALTHY" and t >= ready:
+            healthy.append(t - ready)
+    inflight = [c for c in cs if c[0] <= kill < c[0] + c[1]]
+    return {
+        "calls": len(cs),
+        "failed": r["failed"],
+        "by_code": r["by_code"],
+        "latency_ms": r["latency_ms"],
+        "calls_in_flight_at_kill": len(inflight),
+        "in_flight_max_latency_ms": round(max((c[1] for c in inflight), default=0), 1),
+        "first_ejection_per_node_ms_after_kill": sorted(ejected)[:3],
+        "readmitted_per_node_ms_after_gateway_ready": sorted(healthy)[:3],
+        "p99_first_1s_after_kill_ms": pct(
+            [c[1] for c in cs if kill <= c[0] < kill + 1000 and c[2] == "OK"], 0.99
+        ),
+    }
+
+
 def degradation(out: Path) -> dict:
     r = load(out / "degradation.json")
     cs = calls(r)
@@ -158,7 +194,13 @@ def degradation(out: Path) -> dict:
 def main() -> None:
     out = Path(sys.argv[1])
     summary = {}
-    for name, fn in (("overhead", overhead), ("failover", failover), ("degradation", degradation)):
+    for name, fn in (
+        ("overhead", overhead),
+        ("overhead_1_worker", lambda o: overhead(o, "overhead1-")),
+        ("failover", failover),
+        ("gateway_failover", gateway_failover),
+        ("degradation", degradation),
+    ):
         try:
             summary[name] = fn(out)
         except FileNotFoundError as exc:

@@ -1,0 +1,24 @@
+{"time":"2026-11-21T11:30:26.08188-07:00","level":"INFO","msg":"gateway state","service":"omni-controlplane","addr":"127.0.0.1:8102","from":"UPSTREAM_STATE_PROBING","to":"UPSTREAM_STATE_HEALTHY","unix_ms":1795285826081}
+{"time":"2026-11-21T11:30:26.081876-07:00","level":"INFO","msg":"gateway state","service":"omni-controlplane","addr":"127.0.0.1:8101","from":"UPSTREAM_STATE_PROBING","to":"UPSTREAM_STATE_HEALTHY","unix_ms":1795285826081}
+{"time":"2026-11-21T11:30:26.08289-07:00","level":"INFO","msg":"control plane node started","service":"omni-controlplane","node":"n2","address":"127.0.0.1:9102","gateways":2,"bm25_fallback":false}
+{"time":"2026-11-21T11:30:26.086654-07:00","level":"INFO","msg":"peer registered","service":"omni-controlplane","peer":"127.0.0.1:9103","id":"n3"}
+{"time":"2026-11-21T11:30:26.08673-07:00","level":"INFO","msg":"peer registered","service":"omni-controlplane","peer":"127.0.0.1:9101","id":"n1"}
+{"time":"2026-11-21T11:34:52.089791-07:00","level":"WARN","msg":"peer down","service":"omni-controlplane","peer":"127.0.0.1:9101","missed":3,"since_last_heartbeat_ms":1500,"detected_unix_ms":1795286092089}
+{"time":"2026-11-21T11:34:54.001103-07:00","level":"INFO","msg":"peer recovered","service":"omni-controlplane","peer":"127.0.0.1:9101"}
+{"time":"2026-11-21T11:34:54.001131-07:00","level":"INFO","msg":"peer registered","service":"omni-controlplane","peer":"127.0.0.1:9101","id":"n1"}
+{"time":"2026-11-21T11:35:19.162707-07:00","level":"INFO","msg":"gateway state","service":"omni-controlplane","addr":"127.0.0.1:8102","from":"UPSTREAM_STATE_PROBING","to":"UPSTREAM_STATE_HEALTHY","unix_ms":1795286119162}
+{"time":"2026-11-21T11:35:19.164021-07:00","level":"INFO","msg":"gateway state","service":"omni-controlplane","addr":"127.0.0.1:8101","from":"UPSTREAM_STATE_PROBING","to":"UPSTREAM_STATE_HEALTHY","unix_ms":1795286119164}
+{"time":"2026-11-21T11:35:19.164222-07:00","level":"INFO","msg":"control plane node started","service":"omni-controlplane","node":"n2","address":"127.0.0.1:9102","gateways":2,"bm25_fallback":false}
+{"time":"2026-11-21T11:35:42.665637-07:00","level":"WARN","msg":"peer down","service":"omni-controlplane","peer":"127.0.0.1:9103","missed":3,"since_last_heartbeat_ms":1499,"detected_unix_ms":1795286142665}
+{"time":"2026-11-21T11:35:44.340379-07:00","level":"INFO","msg":"peer recovered","service":"omni-controlplane","peer":"127.0.0.1:9103"}
+{"time":"2026-11-21T11:35:44.340446-07:00","level":"INFO","msg":"peer registered","service":"omni-controlplane","peer":"127.0.0.1:9103","id":"n3"}
+{"time":"2026-11-21T11:36:21.02507-07:00","level":"INFO","msg":"gateway state","service":"omni-controlplane","addr":"127.0.0.1:8101","from":"UPSTREAM_STATE_HEALTHY","to":"UPSTREAM_STATE_EJECTED","unix_ms":1795286181025}
+{"time":"2026-11-21T11:36:23.166043-07:00","level":"INFO","msg":"gateway state","service":"omni-controlplane","addr":"127.0.0.1:8101","from":"UPSTREAM_STATE_EJECTED","to":"UPSTREAM_STATE_PROBING","unix_ms":1795286183166}
+{"time":"2026-11-21T11:36:23.166294-07:00","level":"INFO","msg":"gateway state","service":"omni-controlplane","addr":"127.0.0.1:8101","from":"UPSTREAM_STATE_PROBING","to":"UPSTREAM_STATE_EJECTED","unix_ms":1795286183166}
+{"time":"2026-11-21T11:36:28.164828-07:00","level":"INFO","msg":"gateway state","service":"omni-controlplane","addr":"127.0.0.1:8101","from":"UPSTREAM_STATE_EJECTED","to":"UPSTREAM_STATE_PROBING","unix_ms":1795286188164}
+{"time":"2026-11-21T11:36:28.165146-07:00","level":"INFO","msg":"gateway state","service":"omni-controlplane","addr":"127.0.0.1:8101","from":"UPSTREAM_STATE_PROBING","to":"UPSTREAM_STATE_EJECTED","unix_ms":1795286188165}
+{"time":"2026-11-21T11:36:37.165625-07:00","level":"INFO","msg":"gateway state","service":"omni-controlplane","addr":"127.0.0.1:8101","from":"UPSTREAM_STATE_EJECTED","to":"UPSTREAM_STATE_PROBING","unix_ms":1795286197165}
+{"time":"2026-11-21T11:36:37.166146-07:00","level":"INFO","msg":"gateway state","service":"omni-controlplane","addr":"127.0.0.1:8101","from":"UPSTREAM_STATE_PROBING","to":"UPSTREAM_STATE_EJECTED","unix_ms":1795286197166}
+{"time":"2026-11-21T11:36:54.16526-07:00","level":"INFO","msg":"gateway state","service":"omni-controlplane","addr":"127.0.0.1:8101","from":"UPSTREAM_STATE_EJECTED","to":"UPSTREAM_STATE_PROBING","unix_ms":1795286214165}
+{"time":"2026-11-21T11:36:54.166325-07:00","level":"INFO","msg":"gateway state","service":"omni-controlplane","addr":"127.0.0.1:8101","from":"UPSTREAM_STATE_PROBING","to":"UPSTREAM_STATE_HEALTHY","unix_ms":1795286214166}
+{"time":"2026-11-21T11:37:01.448109-07:00","level":"INFO","msg":"control plane node stopped","service":"omni-controlplane","node":"n2"}

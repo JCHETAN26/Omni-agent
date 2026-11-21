@@ -3,6 +3,7 @@
 // Configuration (environment):
 //
 //	GRPC_PORT        9000 (Router, Cluster, grpc.health.v1, reflection)
+//	GRPC_HOST        listen address (default: all interfaces)
 //	HTTP_ADDR        :9090 (/metrics, /healthz)
 //	GATEWAY_HOST     DNS name resolving to every gateway pod (a headless Service)
 //	GATEWAY_PORT     8000
@@ -147,7 +148,7 @@ func main() {
 	healthpb.RegisterHealthServer(g, srv.Health)
 	reflection.Register(g)
 
-	lis, err := net.Listen("tcp", ":"+strconv.Itoa(port))
+	lis, err := net.Listen("tcp", net.JoinHostPort(os.Getenv("GRPC_HOST"), strconv.Itoa(port)))
 	if err != nil {
 		log.Error("listen", "err", err)
 		os.Exit(1)

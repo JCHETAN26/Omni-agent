@@ -1,0 +1,1 @@
+local harness: nodes restarted by the script 3 s after each kill
