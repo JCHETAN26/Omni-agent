@@ -1,0 +1,4 @@
+# Used instead of the root .dockerignore for ingestion.Dockerfile.
+*
+!ingestion/**
+!.cache/fiqa/corpus.jsonl

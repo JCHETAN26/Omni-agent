@@ -1,0 +1,8 @@
+2026-11-21T06:42:28.647Z restart counts before: omniagent-indexer-7bcbf7dd64-45txd=0 omniagent-indexer-7bcbf7dd64-59fkg=0 omniagent-indexer-7bcbf7dd64-82tvr=0 omniagent-indexer-7bcbf7dd64-cllfv=0 omniagent-ingest-7557d465c6-2fpfq=0 omniagent-kafka-0=0 
+2026-11-21T06:42:45.609Z bench crash1795243348 streaming 3000 docs at 10 docs/s
+2026-11-21T06:43:05.931Z FAULT 1: SIGKILL all indexers: pids 15074 15309 15914 16126 
+2026-11-21T06:43:36.228Z FAULT 2: SIGKILL Kafka broker: pids 9966 
+2026-11-21T06:44:16.548Z FAULT 3: SIGKILL two indexers: pids 21520 21535 
+2026-11-21T06:44:47.142Z FAULT 4: SIGKILL broker and all indexers: pids 21794  21537 21540 22550 22590 
+2026-11-21T06:47:54.573Z bench exited 0
+2026-11-21T06:47:54.642Z restart counts after: omniagent-indexer-7bcbf7dd64-45txd=3 omniagent-indexer-7bcbf7dd64-59fkg=3 omniagent-indexer-7bcbf7dd64-82tvr=2 omniagent-indexer-7bcbf7dd64-cllfv=2 omniagent-ingest-7557d465c6-2fpfq=0 omniagent-kafka-0=2 

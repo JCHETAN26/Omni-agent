@@ -80,3 +80,29 @@ env:
   {{- toYaml . | nindent 2 }}
   {{- end }}
 {{- end -}}
+
+{{/* Kafka bootstrap servers: bundled broker or kafka.externalBrokers. */}}
+{{- define "omniagent.kafkaBrokers" -}}
+{{- if .Values.kafka.enabled -}}{{ include "omniagent.fullname" . }}-kafka:9092{{- else -}}{{ .Values.kafka.externalBrokers }}{{- end -}}
+{{- end -}}
+
+{{/* Triton HTTP (KServe v2) endpoint, used by the Go indexer for embeddings. */}}
+{{- define "omniagent.tritonHttpUrl" -}}
+{{- if .Values.triton.enabled -}}http://{{ include "omniagent.fullname" . }}-triton:8000{{- else -}}{{ .Values.triton.externalHttpUrl }}{{- end -}}
+{{- end -}}
+
+{{- define "omniagent.ingestionPodSecurity" }}
+      automountServiceAccountToken: false
+      securityContext:
+        # distroless "nonroot" (65532), static Go binaries.
+        runAsNonRoot: true
+        runAsUser: 65532
+        runAsGroup: 65532
+        seccompProfile: { type: RuntimeDefault }
+{{- end }}
+{{- define "omniagent.ingestionContainerSecurity" }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: { drop: [ALL] }
+{{- end }}

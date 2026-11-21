@@ -1,0 +1,112 @@
+{"time":"2026-11-21T06:39:47.204984808Z","level":"INFO","msg":"sending","service":"omni-ingest-bench","docs":1000,"chunks":1566,"rate":7}
+{"time":"2026-11-21T06:39:52.208389158Z","level":"INFO","msg":"progress","service":"omni-ingest-bench","uploads":0,"upload_retries":0,"indexed":0,"of":1000,"sending":true}
+{"time":"2026-11-21T06:39:57.20599039Z","level":"INFO","msg":"progress","service":"omni-ingest-bench","uploads":0,"upload_retries":0,"indexed":0,"of":1000,"sending":true}
+{"time":"2026-11-21T06:40:02.205503735Z","level":"INFO","msg":"progress","service":"omni-ingest-bench","uploads":1,"upload_retries":0,"indexed":0,"of":1000,"sending":true}
+{"time":"2026-11-21T06:40:07.205281673Z","level":"INFO","msg":"progress","service":"omni-ingest-bench","uploads":1,"upload_retries":0,"indexed":48,"of":1000,"sending":true}
+{"time":"2026-11-21T06:40:12.205190827Z","level":"INFO","msg":"progress","service":"omni-ingest-bench","uploads":1,"upload_retries":0,"indexed":100,"of":1000,"sending":true}
+{"time":"2026-11-21T06:40:17.205267623Z","level":"INFO","msg":"progress","service":"omni-ingest-bench","uploads":2,"upload_retries":0,"indexed":100,"of":1000,"sending":true}
+{"time":"2026-11-21T06:40:22.206335159Z","level":"INFO","msg":"progress","service":"omni-ingest-bench","uploads":2,"upload_retries":0,"indexed":100,"of":1000,"sending":true}
+{"time":"2026-11-21T06:40:27.205378766Z","level":"INFO","msg":"progress","service":"omni-ingest-bench","uploads":2,"upload_retries":0,"indexed":200,"of":1000,"sending":true}
+{"time":"2026-11-21T06:40:32.206287295Z","level":"INFO","msg":"progress","service":"omni-ingest-bench","uploads":3,"upload_retries":0,"indexed":200,"of":1000,"sending":true}
+{"time":"2026-11-21T06:40:37.205179871Z","level":"INFO","msg":"progress","service":"omni-ingest-bench","uploads":3,"upload_retries":0,"indexed":200,"of":1000,"sending":true}
+{"time":"2026-11-21T06:40:42.208679439Z","level":"INFO","msg":"progress","service":"omni-ingest-bench","uploads":3,"upload_retries":0,"indexed":300,"of":1000,"sending":true}
+{"time":"2026-11-21T06:40:47.205266381Z","level":"INFO","msg":"progress","service":"omni-ingest-bench","uploads":4,"upload_retries":0,"indexed":300,"of":1000,"sending":true}
+{"time":"2026-11-21T06:40:52.205273522Z","level":"INFO","msg":"progress","service":"omni-ingest-bench","uploads":4,"upload_retries":0,"indexed":350,"of":1000,"sending":true}
+{"time":"2026-11-21T06:40:57.20582827Z","level":"INFO","msg":"progress","service":"omni-ingest-bench","uploads":4,"upload_retries":0,"indexed":400,"of":1000,"sending":true}
+{"time":"2026-11-21T06:41:02.205603159Z","level":"INFO","msg":"progress","service":"omni-ingest-bench","uploads":5,"upload_retries":0,"indexed":400,"of":1000,"sending":true}
+{"time":"2026-11-21T06:41:07.205174579Z","level":"INFO","msg":"progress","service":"omni-ingest-bench","uploads":5,"upload_retries":0,"indexed":500,"of":1000,"sending":true}
+{"time":"2026-11-21T06:41:12.205135819Z","level":"INFO","msg":"progress","service":"omni-ingest-bench","uploads":5,"upload_retries":0,"indexed":500,"of":1000,"sending":true}
+{"time":"2026-11-21T06:41:17.205116573Z","level":"INFO","msg":"progress","service":"omni-ingest-bench","uploads":6,"upload_retries":0,"indexed":500,"of":1000,"sending":true}
+{"time":"2026-11-21T06:41:22.206409633Z","level":"INFO","msg":"progress","service":"omni-ingest-bench","uploads":6,"upload_retries":0,"indexed":600,"of":1000,"sending":true}
+{"time":"2026-11-21T06:41:27.206132378Z","level":"INFO","msg":"progress","service":"omni-ingest-bench","uploads":6,"upload_retries":0,"indexed":600,"of":1000,"sending":true}
+{"time":"2026-11-21T06:41:32.206293619Z","level":"INFO","msg":"progress","service":"omni-ingest-bench","uploads":7,"upload_retries":0,"indexed":600,"of":1000,"sending":true}
+{"time":"2026-11-21T06:41:37.206271915Z","level":"INFO","msg":"progress","service":"omni-ingest-bench","uploads":7,"upload_retries":0,"indexed":700,"of":1000,"sending":true}
+{"time":"2026-11-21T06:41:42.206105003Z","level":"INFO","msg":"progress","service":"omni-ingest-bench","uploads":8,"upload_retries":0,"indexed":700,"of":1000,"sending":true}
+{"time":"2026-11-21T06:41:47.205257116Z","level":"INFO","msg":"progress","service":"omni-ingest-bench","uploads":8,"upload_retries":0,"indexed":700,"of":1000,"sending":true}
+{"time":"2026-11-21T06:41:52.205677925Z","level":"INFO","msg":"progress","service":"omni-ingest-bench","uploads":8,"upload_retries":0,"indexed":800,"of":1000,"sending":true}
+{"time":"2026-11-21T06:41:57.209212686Z","level":"INFO","msg":"progress","service":"omni-ingest-bench","uploads":9,"upload_retries":0,"indexed":800,"of":1000,"sending":true}
+{"time":"2026-11-21T06:42:02.207297797Z","level":"INFO","msg":"progress","service":"omni-ingest-bench","uploads":9,"upload_retries":0,"indexed":800,"of":1000,"sending":true}
+{"time":"2026-11-21T06:42:07.205416045Z","level":"INFO","msg":"progress","service":"omni-ingest-bench","uploads":9,"upload_retries":0,"indexed":900,"of":1000,"sending":true}
+{"time":"2026-11-21T06:42:12.207223909Z","level":"INFO","msg":"progress","service":"omni-ingest-bench","uploads":10,"upload_retries":0,"indexed":900,"of":1000,"sending":false}
+{"time":"2026-11-21T06:42:17.205275108Z","level":"INFO","msg":"progress","service":"omni-ingest-bench","uploads":10,"upload_retries":0,"indexed":920,"of":1000,"sending":false}
+{"time":"2026-11-21T06:42:22.20803381Z","level":"INFO","msg":"progress","service":"omni-ingest-bench","uploads":10,"upload_retries":0,"indexed":1000,"of":1000,"sending":false}
+REPORT_BEGIN
+{
+  "config": {
+    "batch": 100,
+    "chunk_overlap": 120,
+    "chunk_size": 800,
+    "concurrency": 8,
+    "corpus": "/data/corpus.jsonl",
+    "dense": true,
+    "docs": 1000,
+    "es_index": "omniagent_chunks",
+    "rate": 7
+  },
+  "expected_chunks": 1566,
+  "final_consumer_lag": 0,
+  "indexed_events": {
+    "distinct_docs": 1000,
+    "replayed_or_duplicate_events": 0,
+    "total": 1000
+  },
+  "latency_ms": {
+    "max": 9462.4,
+    "p50": 6427.6,
+    "p95": 9026.6,
+    "p99": 9461.5
+  },
+  "passed": true,
+  "run_id": "lat7",
+  "search_spot_check": {
+    "elasticsearch_top10": 50,
+    "gateway_search_top10": 50,
+    "qdrant_top10": 41,
+    "query": "first 12 words of the document's first chunk",
+    "sampled_docs": 50
+  },
+  "sharding": {
+    "docs_per_worker": {
+      "omniagent-indexer-7bcbf7dd64-45txd": 213,
+      "omniagent-indexer-7bcbf7dd64-59fkg": 272,
+      "omniagent-indexer-7bcbf7dd64-82tvr": 277,
+      "omniagent-indexer-7bcbf7dd64-cllfv": 238
+    },
+    "partitions_used": 12
+  },
+  "throughput": {
+    "docs": 1000,
+    "docs_per_s": 7.34,
+    "steady_docs_per_s": 7.11,
+    "wall_s": 136.29
+  },
+  "upload": {
+    "first_error": null,
+    "retried_uploads": 0,
+    "send_s": 142.87,
+    "uploads": 10
+  },
+  "verification": {
+    "dlq_records": 0,
+    "documents": 1000,
+    "elasticsearch": {
+      "chunks": 1566,
+      "documents_missing": 0,
+      "documents_present": 1000,
+      "documents_with_extra_chunks": 0,
+      "documents_with_missing_chunks": 0,
+      "exact": true
+    },
+    "expected_chunks": 1566,
+    "qdrant": {
+      "chunks": 1566,
+      "documents_missing": 0,
+      "documents_present": 1000,
+      "documents_with_extra_chunks": 0,
+      "documents_with_missing_chunks": 0,
+      "exact": true
+    },
+    "zero_loss_zero_duplicates": true
+  }
+}
+REPORT_END

@@ -83,8 +83,18 @@ def test_selectors_match_pod_labels_and_services_resolve():
                 assert target in port_names, f"{name}: targetPort {target} not on any pod"
 
 
-def test_workloads_are_hardened_and_bounded():
-    for d, tpl in pod_specs(render()):
+FULL = (
+    "triton.enabled=true",
+    "triton.image.repository=ghcr.io/jchetan26/omniagent-triton",
+    "triton.image.tag=0.4.0",
+    "kafka.enabled=true",
+    "ingestion.enabled=true",
+)
+
+
+@pytest.mark.parametrize("sets", [(), FULL], ids=["default", "full"])
+def test_workloads_are_hardened_and_bounded(sets):
+    for d, tpl in pod_specs(render(*sets)):
         spec = tpl["spec"]
         name = d["metadata"]["name"]
         assert spec["securityContext"]["runAsNonRoot"] is True, name
@@ -172,6 +182,9 @@ def test_optional_features_render():
         (["triton.enabled=true"], "triton.image.tag is required"),
         (["config.inferenceBackend=triton"], "requires triton.enabled"),
         (["config.visionBackend=triton"], "requires triton.enabled"),
+        (["kafka.enabled=true", "ingestion.enabled=true"], "needs triton.enabled"),
+        (["ingestion.enabled=true", "triton.enabled=true", "triton.image.tag=x"], "needs kafka"),
+        (["kafka.enabled=true", "kafka.replicas=3"], "single-node"),
     ],
 )
 def test_misconfiguration_fails_fast(sets, message):
@@ -194,10 +207,59 @@ def test_grafana_dashboard_is_valid_and_uses_exported_metrics():
         assert any(base in expr for expr in used), f"metric {name} not on the dashboard"
 
 
-def test_committed_manifests_match_the_chart():
-    rendered = render()
-    committed = [d for d in yaml.safe_load_all(MANIFESTS.read_text()) if d]
+@pytest.mark.parametrize("name, sets", [("omniagent.yaml", ()), ("omniagent-full.yaml", FULL)])
+def test_committed_manifests_match_the_chart(name, sets):
+    rendered = render(*sets)
+    committed = [d for d in yaml.safe_load_all((MANIFESTS.parent / name).read_text()) if d]
     assert committed == rendered, "run deploy/kubernetes/render.sh"
+
+
+def test_kafka_runs_kraft_hardened_with_durable_storage():
+    docs = render(*FULL)
+    kafka = by_kind(docs, "StatefulSet")["omniagent-kafka"]
+    spec = kafka["spec"]["template"]["spec"]
+    assert spec["securityContext"]["runAsUser"] == 1000 and spec["securityContext"]["runAsNonRoot"]
+    for c in spec["initContainers"] + spec["containers"]:
+        assert c["securityContext"]["readOnlyRootFilesystem"] is True, c["name"]
+        assert c["securityContext"]["capabilities"]["drop"] == ["ALL"], c["name"]
+    assert spec["initContainers"][0]["command"][1:3] == ["format", "--ignore-formatted"]
+    assert kafka["spec"]["volumeClaimTemplates"][0]["metadata"]["name"] == "data"
+    props = by_kind(docs, "ConfigMap")["omniagent-kafka"]["data"]["server.properties"]
+    assert "process.roles=broker,controller" in props and "zookeeper" not in props
+    assert "auto.create.topics.enable=false" in props
+    headless = by_kind(docs, "Service")["omniagent-kafka-headless"]["spec"]
+    assert headless["clusterIP"] == "None" and headless["publishNotReadyAddresses"] is True
+
+
+def test_ingestion_wiring_and_network_policy():
+    docs = render(*FULL)
+    deployments = by_kind(docs, "Deployment")
+    indexer = deployments["omniagent-indexer"]["spec"]["template"]["spec"]["containers"][0]
+    env = {e["name"]: e.get("value") for e in indexer["env"]}
+    assert env["KAFKA_BROKERS"] == "omniagent-kafka:9092"
+    assert env["TRITON_HTTP_URL"] == "http://omniagent-triton:8000"
+    assert env["ELASTICSEARCH_URL"] == "http://omniagent-elasticsearch:9200"
+    assert (env["CHUNK_SIZE"], env["CHUNK_OVERLAP"]) == ("800", "120")  # = gateway defaults
+    assert deployments["omniagent-indexer"]["spec"]["replicas"] == 3
+    ingest = deployments["omniagent-ingest"]["spec"]["template"]["spec"]
+    assert ingest["securityContext"]["runAsUser"] == 65532
+    policies = by_kind(docs, "NetworkPolicy")
+
+    def components(peers):
+        return {f["podSelector"]["matchLabels"]["app.kubernetes.io/component"] for f in peers}
+
+    def clients(store, port):
+        rules = policies[f"omniagent-{store}"]["spec"]["ingress"]
+        rule = next(r for r in rules if any(p["port"] == port for p in r["ports"]))
+        return components(rule["from"])
+
+    assert clients("kafka", 9092) == {"ingest", "indexer", "ingest-bench"}
+    assert clients("triton", 8000) == {"indexer", "ingest-bench"}
+    assert "indexer" not in clients("triton", 8001) and "indexer" not in clients("redis", 6379)
+    assert "indexer" in clients("elasticsearch", 9200) and "indexer" in clients("qdrant", 6333)
+    # Without ingestion, nothing new is admitted to the stores.
+    default_qdrant = by_kind(render(), "NetworkPolicy")["omniagent-qdrant"]["spec"]["ingress"][0]
+    assert "indexer" not in components(default_qdrant["from"])
 
 
 def test_triton_with_baked_models_runs_hardened_without_a_pvc():

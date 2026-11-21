@@ -1,0 +1,147 @@
+{"time":"2026-11-21T06:42:32.773095314Z","level":"INFO","msg":"sending","service":"omni-ingest-bench","docs":3000,"chunks":4692,"rate":10}
+{"time":"2026-11-21T06:42:37.776264098Z","level":"INFO","msg":"progress","service":"omni-ingest-bench","uploads":0,"upload_retries":0,"indexed":0,"of":3000,"sending":true}
+{"time":"2026-11-21T06:42:42.777420082Z","level":"INFO","msg":"progress","service":"omni-ingest-bench","uploads":0,"upload_retries":0,"indexed":0,"of":3000,"sending":true}
+{"time":"2026-11-21T06:42:47.77745148Z","level":"INFO","msg":"progress","service":"omni-ingest-bench","uploads":1,"upload_retries":0,"indexed":0,"of":3000,"sending":true}
+{"time":"2026-11-21T06:42:52.7749208Z","level":"INFO","msg":"progress","service":"omni-ingest-bench","uploads":1,"upload_retries":0,"indexed":100,"of":3000,"sending":true}
+{"time":"2026-11-21T06:42:57.773273858Z","level":"INFO","msg":"progress","service":"omni-ingest-bench","uploads":2,"upload_retries":0,"indexed":100,"of":3000,"sending":true}
+{"time":"2026-11-21T06:43:02.774203143Z","level":"INFO","msg":"progress","service":"omni-ingest-bench","uploads":2,"upload_retries":0,"indexed":200,"of":3000,"sending":true}
+{"time":"2026-11-21T06:43:07.773471603Z","level":"INFO","msg":"progress","service":"omni-ingest-bench","uploads":3,"upload_retries":0,"indexed":200,"of":3000,"sending":true}
+{"time":"2026-11-21T06:43:12.77335063Z","level":"INFO","msg":"progress","service":"omni-ingest-bench","uploads":3,"upload_retries":0,"indexed":200,"of":3000,"sending":true}
+{"time":"2026-11-21T06:43:17.774187786Z","level":"INFO","msg":"progress","service":"omni-ingest-bench","uploads":4,"upload_retries":0,"indexed":200,"of":3000,"sending":true}
+{"time":"2026-11-21T06:43:22.777166198Z","level":"INFO","msg":"progress","service":"omni-ingest-bench","uploads":4,"upload_retries":0,"indexed":244,"of":3000,"sending":true}
+{"time":"2026-11-21T06:43:27.774305562Z","level":"INFO","msg":"progress","service":"omni-ingest-bench","uploads":5,"upload_retries":0,"indexed":291,"of":3000,"sending":true}
+{"time":"2026-11-21T06:43:32.774095282Z","level":"INFO","msg":"progress","service":"omni-ingest-bench","uploads":5,"upload_retries":0,"indexed":400,"of":3000,"sending":true}
+{"time":"2026-11-21T06:43:37.776071401Z","level":"INFO","msg":"progress","service":"omni-ingest-bench","uploads":6,"upload_retries":0,"indexed":478,"of":3000,"sending":true}
+{"time":"2026-11-21T06:43:42.775651302Z","level":"INFO","msg":"progress","service":"omni-ingest-bench","uploads":6,"upload_retries":0,"indexed":478,"of":3000,"sending":true}
+{"time":"2026-11-21T06:43:47.77528033Z","level":"INFO","msg":"progress","service":"omni-ingest-bench","uploads":6,"upload_retries":0,"indexed":478,"of":3000,"sending":true}
+{"time":"2026-11-21T06:43:52.773900607Z","level":"INFO","msg":"progress","service":"omni-ingest-bench","uploads":6,"upload_retries":0,"indexed":478,"of":3000,"sending":true}
+{"time":"2026-11-21T06:43:52.775440685Z","level":"WARN","msg":"upload failed; retrying","service":"omni-ingest-bench","attempt":1,"err":"Post \"http://omniagent-ingest:8090/v1/documents\": dial tcp 10.96.165.232:8090: connect: connection refused"}
+{"time":"2026-11-21T06:43:57.773286407Z","level":"INFO","msg":"progress","service":"omni-ingest-bench","uploads":7,"upload_retries":5,"indexed":542,"of":3000,"sending":true}
+{"time":"2026-11-21T06:44:02.774064319Z","level":"INFO","msg":"progress","service":"omni-ingest-bench","uploads":8,"upload_retries":5,"indexed":564,"of":3000,"sending":true}
+{"time":"2026-11-21T06:44:07.773982996Z","level":"INFO","msg":"progress","service":"omni-ingest-bench","uploads":9,"upload_retries":5,"indexed":611,"of":3000,"sending":true}
+{"time":"2026-11-21T06:44:12.774947369Z","level":"INFO","msg":"progress","service":"omni-ingest-bench","uploads":9,"upload_retries":5,"indexed":728,"of":3000,"sending":true}
+{"time":"2026-11-21T06:44:17.774268058Z","level":"INFO","msg":"progress","service":"omni-ingest-bench","uploads":10,"upload_retries":5,"indexed":777,"of":3000,"sending":true}
+{"time":"2026-11-21T06:44:22.7740087Z","level":"INFO","msg":"progress","service":"omni-ingest-bench","uploads":10,"upload_retries":5,"indexed":835,"of":3000,"sending":true}
+{"time":"2026-11-21T06:44:27.775893641Z","level":"INFO","msg":"progress","service":"omni-ingest-bench","uploads":11,"upload_retries":5,"indexed":882,"of":3000,"sending":true}
+{"time":"2026-11-21T06:44:32.776113307Z","level":"INFO","msg":"progress","service":"omni-ingest-bench","uploads":11,"upload_retries":5,"indexed":930,"of":3000,"sending":true}
+{"time":"2026-11-21T06:44:37.775291754Z","level":"INFO","msg":"progress","service":"omni-ingest-bench","uploads":12,"upload_retries":5,"indexed":930,"of":3000,"sending":true}
+{"time":"2026-11-21T06:44:42.776771959Z","level":"INFO","msg":"progress","service":"omni-ingest-bench","uploads":12,"upload_retries":5,"indexed":930,"of":3000,"sending":true}
+{"time":"2026-11-21T06:44:47.773912518Z","level":"INFO","msg":"progress","service":"omni-ingest-bench","uploads":13,"upload_retries":5,"indexed":1148,"of":3000,"sending":true}
+{"time":"2026-11-21T06:44:52.773545496Z","level":"INFO","msg":"progress","service":"omni-ingest-bench","uploads":13,"upload_retries":5,"indexed":1148,"of":3000,"sending":true}
+{"time":"2026-11-21T06:44:57.774412204Z","level":"INFO","msg":"progress","service":"omni-ingest-bench","uploads":13,"upload_retries":5,"indexed":1148,"of":3000,"sending":true}
+{"time":"2026-11-21T06:45:02.773318472Z","level":"INFO","msg":"progress","service":"omni-ingest-bench","uploads":13,"upload_retries":5,"indexed":1148,"of":3000,"sending":true}
+{"time":"2026-11-21T06:45:02.774790723Z","level":"WARN","msg":"upload failed; retrying","service":"omni-ingest-bench","attempt":1,"err":"Post \"http://omniagent-ingest:8090/v1/documents\": dial tcp 10.96.165.232:8090: connect: connection refused"}
+{"time":"2026-11-21T06:45:07.7737661Z","level":"INFO","msg":"progress","service":"omni-ingest-bench","uploads":13,"upload_retries":10,"indexed":1148,"of":3000,"sending":true}
+{"time":"2026-11-21T06:45:12.774414998Z","level":"INFO","msg":"progress","service":"omni-ingest-bench","uploads":13,"upload_retries":11,"indexed":1148,"of":3000,"sending":true}
+{"time":"2026-11-21T06:45:12.7760382Z","level":"WARN","msg":"upload failed; retrying","service":"omni-ingest-bench","attempt":1,"err":"Post \"http://omniagent-ingest:8090/v1/documents\": dial tcp 10.96.165.232:8090: connect: connection refused"}
+{"time":"2026-11-21T06:45:17.773469586Z","level":"INFO","msg":"progress","service":"omni-ingest-bench","uploads":13,"upload_retries":17,"indexed":1148,"of":3000,"sending":true}
+{"time":"2026-11-21T06:45:22.77468105Z","level":"INFO","msg":"progress","service":"omni-ingest-bench","uploads":15,"upload_retries":18,"indexed":1148,"of":3000,"sending":true}
+{"time":"2026-11-21T06:45:27.781259324Z","level":"INFO","msg":"progress","service":"omni-ingest-bench","uploads":17,"upload_retries":18,"indexed":1148,"of":3000,"sending":true}
+{"time":"2026-11-21T06:45:32.776248659Z","level":"INFO","msg":"progress","service":"omni-ingest-bench","uploads":17,"upload_retries":18,"indexed":1148,"of":3000,"sending":true}
+{"time":"2026-11-21T06:45:37.774300669Z","level":"INFO","msg":"progress","service":"omni-ingest-bench","uploads":18,"upload_retries":18,"indexed":1148,"of":3000,"sending":true}
+{"time":"2026-11-21T06:45:42.77824844Z","level":"INFO","msg":"progress","service":"omni-ingest-bench","uploads":18,"upload_retries":18,"indexed":1148,"of":3000,"sending":true}
+{"time":"2026-11-21T06:45:47.77428752Z","level":"INFO","msg":"progress","service":"omni-ingest-bench","uploads":19,"upload_retries":18,"indexed":1148,"of":3000,"sending":true}
+{"time":"2026-11-21T06:45:52.775417622Z","level":"INFO","msg":"progress","service":"omni-ingest-bench","uploads":19,"upload_retries":18,"indexed":1148,"of":3000,"sending":true}
+{"time":"2026-11-21T06:45:57.776359944Z","level":"INFO","msg":"progress","service":"omni-ingest-bench","uploads":20,"upload_retries":18,"indexed":1148,"of":3000,"sending":true}
+{"time":"2026-11-21T06:46:02.776285187Z","level":"INFO","msg":"progress","service":"omni-ingest-bench","uploads":20,"upload_retries":18,"indexed":1148,"of":3000,"sending":true}
+{"time":"2026-11-21T06:46:07.775263173Z","level":"INFO","msg":"progress","service":"omni-ingest-bench","uploads":21,"upload_retries":18,"indexed":1148,"of":3000,"sending":true}
+{"time":"2026-11-21T06:46:12.774689642Z","level":"INFO","msg":"progress","service":"omni-ingest-bench","uploads":21,"upload_retries":18,"indexed":1700,"of":3000,"sending":true}
+{"time":"2026-11-21T06:46:17.773871511Z","level":"INFO","msg":"progress","service":"omni-ingest-bench","uploads":22,"upload_retries":18,"indexed":1758,"of":3000,"sending":true}
+{"time":"2026-11-21T06:46:22.775286816Z","level":"INFO","msg":"progress","service":"omni-ingest-bench","uploads":22,"upload_retries":18,"indexed":1800,"of":3000,"sending":true}
+{"time":"2026-11-21T06:46:27.776273931Z","level":"INFO","msg":"progress","service":"omni-ingest-bench","uploads":23,"upload_retries":18,"indexed":1877,"of":3000,"sending":true}
+{"time":"2026-11-21T06:46:32.773955066Z","level":"INFO","msg":"progress","service":"omni-ingest-bench","uploads":23,"upload_retries":18,"indexed":1941,"of":3000,"sending":true}
+{"time":"2026-11-21T06:46:37.774290385Z","level":"INFO","msg":"progress","service":"omni-ingest-bench","uploads":24,"upload_retries":18,"indexed":1941,"of":3000,"sending":true}
+{"time":"2026-11-21T06:46:42.77929581Z","level":"INFO","msg":"progress","service":"omni-ingest-bench","uploads":24,"upload_retries":18,"indexed":2047,"of":3000,"sending":true}
+{"time":"2026-11-21T06:46:47.776542427Z","level":"INFO","msg":"progress","service":"omni-ingest-bench","uploads":25,"upload_retries":18,"indexed":2201,"of":3000,"sending":true}
+{"time":"2026-11-21T06:46:52.774805548Z","level":"INFO","msg":"progress","service":"omni-ingest-bench","uploads":25,"upload_retries":18,"indexed":2251,"of":3000,"sending":true}
+{"time":"2026-11-21T06:46:57.773483423Z","level":"INFO","msg":"progress","service":"omni-ingest-bench","uploads":26,"upload_retries":18,"indexed":2321,"of":3000,"sending":true}
+{"time":"2026-11-21T06:47:02.773897279Z","level":"INFO","msg":"progress","service":"omni-ingest-bench","uploads":26,"upload_retries":18,"indexed":2361,"of":3000,"sending":true}
+{"time":"2026-11-21T06:47:07.773288015Z","level":"INFO","msg":"progress","service":"omni-ingest-bench","uploads":27,"upload_retries":18,"indexed":2441,"of":3000,"sending":true}
+{"time":"2026-11-21T06:47:12.7758628Z","level":"INFO","msg":"progress","service":"omni-ingest-bench","uploads":27,"upload_retries":18,"indexed":2552,"of":3000,"sending":true}
+{"time":"2026-11-21T06:47:17.773280093Z","level":"INFO","msg":"progress","service":"omni-ingest-bench","uploads":28,"upload_retries":18,"indexed":2600,"of":3000,"sending":true}
+{"time":"2026-11-21T06:47:22.778255856Z","level":"INFO","msg":"progress","service":"omni-ingest-bench","uploads":28,"upload_retries":18,"indexed":2661,"of":3000,"sending":true}
+{"time":"2026-11-21T06:47:27.773327948Z","level":"INFO","msg":"progress","service":"omni-ingest-bench","uploads":29,"upload_retries":18,"indexed":2755,"of":3000,"sending":true}
+{"time":"2026-11-21T06:47:32.773337341Z","level":"INFO","msg":"progress","service":"omni-ingest-bench","uploads":29,"upload_retries":18,"indexed":2821,"of":3000,"sending":true}
+{"time":"2026-11-21T06:47:37.776277887Z","level":"INFO","msg":"progress","service":"omni-ingest-bench","uploads":30,"upload_retries":18,"indexed":2870,"of":3000,"sending":false}
+{"time":"2026-11-21T06:47:42.774109685Z","level":"INFO","msg":"progress","service":"omni-ingest-bench","uploads":30,"upload_retries":18,"indexed":2963,"of":3000,"sending":false}
+{"time":"2026-11-21T06:47:47.774941645Z","level":"INFO","msg":"progress","service":"omni-ingest-bench","uploads":30,"upload_retries":18,"indexed":3000,"of":3000,"sending":false}
+REPORT_BEGIN
+{
+  "config": {
+    "batch": 100,
+    "chunk_overlap": 120,
+    "chunk_size": 800,
+    "concurrency": 8,
+    "corpus": "/data/corpus.jsonl",
+    "dense": true,
+    "docs": 3000,
+    "es_index": "omniagent_chunks",
+    "rate": 10
+  },
+  "expected_chunks": 4692,
+  "final_consumer_lag": 0,
+  "indexed_events": {
+    "distinct_docs": 3000,
+    "replayed_or_duplicate_events": 0,
+    "total": 3000
+  },
+  "latency_ms": {
+    "max": 85508.3,
+    "p50": 21445.4,
+    "p95": 59302.5,
+    "p99": 75509
+  },
+  "passed": true,
+  "run_id": "crash1795243348",
+  "search_spot_check": {
+    "elasticsearch_top10": 50,
+    "gateway_search_top10": 50,
+    "qdrant_top10": 41,
+    "query": "first 12 words of the document's first chunk",
+    "sampled_docs": 50
+  },
+  "sharding": {
+    "docs_per_worker": {
+      "omniagent-indexer-7bcbf7dd64-45txd": 729,
+      "omniagent-indexer-7bcbf7dd64-59fkg": 728,
+      "omniagent-indexer-7bcbf7dd64-82tvr": 769,
+      "omniagent-indexer-7bcbf7dd64-cllfv": 774
+    },
+    "partitions_used": 12
+  },
+  "throughput": {
+    "docs": 3000,
+    "docs_per_s": 9.91,
+    "steady_docs_per_s": 9.87,
+    "wall_s": 302.73
+  },
+  "upload": {
+    "first_error": "Post \"http://omniagent-ingest:8090/v1/documents\": dial tcp 10.96.165.232:8090: connect: connection refused",
+    "retried_uploads": 18,
+    "send_s": 300.04,
+    "uploads": 30
+  },
+  "verification": {
+    "dlq_records": 0,
+    "documents": 3000,
+    "elasticsearch": {
+      "chunks": 4692,
+      "documents_missing": 0,
+      "documents_present": 3000,
+      "documents_with_extra_chunks": 0,
+      "documents_with_missing_chunks": 0,
+      "exact": true
+    },
+    "expected_chunks": 4692,
+    "qdrant": {
+      "chunks": 4692,
+      "documents_missing": 0,
+      "documents_present": 3000,
+      "documents_with_extra_chunks": 0,
+      "documents_with_missing_chunks": 0,
+      "exact": true
+    },
+    "zero_loss_zero_duplicates": true
+  }
+}
+REPORT_END
