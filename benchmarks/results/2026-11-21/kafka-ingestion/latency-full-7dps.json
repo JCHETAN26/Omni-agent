@@ -1,0 +1,78 @@
+{
+  "config": {
+    "batch": 100,
+    "chunk_overlap": 120,
+    "chunk_size": 800,
+    "concurrency": 8,
+    "corpus": "/data/corpus.jsonl",
+    "dense": true,
+    "docs": 1000,
+    "es_index": "omniagent_chunks",
+    "rate": 7
+  },
+  "expected_chunks": 1566,
+  "final_consumer_lag": 0,
+  "indexed_events": {
+    "distinct_docs": 1000,
+    "replayed_or_duplicate_events": 0,
+    "total": 1000
+  },
+  "latency_ms": {
+    "max": 9462.4,
+    "p50": 6427.6,
+    "p95": 9026.6,
+    "p99": 9461.5
+  },
+  "passed": true,
+  "run_id": "lat7",
+  "search_spot_check": {
+    "elasticsearch_top10": 50,
+    "gateway_search_top10": 50,
+    "qdrant_top10": 41,
+    "query": "first 12 words of the document's first chunk",
+    "sampled_docs": 50
+  },
+  "sharding": {
+    "docs_per_worker": {
+      "omniagent-indexer-7bcbf7dd64-45txd": 213,
+      "omniagent-indexer-7bcbf7dd64-59fkg": 272,
+      "omniagent-indexer-7bcbf7dd64-82tvr": 277,
+      "omniagent-indexer-7bcbf7dd64-cllfv": 238
+    },
+    "partitions_used": 12
+  },
+  "throughput": {
+    "docs": 1000,
+    "docs_per_s": 7.34,
+    "steady_docs_per_s": 7.11,
+    "wall_s": 136.29
+  },
+  "upload": {
+    "first_error": null,
+    "retried_uploads": 0,
+    "send_s": 142.87,
+    "uploads": 10
+  },
+  "verification": {
+    "dlq_records": 0,
+    "documents": 1000,
+    "elasticsearch": {
+      "chunks": 1566,
+      "documents_missing": 0,
+      "documents_present": 1000,
+      "documents_with_extra_chunks": 0,
+      "documents_with_missing_chunks": 0,
+      "exact": true
+    },
+    "expected_chunks": 1566,
+    "qdrant": {
+      "chunks": 1566,
+      "documents_missing": 0,
+      "documents_present": 1000,
+      "documents_with_extra_chunks": 0,
+      "documents_with_missing_chunks": 0,
+      "exact": true
+    },
+    "zero_loss_zero_duplicates": true
+  }
+}
