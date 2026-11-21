@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { ChatPanel } from './components/ChatPanel'
 import { Inspector } from './components/Inspector'
+import { RoomsView } from './components/RoomsView'
 import { useGateway } from './hooks/useGateway'
 import { useHealth } from './hooks/useHealth'
 import type { ConnState } from './lib/gatewayClient'
@@ -14,7 +15,33 @@ const STATE_STYLE: Record<ConnState, string> = {
   closed: 'bg-rose-500',
 }
 
+type View = 'assistant' | 'rooms'
+
 export default function App() {
+  const [view, setView] = useState<View>(() => (location.hash.includes('room=') ? 'rooms' : 'assistant'))
+  return (
+    <div className="flex h-dvh flex-col bg-slate-950 text-slate-100">
+      <nav className="flex items-center gap-1 border-b border-slate-800 px-3 pt-2 text-sm" role="tablist">
+        {(['assistant', 'rooms'] as const).map((v) => (
+          <button
+            key={v}
+            type="button"
+            role="tab"
+            aria-selected={view === v}
+            data-testid={`view-${v}`}
+            onClick={() => setView(v)}
+            className={`rounded-t-md px-3 py-1.5 ${view === v ? 'bg-slate-800 text-white' : 'text-slate-400 hover:text-slate-200'}`}
+          >
+            {v === 'assistant' ? 'Assistant' : 'Incident rooms'}
+          </button>
+        ))}
+      </nav>
+      {view === 'assistant' ? <Assistant /> : <RoomsView />}
+    </div>
+  )
+}
+
+function Assistant() {
   const [mode, setMode] = useState<Mode>('agent')
   const gw = useGateway(mode)
   const { health, error: healthError } = useHealth()
@@ -27,7 +54,7 @@ export default function App() {
   const select = (id: string) => setPinned({ id, turnCount: turns.length })
 
   return (
-    <div className="flex h-dvh flex-col bg-slate-950 text-slate-100">
+    <div className="flex min-h-0 flex-1 flex-col">
       <header className="flex flex-wrap items-center gap-3 border-b border-slate-800 px-4 py-2.5">
         <h1 className="text-base font-semibold tracking-tight">OmniAgent</h1>
         <span className="flex items-center gap-1.5 text-xs text-slate-400" data-testid="connection-status" title={gw.detail}>

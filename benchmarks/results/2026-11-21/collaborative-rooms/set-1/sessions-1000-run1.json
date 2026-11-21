@@ -1,0 +1,39 @@
+{
+ "label": "sessions-1000-run1",
+ "host": "macOS-26.5.2-arm64-arm-64bit",
+ "url": "http://127.0.0.1:8191",
+ "sessions": 1000,
+ "connected": 1000,
+ "refused": 0,
+ "abnormal_closes": 0,
+ "close_details": [],
+ "rooms": 50,
+ "participants_per_room": 20,
+ "rate_per_session": 0.5,
+ "duration_s": 60.0,
+ "client_procs": 4,
+ "messages_sent": 30520,
+ "messages_per_s": 508.7,
+ "deliveries": 579880,
+ "deliveries_per_s": 9664.7,
+ "delivery_latency_ms": {
+  "p50": 1.52,
+  "p95": 3.09,
+  "p99": 14.34,
+  "max": 185.16
+ },
+ "room_sync_latency_ms": {
+  "p50": 1.75,
+  "p95": 3.36,
+  "p99": 18.71,
+  "max": 185.16
+ },
+ "messages_reaching_all_peers": 30520,
+ "messages_missing_a_peer": 0,
+ "sequence": {
+  "gaps": 0,
+  "duplicates": 0,
+  "reorders": 0
+ },
+ "wall_s": 96.1
+}

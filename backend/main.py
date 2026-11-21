@@ -20,7 +20,8 @@ from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 from pydantic import BaseModel, Field
 
 from backend.agent.runner import AgentRunner
-from backend.api import agent_ws, frames, streaming, websocket
+from backend.api import agent_ws, frames, rooms, streaming, websocket
+from backend.api.rooms import Rooms
 from backend.api.websocket import ConnectionManager
 from backend.core import metrics
 from backend.core.config import Settings, get_settings
@@ -28,6 +29,7 @@ from backend.core.models import Document
 from backend.core.services import Services
 from backend.core.telemetry import LoopLagMonitor, setup_logging, setup_tracing
 from backend.ingestion.processor import IngestReport
+from backend.rooms.store import MemoryRoomStore, RedisRoomStore
 from search.hybrid_retriever import HybridResult
 from search.pipeline import retrieve_with_rerank
 
@@ -64,6 +66,18 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 )
         app.state.connections = ConnectionManager(settings.ws_max_sessions)
         app.state.agent = AgentRunner.from_services(app.state.services)
+        store = (
+            RedisRoomStore(
+                settings.redis_url,
+                settings.rooms_max_events,
+                settings.rooms_ttl_s,
+                settings.rooms_redis_max_connections,
+            )
+            if settings.redis_url
+            else MemoryRoomStore(settings.rooms_max_events, settings.rooms_ttl_s)
+        )
+        app.state.rooms = Rooms(store)
+        app.state.rooms.start(settings.rooms_presence_ttl_s)
         # Load AnyIO's asyncio backend before the first WebSocket creates a task group.
         await checkpoint()
         app.state.loop_lag = LoopLagMonitor()
@@ -71,6 +85,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         log.info("omniagent started", extra={"backends": app.state.services.backends})
         yield
         await app.state.loop_lag.stop()
+        await app.state.rooms.stop()
         await app.state.agent.close()
         await app.state.services.close()
 
@@ -79,6 +94,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(streaming.router)
     app.include_router(agent_ws.router)
     app.include_router(frames.router)
+    app.include_router(rooms.router)
 
     @app.get("/livez", include_in_schema=False)
     async def livez() -> dict:

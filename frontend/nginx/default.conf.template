@@ -33,6 +33,11 @@ server {
         proxy_read_timeout 3600s;
     }
 
+    # Incident rooms: REST creation and snapshots.
+    location /rooms {
+        proxy_pass ${BACKEND_URL};
+    }
+
     location = /health {
         proxy_pass ${BACKEND_URL};
     }

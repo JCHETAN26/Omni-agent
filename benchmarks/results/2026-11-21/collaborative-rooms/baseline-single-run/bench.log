@@ -1,0 +1,10 @@
+2026-11-21T19:24:00+00:00 stack: redis v=8.10.0, uvicorn x4, fd limit 16384, Apple M2, 8 cpus
+2026-11-21T19:24:00+00:00 === 100 sessions, 20 per room, 0.5 msgs/s each, 60s
+2026-11-21T19:25:22+00:00 100 connected, 51.8 msg/s in, 984.2 deliveries/s, sync p50/p95/p99 [1.85, 6.8, 16.94] delivery [1.65, 6.32, 16.32] seq {'gaps': 0, 'duplicates': 0, 'reorders': 0} missing 0 abnormal 0
+2026-11-21T19:25:22+00:00 === 500 sessions, 20 per room, 0.5 msgs/s each, 60s
+2026-11-21T19:26:55+00:00 500 connected, 252.2 msg/s in, 4790.9 deliveries/s, sync p50/p95/p99 [1.88, 40.85, 237.93] delivery [1.65, 33.0, 199.59] seq {'gaps': 0, 'duplicates': 0, 'reorders': 0} missing 0 abnormal 0
+2026-11-21T19:26:55+00:00 === 1000 sessions, 20 per room, 0.5 msgs/s each, 60s
+2026-11-21T19:28:47+00:00 1000 connected, 510.5 msg/s in, 9699.2 deliveries/s, sync p50/p95/p99 [1.72, 3.14, 4.92] delivery [1.49, 2.88, 4.53] seq {'gaps': 0, 'duplicates': 0, 'reorders': 0} missing 0 abnormal 0
+2026-11-21T19:28:47+00:00 === 1200 sessions, 20 per room, 0.5 msgs/s each, 60s
+2026-11-21T19:30:33+00:00 1200 connected, 607.9 msg/s in, 11539.7 deliveries/s, sync p50/p95/p99 [2.21, 4.58, 7.53] delivery [1.91, 4.26, 6.92] seq {'gaps': 0, 'duplicates': 0, 'reorders': 0} missing 548 abnormal 1
+2026-11-21T19:30:34+00:00 done

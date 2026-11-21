@@ -132,6 +132,7 @@ def test_ingress_exposes_only_gateway_paths_with_websocket_timeouts():
     assert paths == {
         "/ws": "omniagent-backend",
         "/sse": "omniagent-backend",
+        "/rooms": "omniagent-backend",
         "/health": "omniagent-backend",
         "/": "omniagent-frontend",
     }
