@@ -1,0 +1,73 @@
+// OmniAgent control plane: a stateless gRPC routing tier in front of the
+// gateway (FastAPI) replicas. Every node probes the gateways, ejects failing
+// ones, retries idempotent calls on another gateway within the caller's
+// deadline, and degrades to stale results when no gateway can answer.
+// Node health is the standard grpc.health.v1 service (service name below), so
+// clients balance across nodes and route around dead or draining ones.
+syntax = "proto3";
+
+package omniagent.controlplane.v1;
+
+option go_package = "github.com/JCHETAN26/Omni-agent/controlplane/gen/controlplanev1;controlplanev1";
+
+service ControlPlane {
+  // Hybrid search, routed to a healthy gateway's POST /search. Idempotent.
+  rpc Search(SearchRequest) returns (SearchResponse);
+  // This node's load and its view of the gateway pool (used by the operator's
+  // autoscaler and for debugging).
+  rpc Stats(StatsRequest) returns (StatsResponse);
+}
+
+message SearchRequest {
+  string query = 1;
+  int32 top_k = 2; // default 10, max 100
+}
+
+message Hit {
+  string chunk_id = 1;
+  string doc_id = 2;
+  string document_title = 3;
+  string section_heading = 4;
+  string text = 5;
+  double score = 6;
+}
+
+message SearchResponse {
+  repeated Hit hits = 1;
+  // True when every gateway failed and this is the last good answer for the
+  // same request, served from this node's cache.
+  bool degraded = 2;
+  string served_by = 3;   // control-plane node
+  string upstream = 4;    // gateway endpoint that answered ("" if degraded)
+  int32 attempts = 5;     // gateway attempts this call took
+  double upstream_ms = 6; // time spent in the successful gateway call
+}
+
+message StatsRequest {}
+
+enum UpstreamState {
+  UPSTREAM_STATE_UNSPECIFIED = 0;
+  UPSTREAM_STATE_HEALTHY = 1;
+  UPSTREAM_STATE_EJECTED = 2;   // circuit open: failing, waiting out its cooldown
+  UPSTREAM_STATE_PROBING = 3;   // cooldown over, waiting for a passing health probe
+}
+
+message Upstream {
+  string address = 1;
+  UpstreamState state = 2;
+  int64 inflight = 3;
+  int64 consecutive_failures = 4;
+  int64 ejections = 5;
+}
+
+message StatsResponse {
+  string node = 1;
+  int64 inflight = 2;          // Search calls in progress on this node
+  double rps = 3;              // Search calls/s, 10 s moving window
+  int64 requests_total = 4;
+  repeated Upstream upstreams = 5;
+  bool draining = 6;
+  // Mean of `inflight` sampled every 100 ms over the last 10 s: the load
+  // signal the operator's autoscaler uses (instantaneous counts are noisy).
+  double inflight_avg_10s = 7;
+}
