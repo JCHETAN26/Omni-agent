@@ -1,6 +1,21 @@
 {{- if .Values.networkPolicy.enabled }}
 {{- $root := . -}}
-{{- range $store, $port := dict "qdrant" 6333 "elasticsearch" 9200 "redis" 6379 "triton" 8001 }}
+{{- $ingest := .Values.ingestion.enabled -}}
+{{- /* Ingestion clients: the indexer writes the stores; the benchmark/verification
+       Job (component "ingest-bench", deploy/kind) reads them. */ -}}
+{{- $writers := ternary (list "backend" "seed" "indexer" "ingest-bench") (list "backend" "seed") $ingest -}}
+{{- /* store -> list of {ports, clients} rules */ -}}
+{{- $rules := dict
+  "qdrant" (list (dict "ports" (list 6333 6334) "clients" $writers))
+  "elasticsearch" (list (dict "ports" (list 9200) "clients" $writers))
+  "redis" (list (dict "ports" (list 6379) "clients" (list "backend" "seed")))
+  "triton" (list (dict "ports" (list 8001) "clients" (list "backend" "seed")))
+  "kafka" (list (dict "ports" (list 9092) "clients" (list "ingest" "indexer" "ingest-bench")))
+-}}
+{{- if $ingest }}
+{{- $_ := set $rules "triton" (append (index $rules "triton") (dict "ports" (list 8000) "clients" (list "indexer" "ingest-bench"))) -}}
+{{- end }}
+{{- range $store, $storeRules := $rules }}
 {{- if (index $root.Values $store).enabled }}
 ---
 apiVersion: networking.k8s.io/v1
@@ -13,16 +28,17 @@ spec:
     matchLabels: {{- include "omniagent.selector" (list $root $store) | nindent 6 }}
   policyTypes: [Ingress]
   ingress:
+    {{- range $rule := $storeRules }}
     - from:
-        {{- range $client := list "backend" "seed" }}
+        {{- range $client := $rule.clients }}
         - podSelector:
             matchLabels: {{- include "omniagent.selector" (list $root $client) | nindent 14 }}
         {{- end }}
       ports:
+        {{- range $port := $rule.ports }}
         - { port: {{ $port }}, protocol: TCP }
-        {{- if eq $store "qdrant" }}
-        - { port: 6334, protocol: TCP }
         {{- end }}
+    {{- end }}
     {{- if and (eq $store "triton") $root.Values.networkPolicy.metricsFrom }}
     # Triton's Prometheus endpoint, for the scraper only.
     - from: {{- toYaml $root.Values.networkPolicy.metricsFrom | nindent 8 }}

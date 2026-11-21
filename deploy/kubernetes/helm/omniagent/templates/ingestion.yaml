@@ -1,0 +1,117 @@
+{{- if .Values.ingestion.enabled }}
+{{- $fullname := include "omniagent.fullname" . -}}
+{{- $brokers := include "omniagent.kafkaBrokers" . -}}
+{{- if not $brokers }}{{ fail "ingestion.enabled needs kafka.enabled or kafka.externalBrokers" }}{{ end }}
+{{- $triton := include "omniagent.tritonHttpUrl" . -}}
+{{- if not $triton }}{{ fail "ingestion.enabled needs triton.enabled or triton.externalHttpUrl (embeddings)" }}{{ end }}
+{{- $img := .Values.ingestion.image -}}
+# omni-ingest: HTTP uploads -> Kafka (acks=all), keyed by tenant/doc_id.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $fullname }}-ingest
+  labels: {{- include "omniagent.componentLabels" (list . "ingest") | nindent 4 }}
+spec:
+  replicas: {{ .Values.ingestion.ingest.replicas }}
+  selector:
+    matchLabels: {{- include "omniagent.selector" (list . "ingest") | nindent 6 }}
+  template:
+    metadata:
+      labels: {{- include "omniagent.componentLabels" (list . "ingest") | nindent 8 }}
+      {{- if .Values.metrics.podAnnotations }}
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8090"
+      {{- end }}
+    spec:
+      {{- include "omniagent.ingestionPodSecurity" . }}
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: ingest
+          image: "{{ $img.repository }}:{{ $img.tag }}"
+          imagePullPolicy: {{ $img.pullPolicy }}
+          command: ["/omni-ingest"]
+          env:
+            - { name: KAFKA_BROKERS, value: {{ $brokers | quote }} }
+            - { name: KAFKA_DOCUMENT_PARTITIONS, value: {{ .Values.kafka.documentPartitions | quote }} }
+            - { name: KAFKA_REPLICATION, value: {{ .Values.kafka.replicationFactor | quote }} }
+            - { name: HTTP_ADDR, value: ":8090" }
+          ports:
+            - { name: http, containerPort: 8090 }
+          readinessProbe:
+            httpGet: { path: /readyz, port: http }
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: { path: /healthz, port: http }
+            periodSeconds: 15
+          resources: {{- toYaml .Values.ingestion.ingest.resources | nindent 12 }}
+          {{- include "omniagent.ingestionContainerSecurity" . }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $fullname }}-ingest
+  labels: {{- include "omniagent.componentLabels" (list . "ingest") | nindent 4 }}
+spec:
+  selector: {{- include "omniagent.selector" (list . "ingest") | nindent 4 }}
+  ports:
+    - { name: http, port: 8090, targetPort: http }
+---
+# omni-indexer: consumer-group workers; each owns a share of the partitions.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $fullname }}-indexer
+  labels: {{- include "omniagent.componentLabels" (list . "indexer") | nindent 4 }}
+spec:
+  replicas: {{ .Values.ingestion.indexer.replicas }}
+  selector:
+    matchLabels: {{- include "omniagent.selector" (list . "indexer") | nindent 6 }}
+  template:
+    metadata:
+      labels: {{- include "omniagent.componentLabels" (list . "indexer") | nindent 8 }}
+      {{- if .Values.metrics.podAnnotations }}
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9090"
+      {{- end }}
+    spec:
+      {{- include "omniagent.ingestionPodSecurity" . }}
+      # SIGTERM: finish (or abandon, uncommitted) the current batch and leave the group.
+      terminationGracePeriodSeconds: 60
+      containers:
+        - name: indexer
+          image: "{{ $img.repository }}:{{ $img.tag }}"
+          imagePullPolicy: {{ $img.pullPolicy }}
+          command: ["/omni-indexer"]
+          env:
+            - { name: KAFKA_BROKERS, value: {{ $brokers | quote }} }
+            - { name: KAFKA_GROUP, value: {{ .Values.ingestion.indexer.group | quote }} }
+            - { name: KAFKA_DOCUMENT_PARTITIONS, value: {{ .Values.kafka.documentPartitions | quote }} }
+            - { name: KAFKA_REPLICATION, value: {{ .Values.kafka.replicationFactor | quote }} }
+            - { name: ELASTICSEARCH_URL, value: {{ include "omniagent.elasticsearchUrl" . | quote }} }
+            - { name: ELASTICSEARCH_INDEX, value: {{ .Values.ingestion.indexer.elasticsearchIndex | quote }} }
+            - { name: QDRANT_URL, value: {{ include "omniagent.qdrantUrl" . | quote }} }
+            - { name: QDRANT_COLLECTION, value: {{ .Values.ingestion.indexer.qdrantCollection | quote }} }
+            - { name: TRITON_HTTP_URL, value: {{ $triton | quote }} }
+            - { name: CHUNK_SIZE, value: {{ .Values.ingestion.indexer.chunkSize | quote }} }
+            - { name: CHUNK_OVERLAP, value: {{ .Values.ingestion.indexer.chunkOverlap | quote }} }
+            - { name: BATCH_DOCS, value: {{ .Values.ingestion.indexer.batchDocs | quote }} }
+            - { name: MAX_POLL_RECORDS, value: {{ .Values.ingestion.indexer.maxPollRecords | quote }} }
+            - name: WORKER_NAME
+              valueFrom: { fieldRef: { fieldPath: metadata.name } }
+            - name: ELASTICSEARCH_API_KEY
+              valueFrom: { secretKeyRef: { name: {{ include "omniagent.secretName" . }}, key: ELASTICSEARCH_API_KEY, optional: true } }
+            - name: QDRANT_API_KEY
+              valueFrom: { secretKeyRef: { name: {{ include "omniagent.secretName" . }}, key: QDRANT_API_KEY, optional: true } }
+          ports:
+            - { name: metrics, containerPort: 9090 }
+          readinessProbe:
+            httpGet: { path: /readyz, port: metrics }
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: { path: /healthz, port: metrics }
+            periodSeconds: 15
+          resources: {{- toYaml .Values.ingestion.indexer.resources | nindent 12 }}
+          {{- include "omniagent.ingestionContainerSecurity" . }}
+{{- end }}

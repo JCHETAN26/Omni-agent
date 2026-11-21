@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Build every image, create the kind cluster, and deploy OmniAgent with real Triton.
+# Build every image, create the kind cluster, and deploy OmniAgent with real Triton
+# and the Go/Kafka ingestion pipeline.
 #   TRITON_TAG=<yy.mm>-py3 deploy/kind/up.sh
 set -euo pipefail
 : "${TRITON_TAG:?set TRITON_TAG, e.g. 25.01-py3}"
@@ -15,10 +16,11 @@ step "build images"
 docker build -q -f deploy/docker/backend.Dockerfile -t omniagent-backend:dev .
 docker build -q -t omniagent-frontend:dev frontend
 docker build -q -f deploy/docker/triton.Dockerfile --build-arg TRITON_TAG="$TRITON_TAG" -t omniagent-triton:dev .
+docker build -q -f deploy/docker/ingestion.Dockerfile -t omniagent-ingestion:dev .
 
 step "kind cluster"
 kind get clusters | grep -qx omniagent || kind create cluster --config deploy/kind/kind-config.yaml --wait 120s
-kind load docker-image --name omniagent omniagent-backend:dev omniagent-frontend:dev omniagent-triton:dev
+kind load docker-image --name omniagent omniagent-backend:dev omniagent-frontend:dev omniagent-triton:dev omniagent-ingestion:dev
 
 step "helm install"
 helm upgrade --install omniagent deploy/kubernetes/helm/omniagent \

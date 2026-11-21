@@ -83,6 +83,7 @@ metadata:
 spec:
   selector: {{- include "omniagent.selector" (list . "triton") | nindent 4 }}
   ports:
+    - { name: http, port: 8000, targetPort: http }
     - { name: grpc, port: 8001, targetPort: grpc }
     - { name: metrics, port: 8002, targetPort: metrics }
 {{- end }}

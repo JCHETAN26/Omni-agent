@@ -124,6 +124,7 @@ redis:
 triton:
   enabled: false
   externalUrl: ""                 # host:port of an existing Triton gRPC endpoint
+  externalHttpUrl: ""             # http://host:8000 of that Triton (the Go indexer uses HTTP)
   # Stock NGC image + a PVC of models, or the omniagent-triton image with the
   # model repository baked in (deploy/docker/triton.Dockerfile) and no PVC.
   image: { repository: nvcr.io/nvidia/tritonserver, tag: "", pullPolicy: IfNotPresent }   # tag e.g. "<yy.mm>-py3"
@@ -138,6 +139,52 @@ triton:
 seed:
   enabled: true                   # post-install/upgrade Job ingesting the bundled sample KB
   path: samples
+
+# Apache Kafka (KRaft, single node) for the ingestion pipeline. Only deployed
+# when kafka.enabled; point kafka.externalBrokers at a managed cluster instead.
+kafka:
+  enabled: false
+  externalBrokers: ""             # host:port[,host:port] when kafka.enabled=false
+  replicas: 1                     # the bundled broker is single-node
+  image: { repository: apache/kafka, tag: "4.3.2" }
+  # KRaft cluster ID (kafka-storage.sh random-uuid). Fixed so a restarted pod
+  # reuses its formatted volume.
+  clusterId: "q7VbBSPxRZ2xT3Y5h0cQ1w"
+  documentPartitions: 12          # omni.documents partitions = max useful indexer replicas
+  replicationFactor: 1            # 3 on a real cluster
+  retentionHours: 168
+  heapOpts: "-Xms512m -Xmx512m"
+  persistence: { size: 10Gi, storageClass: "" }
+  resources:
+    requests: { cpu: 250m, memory: 1Gi }
+    limits: { cpu: "2", memory: 1536Mi }
+
+# Go ingestion pipeline (ingestion/): omni-ingest (HTTP -> Kafka) and
+# omni-indexer (Kafka consumer group -> Triton embeddings -> Elasticsearch + Qdrant).
+# Needs Kafka and Triton (HTTP) for embeddings.
+ingestion:
+  enabled: false
+  image:
+    repository: ghcr.io/jchetan26/omniagent-ingestion
+    tag: "0.4.0"
+    pullPolicy: IfNotPresent
+  ingest:
+    replicas: 1
+    resources:
+      requests: { cpu: 100m, memory: 64Mi }
+      limits: { cpu: "1", memory: 256Mi }
+  indexer:
+    replicas: 3                   # sharding: partitions are spread across replicas
+    group: omni-indexers
+    elasticsearchIndex: omniagent_chunks   # must match the gateway's index/collection
+    qdrantCollection: omniagent_chunks
+    chunkSize: 800                # must match the gateway's CHUNK_SIZE / CHUNK_OVERLAP
+    chunkOverlap: 120
+    batchDocs: 32
+    maxPollRecords: 256
+    resources:
+      requests: { cpu: 100m, memory: 64Mi }
+      limits: { cpu: "1", memory: 256Mi }
 
 networkPolicy:
   enabled: true                   # datastores accept traffic only from backend + seed pods
