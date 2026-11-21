@@ -9,6 +9,9 @@ metadata:
   labels: {{- include "omniagent.componentLabels" (list . "triton") | nindent 4 }}
 spec:
   replicas: 1
+  # One large inference server: a rolling update would need room for two copies
+  # (CPU/memory or a second GPU) and stalls on a full node, so replace in place.
+  strategy: { type: Recreate }
   selector:
     matchLabels: {{- include "omniagent.selector" (list . "triton") | nindent 6 }}
   template:
