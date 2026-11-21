@@ -1,0 +1,174 @@
+{
+  "label": "batching-off",
+  "url": "ws://127.0.0.1:8080/ws/frames",
+  "host": "Linux-6.8.0-1070-azure-x86_64-with-glibc2.36",
+  "frame_size": "720x1280",
+  "jpeg_kb_mean": 163.8,
+  "duration_s": 30.0,
+  "levels": [
+    {
+      "label": "batching-off",
+      "sessions": 1,
+      "frames": 119,
+      "errors": {},
+      "wall_s": 30.05,
+      "frames_per_s": 3.96,
+      "latency_ms": {
+        "p50": 241.15,
+        "p95": 320.82,
+        "p99": 394.2
+      },
+      "server_ms_p50": {
+        "preprocess": 7.47,
+        "infer": 222.79,
+        "total": 231.36
+      },
+      "top1_labels": {
+        "kite": 119
+      },
+      "triton": {
+        "model": "vit_b16_nobatch",
+        "requests": 119,
+        "executions": 119,
+        "avg_batch_size": 1.0
+      }
+    },
+    {
+      "label": "batching-off",
+      "sessions": 2,
+      "frames": 123,
+      "errors": {},
+      "wall_s": 30.46,
+      "frames_per_s": 4.04,
+      "latency_ms": {
+        "p50": 480.4,
+        "p95": 583.84,
+        "p99": 796.76
+      },
+      "server_ms_p50": {
+        "preprocess": 10.88,
+        "infer": 457.03,
+        "total": 469.73
+      },
+      "top1_labels": {
+        "kite": 123
+      },
+      "triton": {
+        "model": "vit_b16_nobatch",
+        "requests": 123,
+        "executions": 123,
+        "avg_batch_size": 1.0
+      }
+    },
+    {
+      "label": "batching-off",
+      "sessions": 4,
+      "frames": 124,
+      "errors": {},
+      "wall_s": 30.73,
+      "frames_per_s": 4.03,
+      "latency_ms": {
+        "p50": 959.73,
+        "p95": 1131.45,
+        "p99": 1557.35
+      },
+      "server_ms_p50": {
+        "preprocess": 9.67,
+        "infer": 936.76,
+        "total": 948.91
+      },
+      "top1_labels": {
+        "kite": 124
+      },
+      "triton": {
+        "model": "vit_b16_nobatch",
+        "requests": 124,
+        "executions": 124,
+        "avg_batch_size": 1.0
+      }
+    },
+    {
+      "label": "batching-off",
+      "sessions": 8,
+      "frames": 128,
+      "errors": {},
+      "wall_s": 32.24,
+      "frames_per_s": 3.97,
+      "latency_ms": {
+        "p50": 1926.25,
+        "p95": 2495.94,
+        "p99": 2559.43
+      },
+      "server_ms_p50": {
+        "preprocess": 9.99,
+        "infer": 1896.66,
+        "total": 1914.23
+      },
+      "top1_labels": {
+        "kite": 128
+      },
+      "triton": {
+        "model": "vit_b16_nobatch",
+        "requests": 128,
+        "executions": 128,
+        "avg_batch_size": 1.0
+      }
+    },
+    {
+      "label": "batching-off",
+      "sessions": 16,
+      "frames": 139,
+      "errors": {},
+      "wall_s": 34.03,
+      "frames_per_s": 4.08,
+      "latency_ms": {
+        "p50": 3840.44,
+        "p95": 3973.33,
+        "p99": 4260.07
+      },
+      "server_ms_p50": {
+        "preprocess": 10.19,
+        "infer": 3819.55,
+        "total": 3828.53
+      },
+      "top1_labels": {
+        "kite": 139
+      },
+      "triton": {
+        "model": "vit_b16_nobatch",
+        "requests": 139,
+        "executions": 139,
+        "avg_batch_size": 1.0
+      }
+    },
+    {
+      "label": "batching-off",
+      "sessions": 32,
+      "frames": 29,
+      "errors": {
+        "frame.unavailable": 182
+      },
+      "wall_s": 34.84,
+      "frames_per_s": 0.83,
+      "latency_ms": {
+        "p50": 3740.27,
+        "p95": 5027.3,
+        "p99": 5052.0
+      },
+      "server_ms_p50": {
+        "preprocess": 61.99,
+        "infer": 3541.41,
+        "total": 3711.88
+      },
+      "top1_labels": {
+        "kite": 29
+      },
+      "triton": {
+        "model": "vit_b16_nobatch",
+        "requests": 143,
+        "executions": 143,
+        "avg_batch_size": 1.0
+      }
+    }
+  ]
+}
