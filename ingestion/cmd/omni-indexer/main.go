@@ -12,6 +12,8 @@
 //	TRITON_HTTP_URL          TRITON_EMBED_MODEL (minilm_embedder), EMBED_BATCH (64)
 //	CHUNK_SIZE / CHUNK_OVERLAP   800 / 120 (must match the gateway)
 //	MAX_POLL_RECORDS (256), BATCH_DOCS (32), HTTP_ADDR (:9090), WORKER_NAME (hostname)
+//	DENSE_ENABLED (true): false indexes BM25 only (no embeddings, no Qdrant); used to
+//	measure the Kafka -> Go -> Elasticsearch path on its own, into a separate index.
 package main
 
 import (
@@ -44,6 +46,7 @@ func main() {
 	qd := sink.NewQdrant(kafkax.Env("QDRANT_URL", "http://localhost:6333"),
 		os.Getenv("QDRANT_API_KEY"), kafkax.Env("QDRANT_COLLECTION", "omniagent_chunks"))
 	qd.Quantization = os.Getenv("QDRANT_QUANTIZATION")
+	dense := kafkax.Env("DENSE_ENABLED", "true") != "false"
 	emb, err := embed.New(kafkax.Env("TRITON_HTTP_URL", "http://localhost:8000"),
 		kafkax.Env("TRITON_EMBED_MODEL", "minilm_embedder"), kafkax.EnvInt("EMBED_BATCH", 64))
 	if err != nil {
@@ -81,7 +84,12 @@ func main() {
 			return kafkax.EnsureTopics(ctx, cl, kafkax.Topics(), int16(kafkax.EnvInt("KAFKA_REPLICATION", 1)), log)
 		}},
 		{"elasticsearch index", es.EnsureIndex},
-		{"qdrant collection", func(ctx context.Context) error { return qd.EnsureCollection(ctx, embed.Dim) }},
+		{"qdrant collection", func(ctx context.Context) error {
+			if !dense {
+				return nil
+			}
+			return qd.EnsureCollection(ctx, embed.Dim)
+		}},
 	} {
 		for {
 			err := step.fn(ctx)
@@ -96,14 +104,19 @@ func main() {
 		}
 	}
 
+	pipe := &indexer.Pipeline{
+		Embedder: emb, Sparse: es, Dense: qd,
+		ChunkSize: kafkax.EnvInt("CHUNK_SIZE", 800), ChunkOverlap: kafkax.EnvInt("CHUNK_OVERLAP", 120),
+		Log: log, MinBackoff: 200 * time.Millisecond, MaxBackoff: 30 * time.Second,
+		OnRetry: func(stage string, _ error) { metrics.Retries.WithLabelValues(stage).Inc() },
+	}
+	if !dense {
+		pipe.Embedder, pipe.Dense = nil, nil
+		log.Warn("DENSE_ENABLED=false: indexing BM25 only (no embeddings, no Qdrant)")
+	}
 	w := &indexer.Worker{
-		Client: cl,
-		Pipeline: &indexer.Pipeline{
-			Embedder: emb, Sparse: es, Dense: qd,
-			ChunkSize: kafkax.EnvInt("CHUNK_SIZE", 800), ChunkOverlap: kafkax.EnvInt("CHUNK_OVERLAP", 120),
-			Log: log, MinBackoff: 200 * time.Millisecond, MaxBackoff: 30 * time.Second,
-			OnRetry: func(stage string, _ error) { metrics.Retries.WithLabelValues(stage).Inc() },
-		},
+		Client:     cl,
+		Pipeline:   pipe,
 		Name:       name,
 		MaxPoll:    kafkax.EnvInt("MAX_POLL_RECORDS", 256),
 		BatchDocs:  kafkax.EnvInt("BATCH_DOCS", 32),

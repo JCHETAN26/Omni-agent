@@ -164,3 +164,16 @@ func TestNewestVersionInBatchWins(t *testing.T) {
 		t.Fatalf("indexed %q", got)
 	}
 }
+
+func TestBM25OnlyModeSkipsEmbeddingsAndQdrant(t *testing.T) {
+	s := newStore()
+	p := pipeline(s)
+	p.Embedder, p.Dense = nil, nil
+	out, err := p.Process(context.Background(), []Record{rec(0, doc("a", "text"))}, &StageTimes{})
+	if err != nil || out[0].Err != nil || out[0].Chunks != 1 {
+		t.Fatalf("out=%+v err=%v", out, err)
+	}
+	if len(s.es) != 1 || len(s.qd) != 0 {
+		t.Fatalf("es=%d qd=%d", len(s.es), len(s.qd))
+	}
+}

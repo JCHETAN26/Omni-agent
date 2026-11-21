@@ -46,6 +46,7 @@ type config struct {
 	group, corpus, runID, tenant, output                                    string
 	docs, batch, concurrency, chunkSize, overlap, sample                    int
 	rate                                                                    float64
+	skipDense                                                               bool
 	timeout                                                                 time.Duration
 }
 
@@ -81,6 +82,7 @@ func main() {
 	flag.IntVar(&c.overlap, "chunk-overlap", 120, "")
 	flag.IntVar(&c.sample, "sample", 50, "documents to spot-check with searches")
 	flag.DurationVar(&c.timeout, "timeout", 30*time.Minute, "")
+	flag.BoolVar(&c.skipDense, "skip-dense", false, "indexers run with DENSE_ENABLED=false: verify Elasticsearch only")
 	flag.Parse()
 	ctx, cancel := context.WithTimeout(context.Background(), c.timeout)
 	defer cancel()
@@ -286,6 +288,7 @@ func run(ctx context.Context, c config) (map[string]any, bool) {
 	report := map[string]any{"run_id": c.runID, "config": map[string]any{
 		"docs": c.docs, "batch": c.batch, "concurrency": c.concurrency, "rate": c.rate,
 		"corpus": c.corpus, "chunk_size": c.chunkSize, "chunk_overlap": c.overlap,
+		"es_index": c.esIndex, "dense": !c.skipDense,
 	}}
 	fail := func(err error) (map[string]any, bool) {
 		report["error"] = err.Error()
@@ -595,8 +598,10 @@ func verify(ctx context.Context, c config, adm *kadm.Client, docs []doc, expecte
 	}
 	esC, esT, err := esCounts(ctx, c)
 	check("elasticsearch", esC, esT, err)
-	qC, qT, err := qdrantCounts(ctx, c)
-	check("qdrant", qC, qT, err)
+	if !c.skipDense {
+		qC, qT, err := qdrantCounts(ctx, c)
+		check("qdrant", qC, qT, err)
+	}
 	n, err := dlqCount(ctx, adm, c.runID)
 	out["dlq_records"] = n
 	if err != nil {
@@ -644,6 +649,9 @@ func spotCheck(ctx context.Context, c config, docs []doc) map[string]any {
 			return h.Source.DocID == d.ID
 		}) {
 			hits["elasticsearch_top10"]++
+		}
+		if c.skipDense {
+			continue
 		}
 		if vecs, err := emb.Embed(ctx, []string{query}); err != nil {
 			errs["qdrant"] = err.Error()

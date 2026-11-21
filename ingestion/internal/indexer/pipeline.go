@@ -38,7 +38,8 @@ type Outcome struct {
 	Record Record
 	Doc    *event.DocumentEvent // nil if undecodable
 	Chunks int
-	Err    error // non-nil: permanent failure, route to the DLQ
+	Err    error     // non-nil: permanent failure, route to the DLQ
+	DoneAt time.Time // when the document's writes returned (searchable)
 }
 
 type Embedder interface {
@@ -59,7 +60,7 @@ type StageTimes struct {
 }
 
 type Pipeline struct {
-	Embedder     Embedder
+	Embedder     Embedder // nil with Dense: BM25-only mode (no embeddings, no Qdrant)
 	Sparse       Sparse
 	Dense        Dense
 	ChunkSize    int
@@ -194,11 +195,15 @@ func (p *Pipeline) writeOnce(ctx context.Context, work []pending, times *StageTi
 	for i, c := range chunks {
 		texts[i] = c.Text
 	}
-	t0 := time.Now()
-	vectors, err := p.Embedder.Embed(ctx, texts)
-	times.Embed += time.Since(t0)
-	if err != nil {
-		return nil, "embed", err
+	var vectors [][]float32
+	if p.Dense != nil {
+		t0 := time.Now()
+		v, err := p.Embedder.Embed(ctx, texts)
+		times.Embed += time.Since(t0)
+		if err != nil {
+			return nil, "embed", err
+		}
+		vectors = v
 	}
 
 	var (
@@ -217,6 +222,9 @@ func (p *Pipeline) writeOnce(ctx context.Context, work []pending, times *StageTi
 	}()
 	go func() {
 		defer wg.Done()
+		if p.Dense == nil {
+			return
+		}
 		t := time.Now()
 		denseErr = p.Dense.Upsert(ctx, chunks, vectors)
 		denseD = time.Since(t)

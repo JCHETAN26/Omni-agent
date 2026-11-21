@@ -79,6 +79,11 @@ func (w *Worker) handle(ctx context.Context, recs []*kgo.Record) error {
 				}
 				var t StageTimes
 				out, err := w.Pipeline.Process(ctx, batch, &t)
+				// Searchable from now on (both writes returned); committed with the poll.
+				done := w.now()
+				for i := range out {
+					out[i].DoneAt = done
+				}
 				mu.Lock()
 				times.Chunk += t.Chunk
 				times.Embed += t.Embed
@@ -104,7 +109,6 @@ func (w *Worker) handle(ctx context.Context, recs []*kgo.Record) error {
 	metrics.StageSeconds.WithLabelValues("elasticsearch").Observe(times.Sparse.Seconds())
 	metrics.StageSeconds.WithLabelValues("qdrant").Observe(times.Dense.Seconds())
 
-	indexedAt := w.now()
 	var out []*kgo.Record
 	for _, o := range outcomes {
 		if o.Err != nil {
@@ -115,7 +119,7 @@ func (w *Worker) handle(ctx context.Context, recs []*kgo.Record) error {
 		ev := event.IndexedEvent{
 			Tenant: o.Doc.Tenant, DocID: o.Doc.DocID, Chunks: o.Chunks,
 			Partition: o.Record.Partition, Offset: o.Record.Offset,
-			AcceptedAt: o.Doc.AcceptedAt, IndexedAt: indexedAt.UnixMicro(), Worker: w.Name,
+			AcceptedAt: o.Doc.AcceptedAt, IndexedAt: o.DoneAt.UnixMicro(), Worker: w.Name,
 		}
 		v, _ := json.Marshal(ev)
 		out = append(out, &kgo.Record{Topic: w.IndexTopic, Key: o.Record.Key, Value: v})
