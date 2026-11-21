@@ -1,0 +1,3200 @@
+{"time":"2026-11-21T08:17:24.45804595Z","level":"INFO","msg":"stage","rate":5,"duration":"1m0s"}
+{"time":"2026-11-21T08:17:34.459410253Z","level":"INFO","msg":"progress","sent":50,"failed":0}
+{"time":"2026-11-21T08:17:44.459118891Z","level":"INFO","msg":"progress","sent":100,"failed":0}
+{"time":"2026-11-21T08:17:54.459358397Z","level":"INFO","msg":"progress","sent":150,"failed":0}
+{"time":"2026-11-21T08:18:04.459258163Z","level":"INFO","msg":"progress","sent":200,"failed":0}
+{"time":"2026-11-21T08:18:14.459450748Z","level":"INFO","msg":"progress","sent":250,"failed":0}
+{"time":"2026-11-21T08:18:24.458731077Z","level":"INFO","msg":"progress","sent":300,"failed":0}
+{"time":"2026-11-21T08:18:24.458877711Z","level":"INFO","msg":"stage","rate":50,"duration":"3m0s"}
+{"time":"2026-11-21T08:18:28.458970095Z","level":"INFO","msg":"progress","sent":500,"failed":0}
+{"time":"2026-11-21T08:18:38.461095801Z","level":"INFO","msg":"progress","sent":1000,"failed":0}
+{"time":"2026-11-21T08:18:48.460029156Z","level":"INFO","msg":"progress","sent":1500,"failed":0}
+{"time":"2026-11-21T08:18:58.459727419Z","level":"INFO","msg":"progress","sent":2000,"failed":0}
+{"time":"2026-11-21T08:19:08.459854539Z","level":"INFO","msg":"progress","sent":2500,"failed":0}
+{"time":"2026-11-21T08:19:18.459500294Z","level":"INFO","msg":"progress","sent":3000,"failed":0}
+{"time":"2026-11-21T08:19:28.459373623Z","level":"INFO","msg":"progress","sent":3500,"failed":0}
+{"time":"2026-11-21T08:19:38.459600923Z","level":"INFO","msg":"progress","sent":4000,"failed":0}
+{"time":"2026-11-21T08:19:48.45983539Z","level":"INFO","msg":"progress","sent":4500,"failed":0}
+{"time":"2026-11-21T08:19:58.459592025Z","level":"INFO","msg":"progress","sent":5000,"failed":0}
+{"time":"2026-11-21T08:20:08.45956304Z","level":"INFO","msg":"progress","sent":5500,"failed":0}
+{"time":"2026-11-21T08:20:18.459403929Z","level":"INFO","msg":"progress","sent":6000,"failed":0}
+{"time":"2026-11-21T08:20:28.459835908Z","level":"INFO","msg":"progress","sent":6500,"failed":0}
+{"time":"2026-11-21T08:20:38.468837228Z","level":"INFO","msg":"progress","sent":7000,"failed":0}
+{"time":"2026-11-21T08:20:48.459843334Z","level":"INFO","msg":"progress","sent":7500,"failed":0}
+{"time":"2026-11-21T08:20:58.459020306Z","level":"INFO","msg":"progress","sent":8000,"failed":0}
+{"time":"2026-11-21T08:21:08.460105678Z","level":"INFO","msg":"progress","sent":8500,"failed":0}
+{"time":"2026-11-21T08:21:18.459129749Z","level":"INFO","msg":"progress","sent":9000,"failed":0}
+{"time":"2026-11-21T08:21:24.459032392Z","level":"INFO","msg":"stage","rate":0,"duration":"2m30s"}
+REPORT_BEGIN
+{
+ "by_code": {
+  "OK": 9300
+ },
+ "degraded": 4,
+ "duration_s": 120,
+ "failed": 0,
+ "label": "autoscale-hpa",
+ "latency_ms": {
+  "max": 2016.2,
+  "p50": 41.8,
+  "p95": 215.9,
+  "p99": 854.9
+ },
+ "profile": "60s@5,180s@50,150s@0",
+ "rate": 10,
+ "sent": 9300,
+ "served_by_gateway": {
+  "": 4,
+  "10.244.0.146:8000": 2560,
+  "10.244.0.147:8000": 2109,
+  "10.244.0.7:8000": 4627
+ },
+ "served_by_node": {
+  "omniagent-controlplane-59497cb9f8-lg4ks": 3100,
+  "omniagent-controlplane-59497cb9f8-ltnc2": 3100,
+  "omniagent-controlplane-59497cb9f8-m2n66": 3100
+ },
+ "stage_starts_unix": [
+  1795249044,
+  1795249104,
+  1795249284
+ ],
+ "start_unix": 1795249044,
+ "target": "dns:///omniagent-controlplane:9000",
+ "timeline": [
+  {
+   "t": 1795249044,
+   "ok": 2,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 34.6,
+   "p99_ms": 34.6,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 1,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 1
+   }
+  },
+  {
+   "t": 1795249045,
+   "ok": 5,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 25.7,
+   "p99_ms": 39.6,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 1,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 2,
+    "omniagent-controlplane-59497cb9f8-m2n66": 2
+   }
+  },
+  {
+   "t": 1795249046,
+   "ok": 5,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 23.4,
+   "p99_ms": 28.1,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 2,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 1,
+    "omniagent-controlplane-59497cb9f8-m2n66": 2
+   }
+  },
+  {
+   "t": 1795249047,
+   "ok": 5,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 23,
+   "p99_ms": 28.2,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 2,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 2,
+    "omniagent-controlplane-59497cb9f8-m2n66": 1
+   }
+  },
+  {
+   "t": 1795249048,
+   "ok": 5,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 21.2,
+   "p99_ms": 25,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 1,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 2,
+    "omniagent-controlplane-59497cb9f8-m2n66": 2
+   }
+  },
+  {
+   "t": 1795249049,
+   "ok": 5,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 21.5,
+   "p99_ms": 30,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 2,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 1,
+    "omniagent-controlplane-59497cb9f8-m2n66": 2
+   }
+  },
+  {
+   "t": 1795249050,
+   "ok": 5,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 24,
+   "p99_ms": 28.8,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 2,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 2,
+    "omniagent-controlplane-59497cb9f8-m2n66": 1
+   }
+  },
+  {
+   "t": 1795249051,
+   "ok": 5,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 22.1,
+   "p99_ms": 24,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 1,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 2,
+    "omniagent-controlplane-59497cb9f8-m2n66": 2
+   }
+  },
+  {
+   "t": 1795249052,
+   "ok": 5,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 20.6,
+   "p99_ms": 23.7,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 2,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 1,
+    "omniagent-controlplane-59497cb9f8-m2n66": 2
+   }
+  },
+  {
+   "t": 1795249053,
+   "ok": 5,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 23.8,
+   "p99_ms": 41.4,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 2,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 2,
+    "omniagent-controlplane-59497cb9f8-m2n66": 1
+   }
+  },
+  {
+   "t": 1795249054,
+   "ok": 5,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 21.1,
+   "p99_ms": 23.7,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 1,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 2,
+    "omniagent-controlplane-59497cb9f8-m2n66": 2
+   }
+  },
+  {
+   "t": 1795249055,
+   "ok": 5,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 24.1,
+   "p99_ms": 25.4,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 2,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 1,
+    "omniagent-controlplane-59497cb9f8-m2n66": 2
+   }
+  },
+  {
+   "t": 1795249056,
+   "ok": 5,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 20.8,
+   "p99_ms": 21.9,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 2,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 2,
+    "omniagent-controlplane-59497cb9f8-m2n66": 1
+   }
+  },
+  {
+   "t": 1795249057,
+   "ok": 5,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 24.6,
+   "p99_ms": 29.3,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 1,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 2,
+    "omniagent-controlplane-59497cb9f8-m2n66": 2
+   }
+  },
+  {
+   "t": 1795249058,
+   "ok": 5,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 21.9,
+   "p99_ms": 24.3,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 2,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 1,
+    "omniagent-controlplane-59497cb9f8-m2n66": 2
+   }
+  },
+  {
+   "t": 1795249059,
+   "ok": 5,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 23.6,
+   "p99_ms": 24.3,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 2,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 2,
+    "omniagent-controlplane-59497cb9f8-m2n66": 1
+   }
+  },
+  {
+   "t": 1795249060,
+   "ok": 5,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 23.9,
+   "p99_ms": 34.6,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 1,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 2,
+    "omniagent-controlplane-59497cb9f8-m2n66": 2
+   }
+  },
+  {
+   "t": 1795249061,
+   "ok": 5,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 24,
+   "p99_ms": 25.6,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 2,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 1,
+    "omniagent-controlplane-59497cb9f8-m2n66": 2
+   }
+  },
+  {
+   "t": 1795249062,
+   "ok": 5,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 22.6,
+   "p99_ms": 24.4,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 2,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 2,
+    "omniagent-controlplane-59497cb9f8-m2n66": 1
+   }
+  },
+  {
+   "t": 1795249063,
+   "ok": 5,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 24.1,
+   "p99_ms": 26.1,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 1,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 2,
+    "omniagent-controlplane-59497cb9f8-m2n66": 2
+   }
+  },
+  {
+   "t": 1795249064,
+   "ok": 5,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 21.7,
+   "p99_ms": 24,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 2,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 1,
+    "omniagent-controlplane-59497cb9f8-m2n66": 2
+   }
+  },
+  {
+   "t": 1795249065,
+   "ok": 5,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 24.3,
+   "p99_ms": 27.8,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 2,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 2,
+    "omniagent-controlplane-59497cb9f8-m2n66": 1
+   }
+  },
+  {
+   "t": 1795249066,
+   "ok": 5,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 21.3,
+   "p99_ms": 22.2,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 1,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 2,
+    "omniagent-controlplane-59497cb9f8-m2n66": 2
+   }
+  },
+  {
+   "t": 1795249067,
+   "ok": 5,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 21.7,
+   "p99_ms": 26.9,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 2,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 1,
+    "omniagent-controlplane-59497cb9f8-m2n66": 2
+   }
+  },
+  {
+   "t": 1795249068,
+   "ok": 5,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 23.6,
+   "p99_ms": 24.3,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 2,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 2,
+    "omniagent-controlplane-59497cb9f8-m2n66": 1
+   }
+  },
+  {
+   "t": 1795249069,
+   "ok": 5,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 24.4,
+   "p99_ms": 26.5,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 1,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 2,
+    "omniagent-controlplane-59497cb9f8-m2n66": 2
+   }
+  },
+  {
+   "t": 1795249070,
+   "ok": 5,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 24,
+   "p99_ms": 29.5,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 2,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 1,
+    "omniagent-controlplane-59497cb9f8-m2n66": 2
+   }
+  },
+  {
+   "t": 1795249071,
+   "ok": 5,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 21.1,
+   "p99_ms": 28.5,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 2,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 2,
+    "omniagent-controlplane-59497cb9f8-m2n66": 1
+   }
+  },
+  {
+   "t": 1795249072,
+   "ok": 5,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 20.7,
+   "p99_ms": 21.4,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 1,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 2,
+    "omniagent-controlplane-59497cb9f8-m2n66": 2
+   }
+  },
+  {
+   "t": 1795249073,
+   "ok": 5,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 21.8,
+   "p99_ms": 23.8,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 2,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 1,
+    "omniagent-controlplane-59497cb9f8-m2n66": 2
+   }
+  },
+  {
+   "t": 1795249074,
+   "ok": 5,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 22.7,
+   "p99_ms": 29.9,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 2,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 2,
+    "omniagent-controlplane-59497cb9f8-m2n66": 1
+   }
+  },
+  {
+   "t": 1795249075,
+   "ok": 5,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 22.6,
+   "p99_ms": 31.9,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 1,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 2,
+    "omniagent-controlplane-59497cb9f8-m2n66": 2
+   }
+  },
+  {
+   "t": 1795249076,
+   "ok": 5,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 23.9,
+   "p99_ms": 24.6,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 2,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 1,
+    "omniagent-controlplane-59497cb9f8-m2n66": 2
+   }
+  },
+  {
+   "t": 1795249077,
+   "ok": 5,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 23.9,
+   "p99_ms": 25.5,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 2,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 2,
+    "omniagent-controlplane-59497cb9f8-m2n66": 1
+   }
+  },
+  {
+   "t": 1795249078,
+   "ok": 5,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 21,
+   "p99_ms": 38.2,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 1,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 2,
+    "omniagent-controlplane-59497cb9f8-m2n66": 2
+   }
+  },
+  {
+   "t": 1795249079,
+   "ok": 5,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 24.5,
+   "p99_ms": 27.2,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 2,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 1,
+    "omniagent-controlplane-59497cb9f8-m2n66": 2
+   }
+  },
+  {
+   "t": 1795249080,
+   "ok": 5,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 21.7,
+   "p99_ms": 28.5,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 2,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 2,
+    "omniagent-controlplane-59497cb9f8-m2n66": 1
+   }
+  },
+  {
+   "t": 1795249081,
+   "ok": 5,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 23,
+   "p99_ms": 25.7,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 1,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 2,
+    "omniagent-controlplane-59497cb9f8-m2n66": 2
+   }
+  },
+  {
+   "t": 1795249082,
+   "ok": 5,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 21.2,
+   "p99_ms": 25.7,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 2,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 1,
+    "omniagent-controlplane-59497cb9f8-m2n66": 2
+   }
+  },
+  {
+   "t": 1795249083,
+   "ok": 5,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 21.9,
+   "p99_ms": 25,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 2,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 2,
+    "omniagent-controlplane-59497cb9f8-m2n66": 1
+   }
+  },
+  {
+   "t": 1795249084,
+   "ok": 5,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 24.8,
+   "p99_ms": 28.1,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 1,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 2,
+    "omniagent-controlplane-59497cb9f8-m2n66": 2
+   }
+  },
+  {
+   "t": 1795249085,
+   "ok": 5,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 24.6,
+   "p99_ms": 29.2,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 2,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 1,
+    "omniagent-controlplane-59497cb9f8-m2n66": 2
+   }
+  },
+  {
+   "t": 1795249086,
+   "ok": 5,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 24.1,
+   "p99_ms": 24.9,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 2,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 2,
+    "omniagent-controlplane-59497cb9f8-m2n66": 1
+   }
+  },
+  {
+   "t": 1795249087,
+   "ok": 5,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 23,
+   "p99_ms": 27.1,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 1,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 2,
+    "omniagent-controlplane-59497cb9f8-m2n66": 2
+   }
+  },
+  {
+   "t": 1795249088,
+   "ok": 5,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 20.9,
+   "p99_ms": 23.5,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 2,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 1,
+    "omniagent-controlplane-59497cb9f8-m2n66": 2
+   }
+  },
+  {
+   "t": 1795249089,
+   "ok": 5,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 21.2,
+   "p99_ms": 28.1,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 2,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 2,
+    "omniagent-controlplane-59497cb9f8-m2n66": 1
+   }
+  },
+  {
+   "t": 1795249090,
+   "ok": 5,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 20.6,
+   "p99_ms": 24,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 1,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 2,
+    "omniagent-controlplane-59497cb9f8-m2n66": 2
+   }
+  },
+  {
+   "t": 1795249091,
+   "ok": 5,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 20.9,
+   "p99_ms": 26,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 2,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 1,
+    "omniagent-controlplane-59497cb9f8-m2n66": 2
+   }
+  },
+  {
+   "t": 1795249092,
+   "ok": 5,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 21.6,
+   "p99_ms": 24.5,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 2,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 2,
+    "omniagent-controlplane-59497cb9f8-m2n66": 1
+   }
+  },
+  {
+   "t": 1795249093,
+   "ok": 5,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 21.7,
+   "p99_ms": 24.4,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 1,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 2,
+    "omniagent-controlplane-59497cb9f8-m2n66": 2
+   }
+  },
+  {
+   "t": 1795249094,
+   "ok": 5,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 24,
+   "p99_ms": 33.9,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 2,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 1,
+    "omniagent-controlplane-59497cb9f8-m2n66": 2
+   }
+  },
+  {
+   "t": 1795249095,
+   "ok": 5,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 24.2,
+   "p99_ms": 34.6,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 2,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 2,
+    "omniagent-controlplane-59497cb9f8-m2n66": 1
+   }
+  },
+  {
+   "t": 1795249096,
+   "ok": 5,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 24.1,
+   "p99_ms": 24.6,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 1,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 2,
+    "omniagent-controlplane-59497cb9f8-m2n66": 2
+   }
+  },
+  {
+   "t": 1795249097,
+   "ok": 5,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 21.9,
+   "p99_ms": 25,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 2,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 1,
+    "omniagent-controlplane-59497cb9f8-m2n66": 2
+   }
+  },
+  {
+   "t": 1795249098,
+   "ok": 5,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 21,
+   "p99_ms": 24,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 2,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 2,
+    "omniagent-controlplane-59497cb9f8-m2n66": 1
+   }
+  },
+  {
+   "t": 1795249099,
+   "ok": 5,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 20.6,
+   "p99_ms": 26.1,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 1,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 2,
+    "omniagent-controlplane-59497cb9f8-m2n66": 2
+   }
+  },
+  {
+   "t": 1795249100,
+   "ok": 5,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 20.7,
+   "p99_ms": 25.5,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 2,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 1,
+    "omniagent-controlplane-59497cb9f8-m2n66": 2
+   }
+  },
+  {
+   "t": 1795249101,
+   "ok": 5,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 23.8,
+   "p99_ms": 24.5,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 2,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 2,
+    "omniagent-controlplane-59497cb9f8-m2n66": 1
+   }
+  },
+  {
+   "t": 1795249102,
+   "ok": 5,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 24.1,
+   "p99_ms": 27.9,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 1,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 2,
+    "omniagent-controlplane-59497cb9f8-m2n66": 2
+   }
+  },
+  {
+   "t": 1795249103,
+   "ok": 5,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 20.7,
+   "p99_ms": 24.7,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 2,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 1,
+    "omniagent-controlplane-59497cb9f8-m2n66": 2
+   }
+  },
+  {
+   "t": 1795249104,
+   "ok": 30,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 159.9,
+   "p99_ms": 263.4,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 10,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 10,
+    "omniagent-controlplane-59497cb9f8-m2n66": 10
+   }
+  },
+  {
+   "t": 1795249105,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 41.8,
+   "p99_ms": 126.9,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 16
+   }
+  },
+  {
+   "t": 1795249106,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 37,
+   "p99_ms": 80.7,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 16,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249107,
+   "ok": 49,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 35.5,
+   "p99_ms": 73.6,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 16,
+    "omniagent-controlplane-59497cb9f8-m2n66": 16
+   }
+  },
+  {
+   "t": 1795249108,
+   "ok": 51,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 34.2,
+   "p99_ms": 81.1,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249109,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 36.1,
+   "p99_ms": 116.2,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 16,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249110,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 39.8,
+   "p99_ms": 89.5,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 16,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249111,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 34,
+   "p99_ms": 75.7,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 16
+   }
+  },
+  {
+   "t": 1795249112,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 32.4,
+   "p99_ms": 90.1,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 16,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249113,
+   "ok": 49,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 34.9,
+   "p99_ms": 109.4,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 16,
+    "omniagent-controlplane-59497cb9f8-m2n66": 16
+   }
+  },
+  {
+   "t": 1795249114,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 34.9,
+   "p99_ms": 211.7,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 16,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249115,
+   "ok": 51,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 42.1,
+   "p99_ms": 209.6,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249116,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 40.5,
+   "p99_ms": 200.7,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 16,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249117,
+   "ok": 49,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 36.2,
+   "p99_ms": 123.2,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 16,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 16
+   }
+  },
+  {
+   "t": 1795249118,
+   "ok": 51,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 130.6,
+   "p99_ms": 183.4,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249119,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 125.1,
+   "p99_ms": 185.5,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 16,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249120,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 138.1,
+   "p99_ms": 193.5,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 16
+   }
+  },
+  {
+   "t": 1795249121,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 88.5,
+   "p99_ms": 170,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 16,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249122,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 51.1,
+   "p99_ms": 119.3,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 16,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249123,
+   "ok": 49,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 83.1,
+   "p99_ms": 307.5,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 16,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 16
+   }
+  },
+  {
+   "t": 1795249124,
+   "ok": 51,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 149,
+   "p99_ms": 262.5,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249125,
+   "ok": 49,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 243.9,
+   "p99_ms": 387.5,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 16,
+    "omniagent-controlplane-59497cb9f8-m2n66": 16
+   }
+  },
+  {
+   "t": 1795249126,
+   "ok": 51,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 70.5,
+   "p99_ms": 269,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249127,
+   "ok": 49,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 71.5,
+   "p99_ms": 157.5,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 16,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 16,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249128,
+   "ok": 51,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 193.6,
+   "p99_ms": 402,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249129,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 171,
+   "p99_ms": 484.4,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 16
+   }
+  },
+  {
+   "t": 1795249130,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 243.7,
+   "p99_ms": 387.2,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 16,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249131,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 63.5,
+   "p99_ms": 191.9,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 16,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249132,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 108.5,
+   "p99_ms": 177.2,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 16
+   }
+  },
+  {
+   "t": 1795249133,
+   "ok": 49,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 292.3,
+   "p99_ms": 560.3,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 16,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 16,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249134,
+   "ok": 51,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 376.3,
+   "p99_ms": 1979.8,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249135,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 2,
+   "p50_ms": 1099.9,
+   "p99_ms": 2016.2,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 16
+   }
+  },
+  {
+   "t": 1795249136,
+   "ok": 49,
+   "failed": 0,
+   "degraded": 2,
+   "p50_ms": 938.6,
+   "p99_ms": 2003.1,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 16,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 16,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249137,
+   "ok": 51,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 503.1,
+   "p99_ms": 1546.2,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249138,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 697.2,
+   "p99_ms": 1466.7,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 16
+   }
+  },
+  {
+   "t": 1795249139,
+   "ok": 49,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 456,
+   "p99_ms": 918.5,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 16,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 16,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249140,
+   "ok": 51,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 159.3,
+   "p99_ms": 534.7,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249141,
+   "ok": 49,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 134.4,
+   "p99_ms": 227.6,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 16,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 16
+   }
+  },
+  {
+   "t": 1795249142,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 88.2,
+   "p99_ms": 169.8,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 16,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249143,
+   "ok": 51,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 58.1,
+   "p99_ms": 115.3,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249144,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 66.1,
+   "p99_ms": 193.5,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 16
+   }
+  },
+  {
+   "t": 1795249145,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 77.4,
+   "p99_ms": 584.9,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 16,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249146,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 143,
+   "p99_ms": 584.5,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 16,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249147,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 85.8,
+   "p99_ms": 165.5,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 16
+   }
+  },
+  {
+   "t": 1795249148,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 60.3,
+   "p99_ms": 159.8,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 16,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249149,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 73.1,
+   "p99_ms": 146.1,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 16,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249150,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 96.1,
+   "p99_ms": 215.5,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 16
+   }
+  },
+  {
+   "t": 1795249151,
+   "ok": 49,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 66.9,
+   "p99_ms": 111,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 16,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 16,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249152,
+   "ok": 51,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 73.8,
+   "p99_ms": 138.3,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249153,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 56.1,
+   "p99_ms": 147.5,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 16
+   }
+  },
+  {
+   "t": 1795249154,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 34.2,
+   "p99_ms": 121.4,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 16,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249155,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 72.2,
+   "p99_ms": 129.8,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 16,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249156,
+   "ok": 49,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 38,
+   "p99_ms": 118.7,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 16,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 16
+   }
+  },
+  {
+   "t": 1795249157,
+   "ok": 51,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 32.5,
+   "p99_ms": 109.7,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249158,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 35.9,
+   "p99_ms": 96.9,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 16,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249159,
+   "ok": 49,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 33.8,
+   "p99_ms": 117.5,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 16,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 16
+   }
+  },
+  {
+   "t": 1795249160,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 35.6,
+   "p99_ms": 64.8,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 16,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249161,
+   "ok": 51,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 35.6,
+   "p99_ms": 109.1,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249162,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 36.4,
+   "p99_ms": 90.4,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 16
+   }
+  },
+  {
+   "t": 1795249163,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 39.1,
+   "p99_ms": 108.8,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 16,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249164,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 33.7,
+   "p99_ms": 99.3,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 16,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249165,
+   "ok": 49,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 34.6,
+   "p99_ms": 99.1,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 16,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 16
+   }
+  },
+  {
+   "t": 1795249166,
+   "ok": 51,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 54.9,
+   "p99_ms": 213.1,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249167,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 36.2,
+   "p99_ms": 84.1,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 16,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249168,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 36.5,
+   "p99_ms": 100.1,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 16
+   }
+  },
+  {
+   "t": 1795249169,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 39.7,
+   "p99_ms": 241.6,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 16,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249170,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 33.3,
+   "p99_ms": 129.6,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 16,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249171,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 36,
+   "p99_ms": 108.9,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 16
+   }
+  },
+  {
+   "t": 1795249172,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 34,
+   "p99_ms": 76.4,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 16,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249173,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 36.3,
+   "p99_ms": 104.9,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 16,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249174,
+   "ok": 49,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 34.9,
+   "p99_ms": 136.8,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 16,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 16
+   }
+  },
+  {
+   "t": 1795249175,
+   "ok": 51,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 38.7,
+   "p99_ms": 106.8,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249176,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 34.1,
+   "p99_ms": 114.6,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 16,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249177,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 49,
+   "p99_ms": 161.5,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 16
+   }
+  },
+  {
+   "t": 1795249178,
+   "ok": 49,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 33.9,
+   "p99_ms": 110.7,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 16,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 16,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249179,
+   "ok": 51,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 33.6,
+   "p99_ms": 105.6,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249180,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 38.2,
+   "p99_ms": 138.8,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 16
+   }
+  },
+  {
+   "t": 1795249181,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 36.5,
+   "p99_ms": 89.1,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 16,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249182,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 57,
+   "p99_ms": 133.2,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 16,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249183,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 70.1,
+   "p99_ms": 161.7,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 16
+   }
+  },
+  {
+   "t": 1795249184,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 32.9,
+   "p99_ms": 84.3,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 16,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249185,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 37.5,
+   "p99_ms": 128.2,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 16,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249186,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 56.9,
+   "p99_ms": 176.7,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 16
+   }
+  },
+  {
+   "t": 1795249187,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 51.1,
+   "p99_ms": 165.6,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 16,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249188,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 35.8,
+   "p99_ms": 98.4,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 16,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249189,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 36,
+   "p99_ms": 96.1,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 16
+   }
+  },
+  {
+   "t": 1795249190,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 45.1,
+   "p99_ms": 161.9,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 16,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249191,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 33.5,
+   "p99_ms": 85.1,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 16,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249192,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 32.2,
+   "p99_ms": 82,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 16
+   }
+  },
+  {
+   "t": 1795249193,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 36.8,
+   "p99_ms": 107,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 16,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249194,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 44.6,
+   "p99_ms": 112,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 16,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249195,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 34.5,
+   "p99_ms": 120.8,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 16
+   }
+  },
+  {
+   "t": 1795249196,
+   "ok": 49,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 36,
+   "p99_ms": 96.3,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 16,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 16,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249197,
+   "ok": 51,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 46.7,
+   "p99_ms": 104,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249198,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 33.7,
+   "p99_ms": 102.9,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 16
+   }
+  },
+  {
+   "t": 1795249199,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 35.6,
+   "p99_ms": 88,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 16,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249200,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 45,
+   "p99_ms": 110.6,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 16,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249201,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 39.5,
+   "p99_ms": 119.2,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 16
+   }
+  },
+  {
+   "t": 1795249202,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 34.8,
+   "p99_ms": 122,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 16,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249203,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 41.6,
+   "p99_ms": 127.2,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 16,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249204,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 35.4,
+   "p99_ms": 204.4,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 16
+   }
+  },
+  {
+   "t": 1795249205,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 40.9,
+   "p99_ms": 88.4,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 16,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249206,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 31.4,
+   "p99_ms": 117.3,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 16,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249207,
+   "ok": 49,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 35.4,
+   "p99_ms": 125.2,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 16,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 16
+   }
+  },
+  {
+   "t": 1795249208,
+   "ok": 51,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 48,
+   "p99_ms": 184.8,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249209,
+   "ok": 49,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 33.3,
+   "p99_ms": 108.3,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 16,
+    "omniagent-controlplane-59497cb9f8-m2n66": 16
+   }
+  },
+  {
+   "t": 1795249210,
+   "ok": 51,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 36.8,
+   "p99_ms": 129.3,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249211,
+   "ok": 49,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 33.3,
+   "p99_ms": 90.1,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 16,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 16,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249212,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 30.8,
+   "p99_ms": 61.2,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 16
+   }
+  },
+  {
+   "t": 1795249213,
+   "ok": 51,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 51.5,
+   "p99_ms": 149.8,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249214,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 36.2,
+   "p99_ms": 102.8,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 16,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249215,
+   "ok": 49,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 41.4,
+   "p99_ms": 103.7,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 16,
+    "omniagent-controlplane-59497cb9f8-m2n66": 16
+   }
+  },
+  {
+   "t": 1795249216,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 30.7,
+   "p99_ms": 81.1,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 16,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249217,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 32,
+   "p99_ms": 114.8,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 16,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249218,
+   "ok": 51,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 54.1,
+   "p99_ms": 91.3,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249219,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 36.6,
+   "p99_ms": 81.7,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 16
+   }
+  },
+  {
+   "t": 1795249220,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 37.4,
+   "p99_ms": 105.6,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 16,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249221,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 31.7,
+   "p99_ms": 66.2,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 16,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249222,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 29.4,
+   "p99_ms": 73.7,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 16
+   }
+  },
+  {
+   "t": 1795249223,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 45.7,
+   "p99_ms": 103.3,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 16,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249224,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 33.4,
+   "p99_ms": 88.3,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 16,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249225,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 35,
+   "p99_ms": 103.5,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 16
+   }
+  },
+  {
+   "t": 1795249226,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 32.8,
+   "p99_ms": 89.9,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 16,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249227,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 37.1,
+   "p99_ms": 142.2,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 16,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249228,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 49.2,
+   "p99_ms": 120.5,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 16
+   }
+  },
+  {
+   "t": 1795249229,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 35.4,
+   "p99_ms": 116.2,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 16,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249230,
+   "ok": 49,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 35.7,
+   "p99_ms": 124.2,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 16,
+    "omniagent-controlplane-59497cb9f8-m2n66": 16
+   }
+  },
+  {
+   "t": 1795249231,
+   "ok": 51,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 35.1,
+   "p99_ms": 107.5,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249232,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 34.7,
+   "p99_ms": 80.8,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 16,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249233,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 57.7,
+   "p99_ms": 98.7,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 16,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249234,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 33.7,
+   "p99_ms": 108.7,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 16
+   }
+  },
+  {
+   "t": 1795249235,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 37,
+   "p99_ms": 93.4,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 16,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249236,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 34.7,
+   "p99_ms": 91.1,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 16,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249237,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 37.1,
+   "p99_ms": 91.8,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 16
+   }
+  },
+  {
+   "t": 1795249238,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 44.1,
+   "p99_ms": 126.5,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 16,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249239,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 46.7,
+   "p99_ms": 190.9,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 16,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249240,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 35.6,
+   "p99_ms": 102.3,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 16
+   }
+  },
+  {
+   "t": 1795249241,
+   "ok": 49,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 35.1,
+   "p99_ms": 98.5,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 16,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 16,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249242,
+   "ok": 51,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 31.8,
+   "p99_ms": 79.1,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249243,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 38.4,
+   "p99_ms": 120.5,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 16
+   }
+  },
+  {
+   "t": 1795249244,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 34.9,
+   "p99_ms": 204.4,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 16,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249245,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 38.3,
+   "p99_ms": 132.2,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 16,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249246,
+   "ok": 49,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 42.6,
+   "p99_ms": 79.9,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 16,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 16
+   }
+  },
+  {
+   "t": 1795249247,
+   "ok": 51,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 42.7,
+   "p99_ms": 104.6,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249248,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 32,
+   "p99_ms": 101.1,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 16,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249249,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 45.9,
+   "p99_ms": 131.2,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 16
+   }
+  },
+  {
+   "t": 1795249250,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 35.4,
+   "p99_ms": 122.7,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 16,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249251,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 31.2,
+   "p99_ms": 95.7,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 16,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249252,
+   "ok": 49,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 29.2,
+   "p99_ms": 122.5,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 16,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 16
+   }
+  },
+  {
+   "t": 1795249253,
+   "ok": 51,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 51.4,
+   "p99_ms": 128.7,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249254,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 32.1,
+   "p99_ms": 106,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 16,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249255,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 36.2,
+   "p99_ms": 101.6,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 16
+   }
+  },
+  {
+   "t": 1795249256,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 48,
+   "p99_ms": 116.2,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 16,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249257,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 38.4,
+   "p99_ms": 100.1,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 16,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249258,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 34,
+   "p99_ms": 79.5,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 16
+   }
+  },
+  {
+   "t": 1795249259,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 35.4,
+   "p99_ms": 131.3,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 16,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249260,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 39.1,
+   "p99_ms": 146.1,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 16,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249261,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 34,
+   "p99_ms": 88.1,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 16
+   }
+  },
+  {
+   "t": 1795249262,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 35.6,
+   "p99_ms": 110.3,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 16,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249263,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 50.5,
+   "p99_ms": 113.7,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 16,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249264,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 55.9,
+   "p99_ms": 115.9,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 16
+   }
+  },
+  {
+   "t": 1795249265,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 55.7,
+   "p99_ms": 152,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 16,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249266,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 37.1,
+   "p99_ms": 96.5,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 16,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249267,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 35.3,
+   "p99_ms": 73.6,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 16
+   }
+  },
+  {
+   "t": 1795249268,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 36.3,
+   "p99_ms": 71.3,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 16,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249269,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 35.4,
+   "p99_ms": 109.6,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 16,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249270,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 74.4,
+   "p99_ms": 171.8,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 16
+   }
+  },
+  {
+   "t": 1795249271,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 30.3,
+   "p99_ms": 105.9,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 16,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249272,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 39,
+   "p99_ms": 96.7,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 16,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249273,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 44,
+   "p99_ms": 93.3,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 16
+   }
+  },
+  {
+   "t": 1795249274,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 35,
+   "p99_ms": 105.5,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 16,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249275,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 43.9,
+   "p99_ms": 109.7,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 16,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249276,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 31.6,
+   "p99_ms": 80.5,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 16
+   }
+  },
+  {
+   "t": 1795249277,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 36.7,
+   "p99_ms": 101.1,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 16,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249278,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 34.9,
+   "p99_ms": 116.2,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 16,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249279,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 35.7,
+   "p99_ms": 124.8,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 16
+   }
+  },
+  {
+   "t": 1795249280,
+   "ok": 50,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 59.9,
+   "p99_ms": 136.5,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 16,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249281,
+   "ok": 49,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 35.5,
+   "p99_ms": 112,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 16,
+    "omniagent-controlplane-59497cb9f8-m2n66": 16
+   }
+  },
+  {
+   "t": 1795249282,
+   "ok": 51,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 40.2,
+   "p99_ms": 142.2,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 17,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 17,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249283,
+   "ok": 49,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 46.8,
+   "p99_ms": 84.8,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 16,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 16,
+    "omniagent-controlplane-59497cb9f8-m2n66": 17
+   }
+  },
+  {
+   "t": 1795249284,
+   "ok": 24,
+   "failed": 0,
+   "degraded": 0,
+   "p50_ms": 40.6,
+   "p99_ms": 90.8,
+   "nodes": {
+    "omniagent-controlplane-59497cb9f8-lg4ks": 8,
+    "omniagent-controlplane-59497cb9f8-ltnc2": 8,
+    "omniagent-controlplane-59497cb9f8-m2n66": 8
+   }
+  }
+ ],
+ "timeout_ms": 3000
+}
+REPORT_END

@@ -1,0 +1,47 @@
+{
+  "provisioning_s": {},
+  "autoscaling": {
+    "hpa": {
+      "scale_up_decision_s": 13,
+      "first_new_replica_ready_s": 35,
+      "peak_replicas": 3,
+      "scale_down_to_1_after_load_off_s": 74,
+      "calls": 9300,
+      "failed": 0,
+      "by_code": {
+        "OK": 9300
+      },
+      "latency_ms_overall": {
+        "max": 2016.2,
+        "p50": 41.8,
+        "p95": 215.9,
+        "p99": 854.9
+      },
+      "p95_of_1s_p99_ms": {
+        "first_60s_of_step": 1546.2,
+        "rest_of_step": 176.7
+      }
+    },
+    "operator": {
+      "scale_up_decision_s": 8,
+      "first_new_replica_ready_s": 28,
+      "peak_replicas": 3,
+      "scale_down_to_1_after_load_off_s": 60,
+      "calls": 9296,
+      "failed": 0,
+      "by_code": {
+        "OK": 9296
+      },
+      "latency_ms_overall": {
+        "max": 2047.4,
+        "p50": 37.6,
+        "p95": 348.8,
+        "p99": 2001.5
+      },
+      "p95_of_1s_p99_ms": {
+        "first_60s_of_step": 2020.2,
+        "rest_of_step": 218.7
+      }
+    }
+  }
+}

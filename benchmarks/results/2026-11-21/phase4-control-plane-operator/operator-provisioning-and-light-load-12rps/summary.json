@@ -1,0 +1,94 @@
+{
+  "provisioning_s": {
+    "manual_apply": {
+      "trials": [
+        3.53,
+        1.17,
+        1.79,
+        0.93,
+        0.93
+      ],
+      "median": 1.17,
+      "min": 0.93,
+      "max": 3.53
+    },
+    "operator_reconcile": {
+      "trials": [
+        2.88,
+        1.9,
+        1.8,
+        2.74,
+        1.04
+      ],
+      "median": 1.9,
+      "min": 1.04,
+      "max": 2.88
+    },
+    "self_heal_recreated": {
+      "trials": [
+        0.19,
+        0.26,
+        0.18,
+        0.19,
+        0.21
+      ],
+      "median": 0.19
+    },
+    "self_heal_ready": {
+      "trials": [
+        2.97,
+        0.99,
+        0.87,
+        1.17,
+        1.92
+      ],
+      "median": 1.17,
+      "min": 0.87,
+      "max": 2.97
+    }
+  },
+  "autoscaling": {
+    "hpa": {
+      "scale_up_decision_s": null,
+      "first_new_replica_ready_s": null,
+      "peak_replicas": 1,
+      "scale_down_to_1_after_load_off_s": 0,
+      "calls": 2280,
+      "failed": 0,
+      "by_code": {
+        "OK": 2280
+      },
+      "latency_ms_overall": {
+        "max": 93.4,
+        "p50": 22.1,
+        "p95": 30.4,
+        "p99": 40.3
+      },
+      "p95_of_1s_p99_ms": {
+        "first_60s_of_step": 42.1,
+        "rest_of_step": 49.6
+      }
+    },
+    "operator": {
+      "scale_up_decision_s": null,
+      "first_new_replica_ready_s": null,
+      "peak_replicas": 1,
+      "scale_down_to_1_after_load_off_s": 0,
+      "calls": 2280,
+      "failed": 0,
+      "by_code": {
+        "OK": 2280
+      },
+      "latency_ms_overall": {
+        "max": 81.7,
+        "p50": 22.3,
+        "p95": 30,
+        "p99": 37.7
+      },
+      "p95_of_1s_p99_ms": {
+        "first_60s_of_step": 38.2,
+        "rest_of_step": 44.5
+      }
+    }
+  }
+}

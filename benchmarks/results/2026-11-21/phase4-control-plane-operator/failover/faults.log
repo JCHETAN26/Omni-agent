@@ -1,0 +1,8 @@
+2026-11-21T07:52:14.576Z control plane: omniagent-controlplane-59497cb9f8-7scjd omniagent-controlplane-59497cb9f8-p4xqs omniagent-controlplane-59497cb9f8-r8v7j 
+2026-11-21T07:52:16.906Z load started: 10 calls/s for 150s
+2026-11-21T07:52:47.060Z FAULT 1: SIGKILL one control-plane node: pid 42086
+2026-11-21T07:53:17.211Z FAULT 2: graceful delete (SIGTERM drain) of pod/omniagent-controlplane-59497cb9f8-r8v7j
+2026-11-21T07:53:47.368Z FAULT 3: SIGKILL one gateway: pid 4495
+2026-11-21T07:54:07.521Z FAULT 4: SIGKILL two control-plane nodes: pids 44352 46252
+2026-11-21T07:54:48.737Z load finished
+2026-11-21T07:54:48.813Z restarts: omniagent-backend-774f8678bc-26qm2=0 omniagent-backend-774f8678bc-hjl26=1 omniagent-controlplane-59497cb9f8-7scjd=1 omniagent-controlplane-59497cb9f8-bmlxw=0 omniagent-controlplane-59497cb9f8-p4xqs=2 
