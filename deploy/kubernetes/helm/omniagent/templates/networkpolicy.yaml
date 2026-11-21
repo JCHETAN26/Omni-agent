@@ -6,7 +6,7 @@
 {{- $writers := ternary (list "backend" "seed" "indexer" "ingest-bench") (list "backend" "seed") $ingest -}}
 {{- /* The control plane reads Elasticsearch directly for its BM25 degraded mode. */ -}}
 {{- $esClients := $writers -}}
-{{- if and .Values.controlPlane.enabled .Values.controlPlane.bm25Fallback }}
+{{- if and (or .Values.controlPlane.enabled .Values.controlPlane.operatorManaged) .Values.controlPlane.bm25Fallback }}
 {{- $esClients = append $writers "controlplane" -}}
 {{- end }}
 {{- /* store -> list of {ports, clients} rules */ -}}

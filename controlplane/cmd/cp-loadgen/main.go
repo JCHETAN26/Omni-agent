@@ -1,8 +1,11 @@
-// cp-loadgen drives closed-loop Search traffic: N workers, each sending its
-// next call as soon as the previous one returns, for a fixed duration.
+// cp-loadgen drives Search traffic, closed loop by default: N workers, each
+// sending its next call as soon as the previous one returns. With --rate or
+// --profile it is open loop instead: calls start on a fixed schedule whatever
+// the latency (staged load for autoscaling tests).
 //
 //	cp-loadgen --mode grpc   --target dns:///omniagent-controlplane:9000 --workers 8 --duration 120s
 //	cp-loadgen --mode direct --direct-url http://omniagent-backend:8000 --workers 8 --duration 60s
+//	cp-loadgen --profile 60s@5,180s@50,150s@0        # open loop: <duration>@<calls/s>, ...
 //
 // grpc goes through the control plane (failover client); direct calls a
 // gateway's POST /search with the same body, as the routing-overhead baseline.
@@ -48,6 +51,38 @@ var queries = []string{
 	"how do bonds lose value", "tax deduction for home office",
 }
 
+type stage struct {
+	dur  time.Duration
+	rate float64
+}
+
+// parseProfile returns nil (closed loop) unless --profile or --rate is set.
+func parseProfile(p string, rate float64, d time.Duration) ([]stage, error) {
+	if p == "" {
+		if rate <= 0 {
+			return nil, nil
+		}
+		return []stage{{d, rate}}, nil
+	}
+	var out []stage
+	for _, part := range strings.Split(p, ",") {
+		ds, rs, ok := strings.Cut(strings.TrimSpace(part), "@")
+		if !ok {
+			return nil, fmt.Errorf("stage %q: want <duration>@<calls/s>", part)
+		}
+		dur, err := time.ParseDuration(ds)
+		if err != nil {
+			return nil, err
+		}
+		r, err := strconv.ParseFloat(rs, 64)
+		if err != nil {
+			return nil, err
+		}
+		out = append(out, stage{dur, r})
+	}
+	return out, nil
+}
+
 type call struct {
 	startUs int64 // since the run started
 	ms      float64
@@ -74,6 +109,8 @@ func main() {
 	label := flag.String("label", "run", "")
 	addrs := flag.String("addrs", "", "grpc mode: comma-separated node addresses instead of --target DNS")
 	unique := flag.Bool("unique", false, "make every query distinct (defeats the gateway's result cache)")
+	rate := flag.Float64("rate", 0, "open loop: calls/s for --duration (0 = closed loop)")
+	profile := flag.String("profile", "", "open loop, staged: <duration>@<calls/s>,... (overrides --rate)")
 	flag.Parse()
 	log := slog.New(slog.NewJSONHandler(os.Stderr, nil))
 	// Replaced control-plane pods get new IPs: re-resolve DNS within a second of
@@ -148,36 +185,73 @@ func main() {
 		calls []call
 		wg    sync.WaitGroup
 	)
-	start := time.Now()
-	end := start.Add(*duration)
-	for w := range *workers {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			var local []call
-			for i := w; time.Now().Before(end); i += *workers {
-				t := time.Now()
-				ctx, cancel := context.WithTimeout(context.Background(), *timeout)
-				q := queries[i%len(queries)]
-				if *unique {
-					q = fmt.Sprintf("%s %d", q, i)
-				}
-				degr, node, err := do(ctx, q)
-				cancel()
-				c := call{startUs: t.Sub(start).Microseconds(), ms: float64(time.Since(t).Microseconds()) / 1000,
-					code: "OK", degr: degr, node: node}
-				if err != nil {
-					c.code = status.Code(err).String()
-					if *mode == "direct" {
-						c.code = "ERROR"
-					}
-				}
-				local = append(local, c)
+	one := func(i int, start time.Time) call {
+		t := time.Now()
+		ctx, cancel := context.WithTimeout(context.Background(), *timeout)
+		defer cancel()
+		q := queries[i%len(queries)]
+		if *unique {
+			q = fmt.Sprintf("%s %d", q, i)
+		}
+		degr, node, err := do(ctx, q)
+		c := call{startUs: t.Sub(start).Microseconds(), ms: float64(time.Since(t).Microseconds()) / 1000,
+			code: "OK", degr: degr, node: node}
+		if err != nil {
+			c.code = status.Code(err).String()
+			if *mode == "direct" {
+				c.code = "ERROR"
 			}
-			mu.Lock()
-			calls = append(calls, local...)
-			mu.Unlock()
-		}()
+		}
+		return c
+	}
+	stages, err := parseProfile(*profile, *rate, *duration)
+	if err != nil {
+		log.Error("profile", "err", err)
+		os.Exit(2)
+	}
+	start := time.Now()
+	var stageStarts []int64
+	if stages == nil { // closed loop
+		end := start.Add(*duration)
+		for w := range *workers {
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				var local []call
+				for i := w; time.Now().Before(end); i += *workers {
+					local = append(local, one(i, start))
+				}
+				mu.Lock()
+				calls = append(calls, local...)
+				mu.Unlock()
+			}()
+		}
+	} else { // open loop
+		n := 0
+		for _, st := range stages {
+			stageStarts = append(stageStarts, time.Now().UnixMilli())
+			log.Info("stage", "rate", st.rate, "duration", st.dur.String())
+			end := time.Now().Add(st.dur)
+			if st.rate <= 0 {
+				time.Sleep(time.Until(end))
+				continue
+			}
+			tick := time.NewTicker(time.Duration(float64(time.Second) / st.rate))
+			for time.Now().Before(end) {
+				<-tick.C
+				i := n
+				n++
+				wg.Add(1)
+				go func() {
+					defer wg.Done()
+					c := one(i, start)
+					mu.Lock()
+					calls = append(calls, c)
+					mu.Unlock()
+				}()
+			}
+			tick.Stop()
+		}
 	}
 	ticker := time.NewTicker(10 * time.Second)
 	go func() {
@@ -236,6 +310,8 @@ func main() {
 	elapsed := time.Since(start).Seconds()
 	report := map[string]any{
 		"label": *label, "mode": *mode, "workers": *workers, "duration_s": duration.Seconds(), "unique_queries": *unique,
+		"loop": map[bool]string{true: "closed", false: "open"}[stages == nil], "profile": *profile,
+		"rate": *rate, "stage_starts_unix_ms": stageStarts,
 		"timeout_ms": timeout.Milliseconds(), "start_unix_ms": start.UnixMilli(),
 		"calls": len(calls), "calls_per_s": float64(int(float64(len(calls))/elapsed*10)) / 10,
 		"by_code": byCode, "failed": len(calls) - byCode["OK"], "degraded": degraded,

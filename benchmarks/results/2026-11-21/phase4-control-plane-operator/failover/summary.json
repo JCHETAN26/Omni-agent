@@ -1,0 +1,58 @@
+{
+  "sent": 1500,
+  "failed": 0,
+  "by_code": {
+    "OK": 1500
+  },
+  "degraded": 0,
+  "latency_ms": {
+    "max": 92.6,
+    "p50": 22.8,
+    "p95": 31.1,
+    "p99": 43.3
+  },
+  "served_by_node": {
+    "omniagent-controlplane-59497cb9f8-7scjd": 635,
+    "omniagent-controlplane-59497cb9f8-bmlxw": 358,
+    "omniagent-controlplane-59497cb9f8-p4xqs": 253,
+    "omniagent-controlplane-59497cb9f8-r8v7j": 254
+  },
+  "served_by_gateway": {
+    "10.244.0.7:8000": 841,
+    "10.244.0.8:8000": 659
+  },
+  "faults": [
+    {
+      "fault": "FAULT 1: SIGKILL one control-plane node: pid 42086",
+      "at_unix": 1795247567,
+      "ok": 300,
+      "failed": 0,
+      "degraded": 0,
+      "worst_1s_p99_ms_in_next_10s": 72.2
+    },
+    {
+      "fault": "FAULT 2: graceful delete (SIGTERM drain) of pod/omniagent-controlplane-59497cb9f8-r8v7j",
+      "at_unix": 1795247597,
+      "ok": 300,
+      "failed": 0,
+      "degraded": 0,
+      "worst_1s_p99_ms_in_next_10s": 92.6
+    },
+    {
+      "fault": "FAULT 3: SIGKILL one gateway: pid 4495",
+      "at_unix": 1795247627,
+      "ok": 200,
+      "failed": 0,
+      "degraded": 0,
+      "worst_1s_p99_ms_in_next_10s": 55.9
+    },
+    {
+      "fault": "FAULT 4: SIGKILL two control-plane nodes: pids 44352 46252",
+      "at_unix": 1795247647,
+      "ok": 391,
+      "failed": 0,
+      "degraded": 0,
+      "worst_1s_p99_ms_in_next_10s": 67.8
+    }
+  ]
+}

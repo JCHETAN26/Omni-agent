@@ -330,3 +330,10 @@ def test_control_plane_is_hardened_and_wired_for_failover():
     es_clients = {f["podSelector"]["matchLabels"]["app.kubernetes.io/component"] for f in es}
     assert "controlplane" in es_clients
     assert "omniagent-controlplane" not in by_kind(render(), "Deployment")  # off by default
+    # Operator-managed: no chart workload, but Elasticsearch still admits it.
+    managed = render("controlPlane.operatorManaged=true")
+    assert "omniagent-controlplane" not in by_kind(managed, "Deployment")
+    es = by_kind(managed, "NetworkPolicy")["omniagent-elasticsearch"]["spec"]["ingress"][0]["from"]
+    assert "controlplane" in {
+        f["podSelector"]["matchLabels"]["app.kubernetes.io/component"] for f in es
+    }

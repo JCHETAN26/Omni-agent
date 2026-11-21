@@ -1,0 +1,6 @@
+# Used instead of the root .dockerignore for operator.Dockerfile.
+*
+!controlplane/**
+!operator/**
+operator/bin/**
+operator/dist/**

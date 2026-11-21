@@ -1,0 +1,21 @@
+apiVersion: platform.omniagent.io/v1alpha1
+kind: OmniAgentCluster
+metadata:
+  labels:
+    app.kubernetes.io/name: operator
+    app.kubernetes.io/managed-by: kustomize
+  name: omniagent
+  namespace: omniagent
+spec:
+  controlPlane:
+    image: ghcr.io/jchetan26/omniagent-controlplane:0.4.0
+    replicas: 3
+  gateway:
+    deploymentName: omniagent-backend   # the Helm chart's gateway Deployment
+    port: 8000
+  autoscaling:
+    mode: operator          # off | hpa | operator
+    minReplicas: 1
+    maxReplicas: 4
+    targetInflightPerReplica: 2
+    scaleDownStabilizationSeconds: 60

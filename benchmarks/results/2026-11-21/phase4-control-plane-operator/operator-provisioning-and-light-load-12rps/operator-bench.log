@@ -1,0 +1,24 @@
+2026-11-21T07:57:13.981Z === provisioning: manual apply of the operator's objects (no operator)
+2026-11-21T07:57:24.468Z manual trial 1: ready in 3.53 s
+2026-11-21T07:57:32.595Z manual trial 2: ready in 1.17 s
+2026-11-21T07:57:42.580Z manual trial 3: ready in 1.79 s
+2026-11-21T07:57:51.615Z manual trial 4: ready in 0.93 s
+2026-11-21T07:58:00.681Z manual trial 5: ready in 0.93 s
+2026-11-21T07:58:08.900Z === provisioning: OmniAgentCluster reconciled by the operator
+2026-11-21T07:58:11.787Z operator trial 1: ready in 2.88 s
+2026-11-21T07:58:21.873Z operator trial 2: ready in 1.90 s
+2026-11-21T07:58:31.896Z operator trial 3: ready in 1.80 s
+2026-11-21T07:58:42.872Z operator trial 4: ready in 2.74 s
+2026-11-21T07:58:51.958Z operator trial 5: ready in 1.04 s
+2026-11-21T07:59:00.033Z === self-healing: delete the control-plane Deployment under the operator
+2026-11-21T07:59:04.085Z self-heal trial 1: Deployment recreated in 0.19 s, 3 nodes Ready in 2.97 s
+2026-11-21T07:59:10.144Z self-heal trial 2: Deployment recreated in 0.26 s, 3 nodes Ready in 0.99 s
+2026-11-21T07:59:16.078Z self-heal trial 3: Deployment recreated in 0.18 s, 3 nodes Ready in 0.87 s
+2026-11-21T07:59:22.308Z self-heal trial 4: Deployment recreated in 0.19 s, 3 nodes Ready in 1.17 s
+2026-11-21T07:59:29.288Z self-heal trial 5: Deployment recreated in 0.21 s, 3 nodes Ready in 1.92 s
+2026-11-21T07:59:34.292Z === autoscaling: hpa mode, profile 60s@2,180s@12,150s@0
+2026-11-21T08:00:19.505Z hpa: gateway at 1 replica(s) before load
+2026-11-21T08:07:24.282Z hpa: done; gateway at 1 replica(s)
+2026-11-21T08:07:24.352Z === autoscaling: operator mode, profile 60s@2,180s@12,150s@0
+2026-11-21T08:08:09.533Z operator: gateway at 1 replica(s) before load
+2026-11-21T08:15:13.329Z operator: done; gateway at 1 replica(s)

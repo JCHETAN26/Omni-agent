@@ -1,0 +1,29 @@
+# OmniAgentCluster for kind: the operator runs a 3-node gRPC control plane in
+# front of the Helm chart's gateway (omniagent-backend). The chart's own control
+# plane must be off (controlPlane.enabled=false, operatorManaged=true): both
+# would be named omniagent-controlplane. Autoscaling mode is
+# switched by the benchmark scripts (off | hpa | operator).
+apiVersion: platform.omniagent.io/v1alpha1
+kind: OmniAgentCluster
+metadata:
+  name: omniagent
+  namespace: omniagent
+spec:
+  controlPlane:
+    image: omniagent-controlplane:dev
+    imagePullPolicy: Never
+    replicas: 3
+    elasticsearchURL: http://omniagent-elasticsearch:9200   # BM25 degraded mode
+  gateway:
+    deploymentName: omniagent-backend
+    port: 8000
+  autoscaling:
+    mode: "off"
+    minReplicas: 1
+    # 3, not 4: on the single 4-vCPU kind node a 4th gateway's CPU request does not fit.
+    maxReplicas: 3
+    targetCPUUtilization: 60
+    targetInflightPerReplica: 2
+    scaleDownHeadroomPercent: 70
+    scaleDownStabilizationSeconds: 60
+    pollSeconds: 2

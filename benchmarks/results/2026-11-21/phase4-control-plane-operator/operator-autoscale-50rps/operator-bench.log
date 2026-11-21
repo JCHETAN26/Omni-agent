@@ -1,0 +1,6 @@
+2026-11-21T08:16:37.786Z === autoscaling: hpa mode, profile 60s@5,180s@50,150s@0
+2026-11-21T08:17:23.006Z hpa: gateway at 1 replica(s) before load
+2026-11-21T08:24:26.781Z hpa: done; gateway at 1 replica(s)
+2026-11-21T08:24:26.857Z === autoscaling: operator mode, profile 60s@5,180s@50,150s@0
+2026-11-21T08:25:12.076Z operator: gateway at 1 replica(s) before load
+2026-11-21T08:32:16.122Z operator: done; gateway at 1 replica(s)
