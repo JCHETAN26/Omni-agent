@@ -1,0 +1,25 @@
+{
+  // Kubernetes + real Triton environment: Docker-in-Docker, kind, kubectl, helm,
+  // and OpenCV headers for the C++ preprocessing extension.
+  //   gh codespace create -R <owner>/Omni-agent -b <branch> --devcontainer-path .devcontainer/kind/devcontainer.json
+  // Docker data lives on the large ephemeral /tmp disk (see post-start.sh): the
+  // Triton image alone is ~10 GB compressed, more than the 32 GB root disk can hold
+  // next to a kind node. /tmp is wiped when the Codespace stops.
+  "name": "OmniAgent (kind + Triton)",
+  "build": { "dockerfile": "Dockerfile" },
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": { "version": "22" },
+    "ghcr.io/devcontainers/features/docker-in-docker:2": { "moby": true },
+    "ghcr.io/devcontainers/features/kubectl-helm-minikube:1": { "minikube": "none" },
+    "ghcr.io/devcontainers/features/sshd:1": {}
+  },
+  "hostRequirements": { "cpus": 4, "memory": "16gb" },
+  "postCreateCommand": "bash .devcontainer/kind/post-create.sh",
+  "postStartCommand": "bash .devcontainer/kind/post-start.sh",
+  "forwardPorts": [8000, 8001, 5173],
+  "customizations": {
+    "vscode": {
+      "extensions": ["ms-python.python", "charliermarsh.ruff", "ms-kubernetes-tools.vscode-kubernetes-tools"]
+    }
+  }
+}

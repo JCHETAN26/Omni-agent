@@ -1,0 +1,33 @@
+# Helm values for the kind cluster: locally built images, real Triton serving
+# the ViT image model and the text models, no ingress (NodePort instead).
+backend:
+  image: { repository: omniagent-backend, tag: dev, pullPolicy: Never }
+  # Requests only affect scheduling; on one 4-vCPU node the chart defaults leave
+  # no room for the post-upgrade seed Job (which reuses these). Limits unchanged.
+  resources:
+    requests: { cpu: 200m, memory: 512Mi }
+    limits: { cpu: "2", memory: 2Gi }
+frontend:
+  image: { repository: omniagent-frontend, tag: dev, pullPolicy: Never }
+ingress:
+  enabled: false
+config:
+  inferenceBackend: triton
+  embeddingProvider: triton
+  visionBackend: triton
+  tritonVisionModel: vit_b16
+  # Benchmarks open many sessions from one client address.
+  rateLimitCapacity: 100000
+  rateLimitRefillPerS: 100000
+triton:
+  enabled: true
+  image: { repository: omniagent-triton, tag: dev, pullPolicy: Never }
+  modelRepositoryClaim: ""
+  resources:
+    requests: { cpu: "1", memory: 2Gi }
+    limits: { cpu: "4", memory: 6Gi }
+elasticsearch:
+  heapSize: 768m
+  resources:
+    requests: { cpu: 250m, memory: 1536Mi }
+    limits: { cpu: "1", memory: 1536Mi }

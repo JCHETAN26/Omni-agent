@@ -2,6 +2,9 @@
 {{- if and (eq .Values.config.inferenceBackend "triton") (not $tritonUrl) -}}
 {{- fail "config.inferenceBackend=triton requires triton.enabled=true or triton.externalUrl" -}}
 {{- end -}}
+{{- if and (eq .Values.config.visionBackend "triton") (not $tritonUrl) -}}
+{{- fail "config.visionBackend=triton requires triton.enabled=true or triton.externalUrl" -}}
+{{- end -}}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -21,6 +24,8 @@ data:
   EMBEDDING_PROVIDER: {{ .Values.config.embeddingProvider | quote }}
   INFERENCE_BACKEND: {{ .Values.config.inferenceBackend | quote }}
   RERANK_ENABLED: {{ .Values.config.rerankEnabled | quote }}
+  VISION_BACKEND: {{ .Values.config.visionBackend | quote }}
+  TRITON_VISION_MODEL: {{ .Values.config.tritonVisionModel | quote }}
   AGENT_MAX_RETRIES: {{ .Values.config.agentMaxRetries | quote }}
   LOG_FORMAT: {{ .Values.config.logFormat | quote }}
   LOG_LEVEL: {{ .Values.config.logLevel | quote }}

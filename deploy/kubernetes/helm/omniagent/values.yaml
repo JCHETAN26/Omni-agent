@@ -53,6 +53,9 @@ config:
   embeddingProvider: sentence-transformers   # sentence-transformers | openai | triton
   inferenceBackend: mock          # mock | triton (set triton.enabled or triton.externalUrl)
   rerankEnabled: false
+  # Live frames on /ws/frames: off | mock | triton (triton needs triton.enabled or externalUrl).
+  visionBackend: "off"
+  tritonVisionModel: vit_b16       # vit_b16 = dynamic batching on; vit_b16_nobatch = off
   agentMaxRetries: 2
   logFormat: json
   logLevel: INFO
@@ -121,9 +124,12 @@ redis:
 triton:
   enabled: false
   externalUrl: ""                 # host:port of an existing Triton gRPC endpoint
-  image: { repository: nvcr.io/nvidia/tritonserver, tag: "" }   # e.g. "<yy.mm>-py3", required when enabled
+  # Stock NGC image + a PVC of models, or the omniagent-triton image with the
+  # model repository baked in (deploy/docker/triton.Dockerfile) and no PVC.
+  image: { repository: nvcr.io/nvidia/tritonserver, tag: "", pullPolicy: IfNotPresent }   # tag e.g. "<yy.mm>-py3"
   gpu: false
   # PVC holding model_server/model_repository (configs + exported model.onnx files).
+  # Leave empty when the image already contains /models.
   modelRepositoryClaim: ""
   resources:
     requests: { cpu: "1", memory: 2Gi }
@@ -135,6 +141,11 @@ seed:
 
 networkPolicy:
   enabled: true                   # datastores accept traffic only from backend + seed pods
+  # Peers allowed to scrape Triton's metrics port (8002). Match your Prometheus;
+  # set to [] to keep 8002 closed.
+  metricsFrom:
+    - namespaceSelector: { matchLabels: { kubernetes.io/metadata.name: monitoring } }
+      podSelector: { matchLabels: { app.kubernetes.io/name: prometheus } }
 
 metrics:
   podAnnotations: true            # prometheus.io/scrape for annotation-based Prometheus

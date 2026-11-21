@@ -36,6 +36,7 @@ from backend.api.streaming import Emit, TokenEmitter
 from backend.core import metrics
 from backend.core.services import Services
 from backend.core.telemetry import current_trace_id, extract_context, get_tracer
+from backend.vision import context as vision_context
 
 log = logging.getLogger(__name__)
 
@@ -152,8 +153,17 @@ class AgentRunner:
             first_token: float | None = None
             try:
                 async with self._turn_slot(thread_id):
+                    visual = ""
+                    if self.services.vision is not None:
+                        visual = await vision_context.describe(
+                            self.services.cache,
+                            thread_id,
+                            self.services.settings.vision_context_ttl_s,
+                        )
+                    # Always set: an empty value clears the previous turn's frame.
+                    turn_input = {"question": question, "visual_context": visual}
                     async for ev in self.graph.astream(
-                        {"question": question}, self._config(thread_id), stream_mode="custom"
+                        turn_input, self._config(thread_id), stream_mode="custom"
                     ):
                         kind = ev.pop("kind")
                         if kind == "generation.discarded":

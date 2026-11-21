@@ -1,0 +1,6 @@
+# Used instead of the root .dockerignore for triton.Dockerfile (BuildKit
+# <Dockerfile>.dockerignore): this image needs the exported ONNX models, which
+# the root file keeps out of every other build context.
+*
+!model_server/model_repository/**
+model_server/model_repository/**/.gitkeep

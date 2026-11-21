@@ -1,0 +1,148 @@
+{
+  "server": "http://127.0.0.1:8080",
+  "thread_id": "e2e-6c3ea1c5ed3a",
+  "frames": [
+    {
+      "type": "frame.result",
+      "seq": 1,
+      "labels": [
+        {
+          "label": "kite",
+          "score": 6.428227
+        },
+        {
+          "label": "black stork",
+          "score": 5.617477
+        },
+        {
+          "label": "bald eagle",
+          "score": 5.484934
+        },
+        {
+          "label": "white stork",
+          "score": 5.222336
+        },
+        {
+          "label": "vulture",
+          "score": 5.074568
+        }
+      ],
+      "timings": {
+        "preprocess_ms": 44.266,
+        "infer_ms": 227.983,
+        "server_ms": 277.931
+      }
+    },
+    {
+      "type": "frame.result",
+      "seq": 2,
+      "labels": [
+        {
+          "label": "kite",
+          "score": 6.089413
+        },
+        {
+          "label": "black stork",
+          "score": 5.304169
+        },
+        {
+          "label": "bald eagle",
+          "score": 5.083491
+        },
+        {
+          "label": "white stork",
+          "score": 4.950059
+        },
+        {
+          "label": "vulture",
+          "score": 4.842039
+        }
+      ],
+      "timings": {
+        "preprocess_ms": 10.916,
+        "infer_ms": 216.069,
+        "server_ms": 227.985
+      }
+    },
+    {
+      "type": "frame.result",
+      "seq": 3,
+      "labels": [
+        {
+          "label": "kite",
+          "score": 6.211036
+        },
+        {
+          "label": "black stork",
+          "score": 5.517984
+        },
+        {
+          "label": "bald eagle",
+          "score": 5.38781
+        },
+        {
+          "label": "white stork",
+          "score": 5.064127
+        },
+        {
+          "label": "vulture",
+          "score": 4.896196
+        }
+      ],
+      "timings": {
+        "preprocess_ms": 7.107,
+        "infer_ms": 228.789,
+        "server_ms": 236.417
+      }
+    }
+  ],
+  "turn": {
+    "answer": "I couldn't find enough information in the knowledge base to answer that.",
+    "outcome": "insufficient_context",
+    "nodes": [
+      "contextualize",
+      "visual_context",
+      "route",
+      "retrieve",
+      "grade_documents",
+      "rewrite_query",
+      "retrieve",
+      "grade_documents",
+      "rewrite_query",
+      "retrieve",
+      "grade_documents",
+      "generate",
+      "grade_generation",
+      "finalize"
+    ],
+    "visual_context": "The user's live camera/screen frame #3 (0 s ago) shows: kite (6.21), black stork (5.52), bald eagle (5.39)."
+  },
+  "control_turn": {
+    "answer": "I couldn't find enough information in the knowledge base to answer that.",
+    "outcome": "insufficient_context",
+    "nodes": [
+      "contextualize",
+      "route",
+      "retrieve",
+      "grade_documents",
+      "rewrite_query",
+      "retrieve",
+      "grade_documents",
+      "rewrite_query",
+      "retrieve",
+      "grade_documents",
+      "generate",
+      "grade_generation",
+      "finalize"
+    ],
+    "visual_context": null
+  },
+  "checks": {
+    "all_frames_classified": true,
+    "turn_has_visual_context": true,
+    "visual_context_names_top1_label": true,
+    "visual_context_counts_frames": true,
+    "fresh_thread_has_no_visual_context": true
+  },
+  "passed": true
+}

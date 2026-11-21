@@ -27,6 +27,8 @@ spec:
             - { name: grpc, containerPort: 6334 }
           env:
             - { name: QDRANT__TELEMETRY_DISABLED, value: "true" }
+            # The root filesystem is read-only: the first-start marker goes to an emptyDir.
+            - { name: QDRANT_INIT_FILE_PATH, value: /qdrant/init/.qdrant-initialized }
           readinessProbe:
             httpGet: { path: /readyz, port: http }
             periodSeconds: 5
@@ -36,12 +38,19 @@ spec:
           resources: {{- toYaml .Values.qdrant.resources | nindent 12 }}
           securityContext:
             allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
             capabilities: { drop: [ALL] }
           volumeMounts:
             - { name: data, mountPath: /qdrant/storage }
             - { name: snapshots, mountPath: /qdrant/snapshots }
+            - { name: init, mountPath: /qdrant/init }
+            - { name: tmp, mountPath: /tmp }
       volumes:
         - name: snapshots
+          emptyDir: {}
+        - name: init
+          emptyDir: {}
+        - name: tmp
           emptyDir: {}
   volumeClaimTemplates:
     - metadata: { name: data }

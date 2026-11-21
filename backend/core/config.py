@@ -89,6 +89,16 @@ class Settings(BaseSettings):
     triton_timeout_s: float = 10.0
     triton_max_in_flight: int = Field(default=DEFAULT_TRITON_MAX_IN_FLIGHT, ge=1)
 
+    # --- Vision (live frames over /ws/frames) ---
+    # "triton": ViT on a Triton server (TRITON_GRPC_URL); "mock": deterministic
+    # labels with no server (tests, local dev); "off": /ws/frames refuses frames.
+    vision_backend: Literal["off", "mock", "triton"] = "off"
+    triton_vision_model: str = "vit_b16"  # vit_b16 = dynamic batching; vit_b16_nobatch = off
+    vision_top_k: int = Field(default=5, ge=1, le=20)
+    vision_timeout_s: float = 5.0
+    vision_context_ttl_s: int = 120  # how long a thread's latest frame informs the agent
+    vision_max_frame_bytes: int = 1_000_000
+
     # --- Agent (LangGraph) ---
     # Reasoning backend for routing, grading, rewriting and generation.
     # "heuristic" runs offline (no LLM); "anthropic" uses Claude; "openai" is any

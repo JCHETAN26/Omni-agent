@@ -20,7 +20,7 @@ from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 from pydantic import BaseModel, Field
 
 from backend.agent.runner import AgentRunner
-from backend.api import agent_ws, streaming, websocket
+from backend.api import agent_ws, frames, streaming, websocket
 from backend.api.websocket import ConnectionManager
 from backend.core import metrics
 from backend.core.config import Settings, get_settings
@@ -78,6 +78,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(websocket.router)
     app.include_router(streaming.router)
     app.include_router(agent_ws.router)
+    app.include_router(frames.router)
 
     @app.get("/livez", include_in_schema=False)
     async def livez() -> dict:

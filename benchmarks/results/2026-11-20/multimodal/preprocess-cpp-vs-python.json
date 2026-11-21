@@ -1,0 +1,71 @@
+{
+  "host": "Linux-6.8.0-1070-azure-x86_64-with-glibc2.36",
+  "python_opencv": "5.1.0",
+  "cpp_opencv": "4.6.0",
+  "threads": 4,
+  "sizes": [
+    {
+      "size": "480x640",
+      "jpeg_kb": 55.0,
+      "python": {
+        "ms_p50": 3.738,
+        "ms_mean": 3.743,
+        "fps_1_thread": 267.1,
+        "fps_4_threads": 634.9
+      },
+      "cpp": {
+        "ms_p50": 2.853,
+        "ms_mean": 2.766,
+        "fps_1_thread": 361.5,
+        "fps_4_threads": 1110.1
+      },
+      "speedup_1_thread": 1.35,
+      "speedup_4_threads": 1.75,
+      "max_abs_diff_frame": 3.5762786865234375e-07,
+      "frac_diff_gt_1e-5_frame": 0.0,
+      "max_abs_diff_encoded": 3.5762786865234375e-07
+    },
+    {
+      "size": "720x1280",
+      "jpeg_kb": 163.8,
+      "python": {
+        "ms_p50": 7.873,
+        "ms_mean": 7.952,
+        "fps_1_thread": 125.8,
+        "fps_4_threads": 538.4
+      },
+      "cpp": {
+        "ms_p50": 6.41,
+        "ms_mean": 6.398,
+        "fps_1_thread": 156.3,
+        "fps_4_threads": 538.3
+      },
+      "speedup_1_thread": 1.24,
+      "speedup_4_threads": 1.0,
+      "max_abs_diff_frame": 3.5762786865234375e-07,
+      "frac_diff_gt_1e-5_frame": 0.0,
+      "max_abs_diff_encoded": 3.5762786865234375e-07
+    },
+    {
+      "size": "1080x1920",
+      "jpeg_kb": 368.7,
+      "python": {
+        "ms_p50": 14.335,
+        "ms_mean": 14.51,
+        "fps_1_thread": 68.9,
+        "fps_4_threads": 304.7
+      },
+      "cpp": {
+        "ms_p50": 10.948,
+        "ms_mean": 10.998,
+        "fps_1_thread": 90.9,
+        "fps_4_threads": 281.3
+      },
+      "speedup_1_thread": 1.32,
+      "speedup_4_threads": 0.92,
+      "max_abs_diff_frame": 3.5762786865234375e-07,
+      "frac_diff_gt_1e-5_frame": 0.0,
+      "max_abs_diff_encoded": 3.5762786865234375e-07
+    }
+  ]
+}

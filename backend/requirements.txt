@@ -24,3 +24,7 @@ opentelemetry-instrumentation-fastapi>=0.48b0
 #   pip install torch --index-url https://download.pytorch.org/whl/cpu
 torch>=2.3
 sentence-transformers>=3.0
+
+# Live frames (/ws/frames): Python OpenCV is the preprocessing fallback when the
+# C++ omni_vision extension (native/vision) is not built.
+opencv-python-headless>=4.10

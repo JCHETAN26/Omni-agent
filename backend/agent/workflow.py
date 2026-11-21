@@ -71,6 +71,7 @@ class AgentState(TypedDict, total=False):
     rewrites: list[str]
     feedback: str  # why the last attempt failed (input to the rewriter)
     outcome: str  # answered | abstained | insufficient_context | ungrounded
+    visual_context: str  # latest live-frame observation for the thread ("" if none)
 
 
 @dataclass
@@ -126,6 +127,14 @@ def _context(state: AgentState) -> ToolContext:
     return ToolContext(tool, text=output, insufficient=tool == "live_logs" and not output)
 
 
+def _with_visual(state: AgentState) -> str:
+    """The question the generator answers, with the live frame's labels when present."""
+    question = state["standalone"]
+    if visual := state.get("visual_context"):
+        return f"{question}\n\nVisual context: {visual}"
+    return question
+
+
 async def _discard_delta(_: str) -> None:
     """Provider deltas are drafts. The final answer is emitted by the runner."""
 
@@ -142,6 +151,8 @@ def build_graph(deps: AgentDeps) -> StateGraph:
             _step(
                 "contextualize", standalone=standalone, changed=standalone != question, fallback=fb
             )
+            if visual := state.get("visual_context"):
+                _step("visual_context", observation=visual)
             # Reset per-turn fields (everything except the accumulated history).
             return {
                 "standalone": standalone,
@@ -298,12 +309,12 @@ def build_graph(deps: AgentDeps) -> StateGraph:
             elif ctx.kind == "direct":
                 # Open-ended generation has no evidence or grounding step on this route.
                 gen = await deps.fallback.generate(
-                    state["standalone"], ctx, history, _discard_delta
+                    _with_visual(state), ctx, history, _discard_delta
                 )
             else:
                 try:
                     gen: Generation = await deps.reasoner.generate(
-                        state["standalone"], ctx, history, _discard_delta
+                        _with_visual(state), ctx, history, _discard_delta
                     )
                 except LLMError as exc:
                     if deps.reasoner is deps.fallback:
@@ -312,7 +323,7 @@ def build_graph(deps: AgentDeps) -> StateGraph:
                     _emit("generation.discarded", attempt=attempt, reason="generation error")
                     attempt += 1
                     gen = await deps.fallback.generate(
-                        state["standalone"], ctx, history, _discard_delta
+                        _with_visual(state), ctx, history, _discard_delta
                     )
                     fb = True
                 if gen.abstained:
