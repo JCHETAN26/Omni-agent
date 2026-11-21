@@ -182,6 +182,9 @@ ingestion:
     chunkOverlap: 120
     batchDocs: 32
     maxPollRecords: 256
+    # false = BM25 only (no embeddings, no Qdrant). Benchmark decomposition only:
+    # point elasticsearchIndex elsewhere, or the gateway's dense side goes stale.
+    denseEnabled: true
     resources:
       requests: { cpu: 100m, memory: 64Mi }
       limits: { cpu: "1", memory: 256Mi }

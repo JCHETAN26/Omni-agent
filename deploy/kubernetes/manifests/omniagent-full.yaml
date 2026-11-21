@@ -1850,6 +1850,7 @@ spec:
             - { name: CHUNK_OVERLAP, value: "120" }
             - { name: BATCH_DOCS, value: "32" }
             - { name: MAX_POLL_RECORDS, value: "256" }
+            - { name: DENSE_ENABLED, value: "true" }
             - name: WORKER_NAME
               valueFrom: { fieldRef: { fieldPath: metadata.name } }
             - name: ELASTICSEARCH_API_KEY

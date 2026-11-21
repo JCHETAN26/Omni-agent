@@ -98,6 +98,7 @@ spec:
             - { name: CHUNK_OVERLAP, value: {{ .Values.ingestion.indexer.chunkOverlap | quote }} }
             - { name: BATCH_DOCS, value: {{ .Values.ingestion.indexer.batchDocs | quote }} }
             - { name: MAX_POLL_RECORDS, value: {{ .Values.ingestion.indexer.maxPollRecords | quote }} }
+            - { name: DENSE_ENABLED, value: {{ .Values.ingestion.indexer.denseEnabled | quote }} }
             - name: WORKER_NAME
               valueFrom: { fieldRef: { fieldPath: metadata.name } }
             - name: ELASTICSEARCH_API_KEY
