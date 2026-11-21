@@ -1,0 +1,3 @@
+# Used instead of the root .dockerignore for controlplane.Dockerfile.
+*
+!controlplane/**

@@ -1,0 +1,142 @@
+{{- if .Values.controlPlane.enabled }}
+{{- $fullname := include "omniagent.fullname" . -}}
+{{- $cp := .Values.controlPlane -}}
+{{- $name := printf "%s-controlplane" $fullname -}}
+# gRPC control plane (omni.control.v1): stateless nodes in front of the gateway
+# pods. Clients resolve the headless Service and fail over between nodes;
+# nodes find each other through the same Service and exchange heartbeats.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $name }}
+  labels: {{- include "omniagent.componentLabels" (list . "controlplane") | nindent 4 }}
+spec:
+  replicas: {{ $cp.replicas }}
+  selector:
+    matchLabels: {{- include "omniagent.selector" (list . "controlplane") | nindent 6 }}
+  strategy:
+    # Never take a node away before its replacement is ready.
+    rollingUpdate: { maxUnavailable: 0, maxSurge: 1 }
+  template:
+    metadata:
+      labels: {{- include "omniagent.componentLabels" (list . "controlplane") | nindent 8 }}
+      {{- if .Values.metrics.podAnnotations }}
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9090"
+      {{- end }}
+    spec:
+      automountServiceAccountToken: false
+      # SIGTERM: NOT_SERVING for DRAIN_SECONDS, then in-flight calls finish.
+      terminationGracePeriodSeconds: 30
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        runAsGroup: 65532
+        seccompProfile: { type: RuntimeDefault }
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels: {{- include "omniagent.selector" (list . "controlplane") | nindent 14 }}
+      containers:
+        - name: controlplane
+          image: "{{ $cp.image.repository }}:{{ $cp.image.tag }}"
+          imagePullPolicy: {{ $cp.image.pullPolicy }}
+          command: ["/omni-controlplane"]
+          env:
+            - { name: GATEWAY_HOST, value: "{{ $fullname }}-gateway-endpoints" }
+            - { name: GATEWAY_PORT, value: {{ .Values.backend.port | quote }} }
+            - { name: PEER_HOST, value: {{ $name | quote }} }
+            - { name: HEARTBEAT_MS, value: {{ $cp.heartbeatMs | quote }} }
+            - { name: DEAD_AFTER, value: {{ $cp.deadAfter | quote }} }
+            - { name: MAX_ATTEMPTS, value: {{ $cp.maxAttempts | quote }} }
+            - { name: PER_TRY_TIMEOUT_MS, value: {{ $cp.perTryTimeoutMs | quote }} }
+            {{- if and $cp.bm25Fallback (include "omniagent.elasticsearchUrl" .) }}
+            - { name: ELASTICSEARCH_URL, value: {{ include "omniagent.elasticsearchUrl" . | quote }} }
+            - name: ELASTICSEARCH_API_KEY
+              valueFrom: { secretKeyRef: { name: {{ include "omniagent.secretName" . }}, key: ELASTICSEARCH_API_KEY, optional: true } }
+            {{- end }}
+            - name: POD_IP
+              valueFrom: { fieldRef: { fieldPath: status.podIP } }
+            - name: NODE_NAME
+              valueFrom: { fieldRef: { fieldPath: metadata.name } }
+          ports:
+            - { name: grpc, containerPort: 9000 }
+            - { name: metrics, containerPort: 9090 }
+          readinessProbe:
+            grpc: { port: 9000, service: omni.control.v1.Router }
+            periodSeconds: 2
+          livenessProbe:
+            grpc: { port: 9000 }
+            periodSeconds: 10
+          resources: {{- toYaml $cp.resources | nindent 12 }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: { drop: [ALL] }
+---
+# Headless: clients and peer nodes resolve one address per ready node.
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $name }}
+  labels: {{- include "omniagent.componentLabels" (list . "controlplane") | nindent 4 }}
+spec:
+  clusterIP: None
+  selector: {{- include "omniagent.selector" (list . "controlplane") | nindent 4 }}
+  ports:
+    - { name: grpc, port: 9000, targetPort: grpc }
+    - { name: metrics, port: 9090, targetPort: metrics }
+---
+# Headless over the gateway pods: each node probes every gateway itself.
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $fullname }}-gateway-endpoints
+  labels: {{- include "omniagent.componentLabels" (list . "controlplane") | nindent 4 }}
+spec:
+  clusterIP: None
+  # Probes decide health, so list gateways that are not Ready yet as well.
+  publishNotReadyAddresses: true
+  selector: {{- include "omniagent.selector" (list . "backend") | nindent 4 }}
+  ports:
+    - { name: http, port: {{ .Values.backend.port }}, targetPort: {{ .Values.backend.port }} }
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ $name }}
+  labels: {{- include "omniagent.componentLabels" (list . "controlplane") | nindent 4 }}
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels: {{- include "omniagent.selector" (list . "controlplane") | nindent 6 }}
+{{- if .Values.networkPolicy.enabled }}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ $name }}
+  labels: {{- include "omniagent.componentLabels" (list . "controlplane") | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels: {{- include "omniagent.selector" (list . "controlplane") | nindent 6 }}
+  policyTypes: [Ingress]
+  ingress:
+    # Router RPCs from labelled clients; Cluster heartbeats from peer nodes.
+    - from:
+        - podSelector:
+            matchLabels: {{- toYaml $cp.clientSelector | nindent 14 }}
+        - podSelector:
+            matchLabels: {{- include "omniagent.selector" (list . "controlplane") | nindent 14 }}
+      ports:
+        - { port: 9000, protocol: TCP }
+    {{- with .Values.networkPolicy.metricsFrom }}
+    - from: {{- toYaml . | nindent 8 }}
+      ports:
+        - { port: 9090, protocol: TCP }
+    {{- end }}
+{{- end }}
+{{- end }}

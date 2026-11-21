@@ -1,0 +1,204 @@
+// OmniAgent control plane (omni.control.v1).
+//
+// A stateless, multi-node gRPC tier in front of the FastAPI gateway replicas.
+//
+//   Router   (data plane)  Search, Chat (server streaming) and Vision dispatch
+//                          to a healthy gateway, with the caller's deadline
+//                          propagated to every upstream call, a request ID on
+//                          every hop, bounded retries on another gateway, and
+//                          graceful degradation instead of hard failures.
+//   Cluster  (control)     node registration, heartbeats between peers, and
+//                          exchange of each node's gateway health table so one
+//                          node's failure detection reaches all of them.
+//
+// Node health is the standard grpc.health.v1 service, under the names
+// "omni.control.v1.Router" and "omni.control.v1.Cluster".
+syntax = "proto3";
+
+package omni.control.v1;
+
+option go_package = "github.com/JCHETAN26/Omni-agent/controlplane/gen/controlv1;controlv1";
+
+// ---------------------------------------------------------------- data plane
+
+service Router {
+  // Hybrid search via a gateway's POST /search. Idempotent.
+  rpc Search(SearchRequest) returns (SearchResponse);
+  // One agent turn via a gateway's GET /sse/agent, streamed as it is generated.
+  rpc Chat(ChatRequest) returns (stream ChatEvent);
+  // Classify one encoded frame via a gateway's POST /vision/classify.
+  rpc Vision(VisionRequest) returns (VisionResponse);
+}
+
+message RequestMeta {
+  // Propagated to the gateway as X-Request-ID; generated when empty.
+  string request_id = 1;
+}
+
+// How an answer was produced when the normal path was unavailable.
+enum Degradation {
+  DEGRADATION_NONE = 0;
+  // No gateway could answer (e.g. Triton or Qdrant down): BM25 results straight
+  // from Elasticsearch, without the dense half of hybrid search.
+  DEGRADATION_BM25_ONLY = 1;
+  // Neither gateways nor Elasticsearch answered: this node's last good answer.
+  DEGRADATION_STALE_CACHE = 2;
+  // Chat without a working agent: the best BM25 passages instead of an answer.
+  DEGRADATION_PASSAGES_ONLY = 3;
+}
+
+message RouteInfo {
+  string request_id = 1;
+  string node = 2;          // control-plane node that handled the call
+  string upstream = 3;      // gateway that answered ("" if degraded)
+  int32 attempts = 4;       // gateway attempts this call took
+  double upstream_ms = 5;   // time in the successful upstream call
+  Degradation degradation = 6;
+  string degraded_reason = 7;
+}
+
+message SearchRequest {
+  RequestMeta meta = 1;
+  string query = 2;
+  int32 top_k = 3; // default 10, max 100
+}
+
+message Hit {
+  string chunk_id = 1;
+  string doc_id = 2;
+  string document_title = 3;
+  string section_heading = 4;
+  string text = 5;
+  double score = 6;
+}
+
+message SearchResponse {
+  repeated Hit hits = 1;
+  RouteInfo route = 2;
+}
+
+message ChatRequest {
+  RequestMeta meta = 1;
+  string question = 2;
+  string thread_id = 3; // conversation memory key; empty = new thread
+}
+
+message ChatEvent {
+  oneof event {
+    Token token = 1;
+    Sources sources = 2;
+    Done done = 3;
+    Restart restart = 4;
+  }
+  RouteInfo route = 10; // set on the final event
+}
+
+message Token {
+  int32 index = 1;
+  string text = 2;
+}
+
+message Sources {
+  repeated Hit hits = 1;
+}
+
+message Done {
+  string outcome = 1;
+  int32 tokens = 2;
+  string sha256 = 3; // of the concatenated tokens since the last Restart
+}
+
+// The upstream gateway failed mid-answer and the turn restarted on another
+// gateway: discard tokens and sources received so far.
+message Restart {
+  string reason = 1;
+}
+
+message VisionRequest {
+  RequestMeta meta = 1;
+  bytes image = 2;      // JPEG or PNG
+  string thread_id = 3; // optional: becomes this thread's visual context
+}
+
+message Label {
+  string label = 1;
+  double score = 2;
+}
+
+message VisionResponse {
+  repeated Label labels = 1;
+  RouteInfo route = 2;
+}
+
+// ---------------------------------------------------------------- control
+
+service Cluster {
+  // A starting node announces itself; the reply is the receiver's view.
+  rpc Register(RegisterRequest) returns (ClusterState);
+  // Periodic, symmetric exchange of node status and gateway observations.
+  rpc Heartbeat(HeartbeatRequest) returns (HeartbeatResponse);
+  // This node's view of the cluster (debugging, autoscaling signals).
+  rpc GetClusterState(GetClusterStateRequest) returns (ClusterState);
+}
+
+enum NodeState {
+  NODE_STATE_UNSPECIFIED = 0;
+  NODE_STATE_ALIVE = 1;
+  NODE_STATE_SUSPECT = 2;  // missed a heartbeat
+  NODE_STATE_DEAD = 3;     // missed several in a row: failed over
+  NODE_STATE_DRAINING = 4; // shutting down gracefully
+}
+
+enum UpstreamState {
+  UPSTREAM_STATE_UNSPECIFIED = 0;
+  UPSTREAM_STATE_HEALTHY = 1;
+  UPSTREAM_STATE_EJECTED = 2; // circuit open
+  UPSTREAM_STATE_PROBING = 3; // waiting for a passing health probe
+}
+
+message NodeInfo {
+  string id = 1;
+  string address = 2; // host:port of its gRPC listener
+  int64 started_unix_ms = 3;
+}
+
+message NodeStatus {
+  NodeInfo node = 1;
+  NodeState state = 2;
+  int64 last_heartbeat_unix_ms = 3;
+  int64 inflight = 4;
+  double inflight_avg_10s = 5;
+  double rps = 6;
+  int64 requests_total = 7;
+}
+
+message EndpointObservation {
+  string address = 1;
+  UpstreamState state = 2;
+  int64 observed_unix_ms = 3;
+  int64 ejections = 4;
+  int64 inflight = 5;
+  string observer = 6; // node id
+}
+
+message RegisterRequest {
+  NodeInfo node = 1;
+}
+
+message HeartbeatRequest {
+  NodeStatus sender = 1;
+  repeated EndpointObservation endpoints = 2;
+}
+
+message HeartbeatResponse {
+  NodeStatus sender = 1;
+  repeated EndpointObservation endpoints = 2;
+}
+
+message GetClusterStateRequest {}
+
+message ClusterState {
+  string node_id = 1;
+  repeated NodeStatus nodes = 2;              // including this node
+  repeated EndpointObservation endpoints = 3; // this node's table
+}

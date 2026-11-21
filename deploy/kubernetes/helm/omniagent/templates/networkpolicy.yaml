@@ -4,10 +4,15 @@
 {{- /* Ingestion clients: the indexer writes the stores; the benchmark/verification
        Job (component "ingest-bench", deploy/kind) reads them. */ -}}
 {{- $writers := ternary (list "backend" "seed" "indexer" "ingest-bench") (list "backend" "seed") $ingest -}}
+{{- /* The control plane reads Elasticsearch directly for its BM25 degraded mode. */ -}}
+{{- $esClients := $writers -}}
+{{- if and .Values.controlPlane.enabled .Values.controlPlane.bm25Fallback }}
+{{- $esClients = append $writers "controlplane" -}}
+{{- end }}
 {{- /* store -> list of {ports, clients} rules */ -}}
 {{- $rules := dict
   "qdrant" (list (dict "ports" (list 6333 6334) "clients" $writers))
-  "elasticsearch" (list (dict "ports" (list 9200) "clients" $writers))
+  "elasticsearch" (list (dict "ports" (list 9200) "clients" $esClients))
   "redis" (list (dict "ports" (list 6379) "clients" (list "backend" "seed")))
   "triton" (list (dict "ports" (list 8001) "clients" (list "backend" "seed")))
   "kafka" (list (dict "ports" (list 9092) "clients" (list "ingest" "indexer" "ingest-bench")))

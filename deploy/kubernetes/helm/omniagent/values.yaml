@@ -140,6 +140,26 @@ seed:
   enabled: true                   # post-install/upgrade Job ingesting the bundled sample KB
   path: samples
 
+# gRPC control plane (controlplane/, omni.control.v1): stateless nodes in front
+# of the gateway pods with failover, peer heartbeats and degraded modes.
+controlPlane:
+  enabled: false
+  replicas: 3
+  image:
+    repository: ghcr.io/jchetan26/omniagent-controlplane
+    tag: "0.4.0"
+    pullPolicy: IfNotPresent
+  heartbeatMs: 500                # peer heartbeat interval
+  deadAfter: 3                    # missed heartbeats before a peer is declared dead
+  maxAttempts: 3                  # gateway attempts per call
+  perTryTimeoutMs: 2000
+  bm25Fallback: true              # degrade Search/Chat to BM25 from Elasticsearch when no gateway can answer
+  # Pods with these labels may call the Router RPCs.
+  clientSelector: { omniagent.io/controlplane-client: "true" }
+  resources:
+    requests: { cpu: 50m, memory: 32Mi }
+    limits: { cpu: 500m, memory: 128Mi }
+
 # Apache Kafka (KRaft, single node) for the ingestion pipeline. Only deployed
 # when kafka.enabled; point kafka.externalBrokers at a managed cluster instead.
 kafka:

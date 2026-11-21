@@ -40,3 +40,7 @@ ingestion:
   image: { repository: omniagent-ingestion, tag: dev, pullPolicy: Never }
   indexer:
     replicas: 4
+# gRPC control plane (3 nodes) in front of the gateways.
+controlPlane:
+  enabled: true
+  image: { repository: omniagent-controlplane, tag: dev, pullPolicy: Never }

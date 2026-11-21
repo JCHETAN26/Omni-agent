@@ -25,7 +25,7 @@ import asyncio
 import time
 import uuid
 
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, HTTPException, Query, Request, WebSocket, WebSocketDisconnect
 
 from backend.api.agent_ws import _THREAD_RE as THREAD_RE
 from backend.core import metrics
@@ -114,3 +114,45 @@ async def ws_frames(ws: WebSocket, thread_id: str | None = None) -> None:
         pass
     finally:
         metrics.WS_SESSIONS.labels("/ws/frames").dec()
+
+
+@router.post("/vision/classify")
+async def classify_frame(
+    request: Request,
+    thread_id: str | None = Query(default=None, pattern=THREAD_RE.pattern),
+    seq: int = Query(default=1, ge=1),
+) -> dict:
+    """One encoded frame (request body: JPEG/PNG bytes) -> top labels.
+
+    The request/response twin of /ws/frames, used by the gRPC control plane's
+    Vision RPC. With thread_id, the labels become that thread's visual context.
+    503 when vision is off or Triton is unavailable, so callers can fail over.
+    """
+    services: Services = request.app.state.services
+    if services.vision is None or services.preprocessor is None:
+        raise HTTPException(503, "vision is disabled (VISION_BACKEND=off)")
+    data = await request.body()
+    if len(data) > services.settings.vision_max_frame_bytes:
+        metrics.FRAMES.labels("invalid").inc()
+        raise HTTPException(413, "frame too large")
+    t0 = time.perf_counter()
+    try:
+        pixels = await asyncio.to_thread(services.preprocessor.encoded, data)
+    except ValueError as exc:
+        metrics.FRAMES.labels("invalid").inc()
+        raise HTTPException(400, str(exc)) from exc
+    t1 = time.perf_counter()
+    try:
+        labels = await services.vision.classify(pixels)
+    except VisionUnavailable as exc:
+        metrics.FRAMES.labels("unavailable").inc()
+        raise HTTPException(503, f"vision unavailable: {exc}") from exc
+    t2 = time.perf_counter()
+    if thread_id:
+        s = services.settings
+        await context.record(services.cache, thread_id, seq, labels, s.vision_context_ttl_s)
+    metrics.FRAMES.labels("classified").inc()
+    return {
+        "labels": [{"label": lb.label, "score": lb.score} for lb in labels],
+        "timings": {"preprocess_ms": _ms(t1 - t0), "infer_ms": _ms(t2 - t1)},
+    }
