@@ -131,21 +131,23 @@ for mode in ("hpa", "operator"):
                 (x.split(",") for x in open(f"{out}/replicas-{mode}.csv").read().split()[1:]) if a]
     except (FileNotFoundError, ValueError):
         continue
-    step, off = r["stage_starts_unix"][1], r["stage_starts_unix"][2]
+    starts = [t // 1000 for t in r["stage_starts_unix_ms"]]  # replica samples are in seconds
+    step, off = starts[1], starts[2]
     first = lambda cond, after: next((t - after for t, s, rd in rows if t >= after and cond(s, rd)), None)
     peak = max((s for t, s, rd in rows if step <= t < off), default=None)
-    tl = r["timeline"]
-    def p95(a, b):
-        v = sorted(x["p99_ms"] for x in tl if a <= x["t"] < b)
-        return v[int(0.95 * (len(v) - 1))] if v else None
+    t0 = r["start_unix_ms"]
+    calls = [((t0 + c[0]) / 1000, c[1], c[2]) for c in r["calls_detail"]["rows"]]  # (unix s, ms, code)
+    def window(a, b, q):
+        v = sorted(ms for t, ms, code in calls if a <= t < b and code == "OK")
+        return round(v[int(q * (len(v) - 1))], 1) if v else None
     summary["autoscaling"][mode] = {
         "scale_up_decision_s": first(lambda s, rd: s > 1, step),
         "first_new_replica_ready_s": first(lambda s, rd: rd > 1, step),
         "peak_replicas": peak,
         "scale_down_to_1_after_load_off_s": first(lambda s, rd: s == 1, off),
-        "calls": r["sent"], "failed": r["failed"], "by_code": r["by_code"],
+        "calls": r["calls"], "failed": r["failed"], "by_code": r["by_code"],
         "latency_ms_overall": r["latency_ms"],
-        "p95_of_1s_p99_ms": {"first_60s_of_step": p95(step, step + 60), "rest_of_step": p95(step + 60, off)},
+        "p99_ms": {"first_60s_of_step": window(step, step + 60, 0.99), "rest_of_step": window(step + 60, off, 0.99)},
     }
 json.dump(summary, open(f"{out}/summary.json", "w"), indent=2)
 print(json.dumps(summary, indent=1))

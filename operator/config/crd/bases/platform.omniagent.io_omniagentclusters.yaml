@@ -83,6 +83,16 @@ spec:
                       load.'
                     format: int32
                     type: integer
+                  scaleDownHeadroomPercent:
+                    default: 70
+                    description: |-
+                      operator mode: scale down only when the remaining replicas would carry the
+                      load at no more than this percentage of the target. Below 100 this leaves
+                      headroom, so capacity just added is not shed as soon as it absorbs the load.
+                    format: int32
+                    maximum: 100
+                    minimum: 10
+                    type: integer
                   scaleDownStabilizationSeconds:
                     default: 60
                     description: 'Both modes: wait this long below target before scaling
@@ -112,6 +122,10 @@ spec:
                       Label selector (key: value) of pods allowed to call the control plane.
                       Defaults to {"omniagent.io/controlplane-client": "true"}.
                     type: object
+                  elasticsearchURL:
+                    description: Elasticsearch URL for the BM25 degraded mode (empty
+                      disables it).
+                    type: string
                   image:
                     description: Image of omni-controlplane.
                     type: string

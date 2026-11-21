@@ -48,6 +48,9 @@ type ControlPlaneSpec struct {
 	Replicas int32 `json:"replicas,omitempty"`
 	// +optional
 	Resources corev1.ResourceRequirements `json:"resources,omitempty"`
+	// Elasticsearch URL for the BM25 degraded mode (empty disables it).
+	// +optional
+	ElasticsearchURL string `json:"elasticsearchURL,omitempty"`
 	// Label selector (key: value) of pods allowed to call the control plane.
 	// Defaults to {"omniagent.io/controlplane-client": "true"}.
 	// +optional
@@ -78,6 +81,13 @@ type AutoscalingSpec struct {
 	// operator mode: target in-flight gateway calls per gateway replica.
 	// +kubebuilder:default=2
 	TargetInflightPerReplica int32 `json:"targetInflightPerReplica,omitempty"`
+	// operator mode: scale down only when the remaining replicas would carry the
+	// load at no more than this percentage of the target. Below 100 this leaves
+	// headroom, so capacity just added is not shed as soon as it absorbs the load.
+	// +kubebuilder:validation:Minimum=10
+	// +kubebuilder:validation:Maximum=100
+	// +kubebuilder:default=70
+	ScaleDownHeadroomPercent int32 `json:"scaleDownHeadroomPercent,omitempty"`
 	// Both modes: wait this long below target before scaling down.
 	// +kubebuilder:default=60
 	ScaleDownStabilizationSeconds int32 `json:"scaleDownStabilizationSeconds,omitempty"`

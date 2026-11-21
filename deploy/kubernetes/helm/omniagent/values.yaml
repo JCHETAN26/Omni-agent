@@ -144,6 +144,9 @@ seed:
 # of the gateway pods with failover, peer heartbeats and degraded modes.
 controlPlane:
   enabled: false
+  # true when the operator (operator/, OmniAgentCluster) runs the control plane
+  # instead: the chart renders none, but Elasticsearch still admits it (BM25).
+  operatorManaged: false
   replicas: 3
   image:
     repository: ghcr.io/jchetan26/omniagent-controlplane

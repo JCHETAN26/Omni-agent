@@ -191,8 +191,12 @@ func (r *OmniAgentClusterReconciler) reconcileAutoscaling(ctx context.Context, c
 	if r.history == nil {
 		r.history = map[types.NamespacedName][]recommendation{}
 	}
+	headroom := float64(a.ScaleDownHeadroomPercent) / 100
+	if a.ScaleDownHeadroomPercent == 0 {
+		headroom = 0.7
+	}
 	desired, hist := decide(now, current, a.MinReplicas, a.MaxReplicas, inflight, a.TargetInflightPerReplica,
-		r.history[key], time.Duration(a.ScaleDownStabilizationSeconds)*time.Second)
+		headroom, r.history[key], time.Duration(a.ScaleDownStabilizationSeconds)*time.Second)
 	r.history[key] = hist
 	r.mu.Unlock()
 	c.Status.ObservedInflight = int64(inflight + 0.5)

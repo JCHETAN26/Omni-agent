@@ -43,6 +43,12 @@ spec:
           value: omniagent-gateway-endpoints
         - name: GATEWAY_PORT
           value: "8000"
+        - name: PEER_HOST
+          value: omniagent-controlplane
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
         - name: NODE_NAME
           valueFrom:
             fieldRef:
@@ -51,7 +57,7 @@ spec:
         livenessProbe:
           grpc:
             port: 9000
-            service: omniagent.controlplane.v1.ControlPlane
+            service: omni.control.v1.Router
           periodSeconds: 10
         name: controlplane
         ports:
@@ -62,7 +68,7 @@ spec:
         readinessProbe:
           grpc:
             port: 9000
-            service: omniagent.controlplane.v1.ControlPlane
+            service: omni.control.v1.Router
           periodSeconds: 2
         resources:
           limits:
@@ -185,6 +191,12 @@ spec:
     - podSelector:
         matchLabels:
           omniagent.io/controlplane-client: "true"
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/component: controlplane
+          app.kubernetes.io/instance: omniagent
+          app.kubernetes.io/managed-by: omniagent-operator
+          app.kubernetes.io/name: omniagent
     - namespaceSelector: {}
       podSelector:
         matchLabels:

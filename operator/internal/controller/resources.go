@@ -66,7 +66,7 @@ func desiredControlPlane(c *platformv1alpha1.OmniAgentCluster) *appsv1.Deploymen
 	cp := c.Spec.ControlPlane
 	probe := func(period int32) *corev1.Probe {
 		return &corev1.Probe{
-			ProbeHandler:  corev1.ProbeHandler{GRPC: &corev1.GRPCAction{Port: grpcPort, Service: ptr.To("omniagent.controlplane.v1.ControlPlane")}},
+			ProbeHandler:  corev1.ProbeHandler{GRPC: &corev1.GRPCAction{Port: grpcPort, Service: ptr.To("omni.control.v1.Router")}},
 			PeriodSeconds: period,
 		}
 	}
@@ -106,11 +106,7 @@ func desiredControlPlane(c *platformv1alpha1.OmniAgentCluster) *appsv1.Deploymen
 						Image:           cp.Image,
 						ImagePullPolicy: cp.ImagePullPolicy,
 						Command:         []string{"/omni-controlplane"},
-						Env: []corev1.EnvVar{
-							{Name: "GATEWAY_HOST", Value: gatewayEndpointsName(c)},
-							{Name: "GATEWAY_PORT", Value: fmt.Sprint(gatewayPort(c))},
-							{Name: "NODE_NAME", ValueFrom: &corev1.EnvVarSource{FieldRef: &corev1.ObjectFieldSelector{FieldPath: "metadata.name"}}},
-						},
+						Env:             controlPlaneEnv(c),
 						Ports: []corev1.ContainerPort{
 							{Name: "grpc", ContainerPort: grpcPort},
 							{Name: "metrics", ContainerPort: metricsPort},
@@ -128,6 +124,25 @@ func desiredControlPlane(c *platformv1alpha1.OmniAgentCluster) *appsv1.Deploymen
 			},
 		},
 	}
+}
+
+// controlPlaneEnv wires a node to its gateways, its peers (heartbeats over the
+// headless Service) and, optionally, Elasticsearch for BM25 degradation.
+func controlPlaneEnv(c *platformv1alpha1.OmniAgentCluster) []corev1.EnvVar {
+	field := func(path string) *corev1.EnvVarSource {
+		return &corev1.EnvVarSource{FieldRef: &corev1.ObjectFieldSelector{FieldPath: path}}
+	}
+	env := []corev1.EnvVar{
+		{Name: "GATEWAY_HOST", Value: gatewayEndpointsName(c)},
+		{Name: "GATEWAY_PORT", Value: fmt.Sprint(gatewayPort(c))},
+		{Name: "PEER_HOST", Value: controlPlaneName(c)},
+		{Name: "POD_IP", ValueFrom: field("status.podIP")},
+		{Name: "NODE_NAME", ValueFrom: field("metadata.name")},
+	}
+	if u := c.Spec.ControlPlane.ElasticsearchURL; u != "" {
+		env = append(env, corev1.EnvVar{Name: "ELASTICSEARCH_URL", Value: u})
+	}
+	return env
 }
 
 func gatewayPort(c *platformv1alpha1.OmniAgentCluster) int32 {
@@ -178,8 +193,9 @@ func desiredPDB(c *platformv1alpha1.OmniAgentCluster) *policyv1.PodDisruptionBud
 	}
 }
 
-// desiredNetworkPolicy admits gRPC only from labelled clients and the
-// operator, and metrics only from Prometheus in the monitoring namespace.
+// desiredNetworkPolicy admits gRPC only from labelled clients, peer nodes
+// (heartbeats) and the operator, and metrics only from Prometheus in the
+// monitoring namespace.
 func desiredNetworkPolicy(c *platformv1alpha1.OmniAgentCluster) *networkingv1.NetworkPolicy {
 	tcp := corev1.ProtocolTCP
 	port := func(p int32) networkingv1.NetworkPolicyPort {
@@ -194,6 +210,7 @@ func desiredNetworkPolicy(c *platformv1alpha1.OmniAgentCluster) *networkingv1.Ne
 				{
 					From: []networkingv1.NetworkPolicyPeer{
 						{PodSelector: &metav1.LabelSelector{MatchLabels: clientSelector(c)}},
+						{PodSelector: &metav1.LabelSelector{MatchLabels: controlPlaneLabels(c)}},
 						{PodSelector: &metav1.LabelSelector{MatchLabels: map[string]string{OperatorPodLabel: operatorPodValue}},
 							NamespaceSelector: &metav1.LabelSelector{}},
 					},
