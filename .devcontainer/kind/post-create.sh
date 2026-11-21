@@ -2,7 +2,7 @@
 # One-time setup for the kind + Triton Codespace.
 set -euxo pipefail
 sudo apt-get update -qq
-sudo apt-get install -y -qq --no-install-recommends libopencv-dev cmake
+sudo apt-get install -y -qq --no-install-recommends libopencv-dev cmake acl
 # kind: pinned release, verified against its published SHA-256.
 KIND_VERSION=v0.27.0
 curl -fsSLo /tmp/kind "https://github.com/kubernetes-sigs/kind/releases/download/${KIND_VERSION}/kind-linux-amd64"
