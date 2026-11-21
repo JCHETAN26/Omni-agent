@@ -17,7 +17,8 @@ spec:
   autoscaling:
     mode: "off"
     minReplicas: 1
-    maxReplicas: 4
+    # 3, not 4: on the single 4-vCPU kind node a 4th gateway's CPU request does not fit.
+    maxReplicas: 3
     targetCPUUtilization: 60
     targetInflightPerReplica: 2
     scaleDownStabilizationSeconds: 60
