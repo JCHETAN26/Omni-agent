@@ -1,0 +1,15 @@
+2026-11-21T22:42:17.760Z === deploy (Phase 4B operator objects removed; idle Phase 3 workloads off to fit 4 vCPU)
+2026-11-21T22:43:21.108Z control plane: omniagent-controlplane-6c85d7c676-6svpd@10.244.0.7 omniagent-controlplane-6c85d7c676-gh9xc@10.244.0.8 omniagent-controlplane-6c85d7c676-thmxp@10.244.0.5 
+2026-11-21T22:43:21.111Z === 1. routing overhead (closed loop, 8 workers, 60 s each)
+2026-11-21T22:44:25.904Z overhead direct round 1: 83.3 calls/s {'max': 489.95, 'p50': 89.66, 'p95': 165.43, 'p99': 231.81} failed 0
+2026-11-21T22:45:30.646Z overhead grpc round 1: 88.5 calls/s {'max': 421.98, 'p50': 86.95, 'p95': 147.25, 'p99': 190.51} failed 0
+2026-11-21T22:46:33.867Z overhead direct round 2: 98.8 calls/s {'max': 370, 'p50': 77.58, 'p95': 124.81, 'p99': 163.24} failed 0
+2026-11-21T22:47:39.083Z overhead grpc round 2: 94.6 calls/s {'max': 269.43, 'p50': 82.24, 'p95': 126.62, 'p99': 163.99} failed 0
+2026-11-21T22:47:39.086Z === 2. failover: SIGKILL one control-plane replica at +30/+60/+90 s
+2026-11-21T22:48:21.647Z SIGKILL control-plane pid 5191 at 1795301301539
+2026-11-21T22:48:51.871Z SIGKILL control-plane pid 5367 at 1795301331768
+2026-11-21T22:49:22.100Z SIGKILL control-plane pid 5453 at 1795301361998
+2026-11-21T22:49:43.600Z === 3. degradation: Triton down at +30 s, back at +90 s
+2026-11-21T22:50:25.877Z Triton scaled to 0
+2026-11-21T22:51:25.990Z Triton scaled back to 1
+2026-11-21T22:53:19.354Z done

@@ -1,0 +1,183 @@
+{
+  "overhead": {
+    "runs": {
+      "overhead-direct-1": {
+        "calls_per_s": 83.3,
+        "failed": 0,
+        "latency_ms": {
+          "max": 489.95,
+          "p50": 89.66,
+          "p95": 165.43,
+          "p99": 231.81
+        }
+      },
+      "overhead-direct-2": {
+        "calls_per_s": 98.8,
+        "failed": 0,
+        "latency_ms": {
+          "max": 370,
+          "p50": 77.58,
+          "p95": 124.81,
+          "p99": 163.24
+        }
+      },
+      "overhead-grpc-1": {
+        "calls_per_s": 88.5,
+        "failed": 0,
+        "latency_ms": {
+          "max": 421.98,
+          "p50": 86.95,
+          "p95": 147.25,
+          "p99": 190.51
+        }
+      },
+      "overhead-grpc-2": {
+        "calls_per_s": 94.6,
+        "failed": 0,
+        "latency_ms": {
+          "max": 269.43,
+          "p50": 82.24,
+          "p95": 126.62,
+          "p99": 163.99
+        }
+      }
+    },
+    "direct": {
+      "calls": 10946,
+      "calls_per_s_mean": 91.0,
+      "p50": 82.4,
+      "p95": 145.6,
+      "p99": 210.51
+    },
+    "grpc": {
+      "calls": 11002,
+      "calls_per_s_mean": 91.5,
+      "p50": 84.42,
+      "p95": 137.38,
+      "p99": 178.94
+    },
+    "added_ms": {
+      "p50": 2.02,
+      "p95": -8.22,
+      "p99": -31.57
+    },
+    "throughput_ratio_grpc_over_direct": 1.005
+  },
+  "overhead_1_worker": {
+    "missing": "no overhead1-*.json runs"
+  },
+  "failover": {
+    "calls": 11390,
+    "failed": 0,
+    "by_code": {
+      "OK": 11390
+    },
+    "error_rate": "0",
+    "calls_per_s": 94.8,
+    "latency_ms": {
+      "max": 543.63,
+      "p50": 81.66,
+      "p95": 127.11,
+      "p99": 165.91
+    },
+    "baseline_before_first_kill_ms": {
+      "p50": 81.7,
+      "p99": 154.37
+    },
+    "served_by": {
+      "omniagent-controlplane-6c85d7c676-6svpd": 3620,
+      "omniagent-controlplane-6c85d7c676-gh9xc": 4170,
+      "omniagent-controlplane-6c85d7c676-thmxp": 3600
+    },
+    "kills": [
+      {
+        "kill_unix_ms": 1795301301539,
+        "calls_in_flight_at_kill": 8,
+        "in_flight_failed": 0,
+        "in_flight_max_latency_ms": 160.0,
+        "calls_until_next_kill": 2870,
+        "errors_until_next_kill": 0,
+        "errors_from_5s_after_kill": 0,
+        "p99_first_1s_after_kill_ms": 198.33,
+        "peer_detection_ms": []
+      },
+      {
+        "kill_unix_ms": 1795301331768,
+        "calls_in_flight_at_kill": 8,
+        "in_flight_failed": 0,
+        "in_flight_max_latency_ms": 330.8,
+        "calls_until_next_kill": 2897,
+        "errors_until_next_kill": 0,
+        "errors_from_5s_after_kill": 0,
+        "p99_first_1s_after_kill_ms": 176.11,
+        "peer_detection_ms": []
+      },
+      {
+        "kill_unix_ms": 1795301361998,
+        "calls_in_flight_at_kill": 8,
+        "in_flight_failed": 0,
+        "in_flight_max_latency_ms": 543.6,
+        "calls_until_next_kill": 1777,
+        "errors_until_next_kill": 0,
+        "errors_from_5s_after_kill": 0,
+        "p99_first_1s_after_kill_ms": 301.49,
+        "peer_detection_ms": []
+      }
+    ],
+    "peer_detection_ms": {
+      "samples": [],
+      "median": null,
+      "max": null
+    },
+    "restarts": [
+      "omniagent-controlplane-6c85d7c676-6svpd",
+      "restarts=1",
+      "omniagent-controlplane-6c85d7c676-gh9xc",
+      "restarts=1",
+      "omniagent-controlplane-6c85d7c676-thmxp",
+      "restarts=1"
+    ],
+    "ok_latency_ms": {
+      "p50": 81.66,
+      "p99": 165.91
+    }
+  },
+  "gateway_failover": {
+    "missing": "[Errno 2] No such file or directory: 'benchmarks/results/2026-11-21/grpc-control-plane/kind/gateway-failover.json'"
+  },
+  "degradation": {
+    "calls": 162424,
+    "failed": 0,
+    "by_code": {
+      "OK": 162424
+    },
+    "degraded_total": 154020,
+    "before_triton_down": {
+      "calls": 3327,
+      "errors": 0,
+      "degraded": 0,
+      "p50_ms": 47.64,
+      "p99_ms": 85.65
+    },
+    "triton_down_to_scaled_up": {
+      "calls": 86838,
+      "errors": 0,
+      "degraded": 86830,
+      "p50_ms": 2.04,
+      "p99_ms": 21.43
+    },
+    "after_scale_up": {
+      "calls": 72259,
+      "errors": 0,
+      "degraded": 67190,
+      "p50_ms": 2.19,
+      "p99_ms": 58.84
+    },
+    "first_degraded_after_down_ms": 190,
+    "last_degraded_end_after_scale_up_ms": 109242.86206054688,
+    "triton_ready_after_scale_up_ms": 112498,
+    "modes": [
+      "DEGRADATION_BM25_ONLY"
+    ]
+  }
+}

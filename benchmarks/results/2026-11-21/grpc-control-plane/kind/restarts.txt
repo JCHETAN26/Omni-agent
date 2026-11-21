@@ -1,0 +1,3 @@
+omniagent-controlplane-6c85d7c676-6svpd restarts=1
+omniagent-controlplane-6c85d7c676-gh9xc restarts=1
+omniagent-controlplane-6c85d7c676-thmxp restarts=1
