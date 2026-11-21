@@ -113,8 +113,7 @@ kubectl -n "$ns" scale deploy/omniagent-backend --replicas=2 >/dev/null
 python3 - "$out" <<'PY'
 import csv, json, re, statistics, sys
 out = sys.argv[1]
-import glob
-lines = "".join(open(f).read() for f in sorted(glob.glob(f"{out}/../operator*/operator-bench.log")))
+lines = open(f"{out}/operator-bench.log").read()
 def times(prefix):
     return [float(x) for x in re.findall(rf"{prefix} trial \d+: .*?ready in ([0-9.]+) s", lines, re.I)]
 summary = {"provisioning_s": {}, "autoscaling": {}}
