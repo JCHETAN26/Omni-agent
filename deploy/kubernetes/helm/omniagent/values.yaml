@@ -141,6 +141,11 @@ seed:
 
 networkPolicy:
   enabled: true                   # datastores accept traffic only from backend + seed pods
+  # Peers allowed to scrape Triton's metrics port (8002). Match your Prometheus;
+  # set to [] to keep 8002 closed.
+  metricsFrom:
+    - namespaceSelector: { matchLabels: { kubernetes.io/metadata.name: monitoring } }
+      podSelector: { matchLabels: { app.kubernetes.io/name: prometheus } }
 
 metrics:
   podAnnotations: true            # prometheus.io/scrape for annotation-based Prometheus

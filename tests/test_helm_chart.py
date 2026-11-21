@@ -218,7 +218,15 @@ def test_triton_with_baked_models_runs_hardened_without_a_pvc():
         and config["TRITON_GRPC_URL"] == "omniagent-triton:8001"
     )
     policies = by_kind(docs, "NetworkPolicy")
-    assert policies["omniagent-triton"]["spec"]["ingress"][0]["ports"][0]["port"] == 8001
+    grpc, metrics = policies["omniagent-triton"]["spec"]["ingress"]
+    assert grpc["ports"][0]["port"] == 8001
+    # Metrics (8002) only from the configured Prometheus peers, never from the app pods.
+    assert metrics["ports"] == [{"port": 8002, "protocol": "TCP"}]
+    assert metrics["from"][0]["namespaceSelector"]["matchLabels"] == {
+        "kubernetes.io/metadata.name": "monitoring"
+    }
+    closed = render("triton.enabled=true", "triton.image.tag=dev", "networkPolicy.metricsFrom=null")
+    assert len(by_kind(closed, "NetworkPolicy")["omniagent-triton"]["spec"]["ingress"]) == 1
 
 
 def test_qdrant_root_filesystem_is_read_only():

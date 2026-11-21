@@ -23,6 +23,12 @@ spec:
         {{- if eq $store "qdrant" }}
         - { port: 6334, protocol: TCP }
         {{- end }}
+    {{- if and (eq $store "triton") $root.Values.networkPolicy.metricsFrom }}
+    # Triton's Prometheus endpoint, for the scraper only.
+    - from: {{- toYaml $root.Values.networkPolicy.metricsFrom | nindent 8 }}
+      ports:
+        - { port: 8002, protocol: TCP }
+    {{- end }}
 {{- end }}
 {{- end }}
 {{- end }}
