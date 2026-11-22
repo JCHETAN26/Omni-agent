@@ -40,6 +40,9 @@ class FakeWebSocket {
 }
 
 const flush = () => new Promise((r) => setTimeout(r, 0))
+// The integrity check hashes with the async Web Crypto API; on a loaded machine
+// that can take longer than one macrotask, so wait for the outcome itself.
+const settled = (check: () => void) => vi.waitFor(check, { timeout: 2000, interval: 5 })
 
 function makeClient(url = () => 'ws://test/ws/agent') {
   const events: ClientEvent[] = []
@@ -92,8 +95,8 @@ describe('GatewayClient', () => {
   it('verifies the sha256 of a streamed response', async () => {
     const { client, ws, events } = makeClient()
     await streamResponse(ws, 1, 'q1', ['EIO-5 ', 'means ', 'timeout.'])
+    await settled(() => expect(client.stats.integrityOk).toBe(1))
     expect(events.at(-1)).toEqual({ type: 'client.integrity', id: 'q1', ok: true, detail: 'sha256 verified' })
-    expect(client.stats.integrityOk).toBe(1)
   })
 
   it('checks only the final attempt after a discarded generation', async () => {
@@ -108,8 +111,7 @@ describe('GatewayClient', () => {
       type: 'response.end', id: 'q', attempt: 2, tokens: 2, latency_ms: 1,
       sha256: await sha256Hex('grounded answer'), seq: seq++,
     })
-    await flush()
-    expect(events.at(-1)).toMatchObject({ type: 'client.integrity', ok: true })
+    await settled(() => expect(events.at(-1)).toMatchObject({ type: 'client.integrity', ok: true }))
   })
 
   it('detects tampered text and index gaps', async () => {
@@ -121,10 +123,9 @@ describe('GatewayClient', () => {
     ws.push({ type: 'response.token', id: 'b', index: 0, text: 'x', seq: 5 })
     ws.push({ type: 'response.token', id: 'b', index: 2, text: 'y', seq: 6 })
     ws.push({ type: 'response.end', id: 'b', tokens: 2, latency_ms: 1, sha256: await sha256Hex('xy'), seq: 7 })
-    await flush()
+    await settled(() => expect(client.stats.integrityFailures).toBe(2))
     const integrity = events.filter((e) => e.type === 'client.integrity')
     expect(integrity.map((e) => e.ok)).toEqual([false, false])
-    expect(client.stats.integrityFailures).toBe(2)
   })
 
   it('reconnects with backoff after heartbeat timeout, resetting seq', () => {
