@@ -7,7 +7,10 @@
 //     a node that reports NOT_SERVING (draining) or stops answering leaves the
 //     rotation
 //   - unary calls (Search, Vision) are retried on UNAVAILABLE on another node
-//     within the caller's deadline; both are idempotent
+//     within the caller's deadline; both are idempotent. 5 attempts (gRPC's
+//     maximum) with 0.1 s -> 1 s backoff give a crashed node's in-flight calls
+//     ~1.5 s to find a live node; 4 attempts at 50-200 ms (~350 ms) occasionally
+//     ran out on slow CI runners before the dead connections were noticed.
 //
 // Server-streaming Chat cannot be retried transparently once events have been
 // received, so Chat (below) re-issues the turn on another node itself and
@@ -38,9 +41,9 @@ const ServiceConfig = `{
     "name": [{"service": "omni.control.v1.Router"}, {"service": "omni.control.v1.Cluster"}],
     "waitForReady": true,
     "retryPolicy": {
-      "maxAttempts": 4,
-      "initialBackoff": "0.05s",
-      "maxBackoff": "0.5s",
+      "maxAttempts": 5,
+      "initialBackoff": "0.1s",
+      "maxBackoff": "1s",
       "backoffMultiplier": 2,
       "retryableStatusCodes": ["UNAVAILABLE"]
     }
