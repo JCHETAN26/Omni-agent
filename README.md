@@ -533,7 +533,7 @@ Raw outputs, logs and summaries are under [`benchmarks/results/`](benchmarks/res
   ```bash
   gh release download beir-artifacts-2026-11-20 -D /data/beir && cd /data/beir \
     && sha256sum -c SHA256SUMS && tar xzf omni-beir-artifacts-2026-11-20.tar.gz
-  python -m benchmarks.retrieval.run evaluate --work /data/beir
+  python -m benchmarks.retrieval.run evaluate --work /data/beir   # fetches + verifies the public corpus for its relevance judgments
   ```
 
 ## Configuration
