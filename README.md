@@ -520,6 +520,22 @@ make security    # omni check on this repository
 
 Raw outputs, logs and summaries are under [`benchmarks/results/`](benchmarks/results/), organized by date and area.
 
+### Benchmark data
+
+- **Sample knowledge base** ([`samples/`](samples/)): a small set of storage, network and power runbooks plus logs,
+  used by the tests and demos.
+- **BEIR CQADupStack** (the search evaluation corpus: 457,199 StackExchange posts across 12 forums) is downloaded and
+  checksum-verified by `benchmarks/retrieval/run.py`; it is not stored in the repo (third-party data, CC BY-SA).
+- **Trained models and retrieval features**: the [`beir-artifacts-2026-11-20`](https://github.com/JCHETAN26/Omni-agent/releases/tag/beir-artifacts-2026-11-20)
+  release holds the LTR models, the per-query candidate features and the corpus manifest (exact dataset revisions and
+  SHA-256s), so the ranking results reproduce without re-embedding 807k chunks:
+
+  ```bash
+  gh release download beir-artifacts-2026-11-20 -D /data/beir && cd /data/beir \
+    && sha256sum -c SHA256SUMS && tar xzf omni-beir-artifacts-2026-11-20.tar.gz
+  python -m benchmarks.retrieval.run evaluate --work /data/beir
+  ```
+
 ## Configuration
 
 Settings come from environment variables (see `.env.example`). Each backing service switches on when its URL is set;
