@@ -7,6 +7,7 @@
 Ask questions in plain language, get answers grounded in your runbooks and live logs, show it what's on your screen,
 and work the incident together with your team, on infrastructure built to stay up when parts of it fail.
 
+[![CI](https://github.com/JCHETAN26/Omni-agent/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/JCHETAN26/Omni-agent/actions/workflows/ci.yml)
 ![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)
 ![Go](https://img.shields.io/badge/Go-1.27-00ADD8?logo=go&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-React_19-3178C6?logo=typescript&logoColor=white)
@@ -488,15 +489,18 @@ helm install omniagent deploy/kubernetes/helm/omniagent -n omniagent --create-na
 
 ## Testing and quality gates
 
+[GitHub Actions](.github/workflows/ci.yml) runs every gate below on each push to `main` and on every pull request:
+seven parallel jobs (Python, Go per module, the operator with envtest, the frontend, and `omni check`).
+
 | Gate | What runs |
 | --- | --- |
-| Python | ~255 pytest tests: API, agent, search, ingestion, vision, rooms (including two replicas sharing a real Redis), Helm chart invariants |
+| Python | ~255 pytest tests (the fast suite in CI; `-m slow` adds the real-model tests): API, agent, search, ingestion, vision, the C++ extension, rooms (including two replicas sharing a real Redis), Helm chart invariants |
 | Go | Unit and integration tests for the CLI, ingestion, control plane (including a 3-node failover test run under the race detector) and operator (envtest against kube-apiserver 1.37) |
-| Frontend | Strict TypeScript build, Vitest unit and component tests, Playwright end-to-end tests |
-| Security | `omni check`: secrets, Dockerfile and Kubernetes hardening rules, `govulncheck`, `pip-audit`, `ruff`, `gofmt` / `go vet` |
+| Frontend | Strict TypeScript build, oxlint, Vitest unit and component tests (CI); Playwright end-to-end tests (`make e2e`, local) |
+| Security | `omni check`: secrets, Dockerfile and Kubernetes hardening rules; `govulncheck` per Go module and `pip-audit` on the Python environment |
 
 ```bash
-make verify      # everything CI would run
+make verify      # the local equivalent of CI (plus browser e2e and helm lint)
 make security    # omni check on this repository
 ```
 
