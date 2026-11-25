@@ -1,0 +1,28 @@
+{
+  "model": "gpt-4.1-2025-04-14",
+  "per_variant": {
+    "rag": {
+      "regraded": 100,
+      "correctness_same": 1.0,
+      "correctness_kappa": 1.0,
+      "correct_vs_not_same": 1.0,
+      "faithful_same": 0.96,
+      "tokens_prompt_tokens": 148871,
+      "tokens_completion_tokens": 14146
+    },
+    "agent": {
+      "regraded": 100,
+      "correctness_same": 0.98,
+      "correctness_kappa": 0.9534,
+      "correct_vs_not_same": 0.99,
+      "faithful_same": 0.97,
+      "tokens_prompt_tokens": 148924,
+      "tokens_completion_tokens": 13335
+    }
+  },
+  "overall": {
+    "regraded": 200,
+    "correctness_same": 0.99,
+    "correctness_kappa": 0.9813
+  }
+}

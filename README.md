@@ -95,6 +95,7 @@ laptop. Every number links to a raw result file.
 | Area | Result | Measured on |
 | --- | --- | --- |
 | **Search relevance** | **nDCG@10 0.408**, **+22.0%** over the RRF hybrid baseline and +13.0% over dense-only (p < 0.001), on BEIR CQADupStack: 457,199 documents, 2,581 held-out test queries. | [`retrieval/`](benchmarks/results/2026-11-20/retrieval/) |
+| **Answer quality** | On 910 real IBM support questions (TechQA), the agent's answers are correct as often as plain RAG's (**48.0%** of answerable questions) but wrong half as often (**8.0% vs 15.4%**). It also recognizes **32% vs 3%** of unanswerable questions, giving **+9.6 pts end-to-end accuracy** (p < 0.001), at the cost of 3.6× tokens and declining 20% of answerable questions. Graded by a separate LLM judge (99% self-consistent). | [`answer-quality/`](benchmarks/results/2026-11-24/answer-quality/) |
 | **Search latency** | Hybrid `/search` **p50 28.7 ms** single-client over 807k chunks; LTR-ranked p50 42.9 ms. | [`latency/`](benchmarks/results/2026-11-20/latency/) |
 | **Agent throughput** | **3.6× more agent turns/s** (1.93 → 7.04) and **88% fewer LLM tokens** on repeated questions with the LLM cache. | [`agent/`](benchmarks/results/2026-11-20/agent/) |
 | **Developer CLI** | `omni new service --verify` generates, tests and security-checks a hardened Go service in **2.0–2.6 s** with 0 findings. | local runs, Go 1.27.4 |
@@ -511,6 +512,7 @@ make security    # omni check on this repository
 | Retrieval quality (BEIR) | `python -m benchmarks.retrieval.run {embed,index,collect,score-ce,evaluate} --work <dir>` |
 | Search latency | `python -m benchmarks.retrieval.run latency --server http://127.0.0.1:8000 --work <dir>` |
 | Agent throughput + LLM cache | `python -m benchmarks.agent_throughput` |
+| Answer quality (TechQA, RAG vs agent) | `python -m benchmarks.answer_quality.run {fetch,answer,judge,consistency,report} ...` |
 | C++ vs Python preprocessing | `python -m benchmarks.vision_preprocess` |
 | Triton dynamic batching on/off | `deploy/kind/bench-multimodal.sh <out_dir>` |
 | Kafka ingestion + crash/replay | `deploy/kind/kafka-bench.sh`, `deploy/kind/kafka-crash-replay.sh` |
@@ -526,6 +528,8 @@ Raw outputs, logs and summaries are under [`benchmarks/results/`](benchmarks/res
   used by the tests and demos.
 - **BEIR CQADupStack** (the search evaluation corpus: 457,199 StackExchange posts across 12 forums) is downloaded and
   checksum-verified by `benchmarks/retrieval/run.py`; it is not stored in the repo (third-party data, CC BY-SA).
+- **TechQA-RAG-Eval** (the answer-quality evaluation: 910 IBM support questions over 28,482 technotes, Apache-2.0) is
+  downloaded and checksum-verified by `benchmarks/answer_quality/run.py fetch`; it is not stored in the repo.
 - **Trained models and retrieval features**: the [`beir-artifacts-2026-11-20`](https://github.com/JCHETAN26/Omni-agent/releases/tag/beir-artifacts-2026-11-20)
   release holds the LTR models, the per-query candidate features and the corpus manifest (exact dataset revisions and
   SHA-256s), so the ranking results reproduce without re-embedding 807k chunks:
@@ -589,6 +593,11 @@ samples/          small technical-support corpus and logs used by tests and demo
   work down; a rate-based target is the planned fix.
 - **No authentication yet.** Anyone with a conversation thread ID or room ID can join it.
 - **LLM-backed answers** were benchmarked with OpenAI; the Claude and vLLM paths are tested with fakes.
+- **Answer quality is bounded by retrieval.** On TechQA the gold technote reaches the top 4 for only 57% of
+  answerable questions, and answers are correct 69% of the time when it does. That run used plain RRF hybrid search
+  (no learning-to-rank or cross-encoder). The agent's caution also costs answers: it declines 20% of answerable
+  questions, and 0.5% of its abstentions are false "sources disagree" conflicts on vendor error codes. Judge labels
+  are not yet checked against human grades.
 - **Live logs** read `.log` files; a Loki or Elasticsearch log backend is still to be added.
 - **Ingestion updates** that shrink a document leave its old higher-position chunks behind (both pipelines); a
   delete-by-document step is planned.

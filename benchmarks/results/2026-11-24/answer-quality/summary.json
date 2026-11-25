@@ -1,0 +1,343 @@
+{
+  "dataset": "nvidia/TechQA-RAG-Eval",
+  "seed": 2026,
+  "variants": {
+    "rag": {
+      "questions": 910,
+      "answerable": 610,
+      "unanswerable": 300,
+      "labels": {
+        "incorrect": 94,
+        "answered_unanswerable": 292,
+        "correct": 293,
+        "partial": 214,
+        "missed": 9,
+        "abstained_correctly": 8
+      },
+      "answerable_correct": {
+        "n": 610,
+        "rate": 0.4803,
+        "ci95": [
+          0.4377,
+          0.5197
+        ]
+      },
+      "answerable_correct_or_partial": {
+        "n": 610,
+        "rate": 0.8311,
+        "ci95": [
+          0.8,
+          0.8607
+        ]
+      },
+      "answerable_missed": {
+        "n": 610,
+        "rate": 0.0148,
+        "ci95": [
+          0.0066,
+          0.0246
+        ]
+      },
+      "answerable_incorrect": {
+        "n": 610,
+        "rate": 0.1541,
+        "ci95": [
+          0.1262,
+          0.1852
+        ]
+      },
+      "unanswerable_abstained": {
+        "n": 300,
+        "rate": 0.0267,
+        "ci95": [
+          0.01,
+          0.0467
+        ]
+      },
+      "end_to_end_accuracy": {
+        "n": 910,
+        "rate": 0.3308,
+        "ci95": [
+          0.3022,
+          0.3648
+        ]
+      },
+      "precision_when_answering": {
+        "n": 893,
+        "rate": 0.3281,
+        "ci95": [
+          0.2979,
+          0.3595
+        ]
+      },
+      "faithful_when_answering": {
+        "n": 893,
+        "rate": 0.7604,
+        "ci95": [
+          0.7335,
+          0.7895
+        ]
+      },
+      "actionable_when_answering_answerable": {
+        "n": 601,
+        "rate": 0.4825,
+        "ci95": [
+          0.4426,
+          0.5208
+        ]
+      },
+      "gold_doc_retrieved": {
+        "n": 610,
+        "rate": 0.5705,
+        "ci95": [
+          0.5311,
+          0.6098
+        ]
+      },
+      "correct_given_gold_retrieved": {
+        "n": 348,
+        "rate": 0.6925,
+        "ci95": [
+          0.6408,
+          0.7385
+        ]
+      },
+      "errors": 0,
+      "latency_s": {
+        "p50": 22.864,
+        "p95": 37.377
+      },
+      "agent_outcomes": {
+        "answered": 893,
+        "abstained": 17
+      },
+      "routes": {
+        "knowledge_base": 910
+      },
+      "index": {
+        "documents": 28481,
+        "chunks": 176710,
+        "seconds": 889.4,
+        "backends": {
+          "dense": "faiss-hnsw",
+          "sparse": "bm25-in-memory",
+          "cache": "in-memory",
+          "rate_limiter": "in-memory",
+          "embedder": "sentence-transformers/all-MiniLM-L6-v2",
+          "inference": "mock",
+          "ranker": "rrf",
+          "vision": "off"
+        }
+      },
+      "cost": {
+        "meta": {
+          "model": "gpt-4.1-mini-2025-04-14",
+          "prompt_tokens": 1022738,
+          "completion_tokens": 194608,
+          "usd_estimate": 0.7205,
+          "tokens_per_question": 1337.7
+        },
+        "judge-meta": {
+          "model": "gpt-4.1-2025-04-14",
+          "prompt_tokens": 1346661,
+          "completion_tokens": 129951,
+          "usd_estimate": 3.7329,
+          "tokens_per_question": 1622.7
+        }
+      }
+    },
+    "agent": {
+      "questions": 910,
+      "answerable": 610,
+      "unanswerable": 300,
+      "labels": {
+        "answered_unanswerable": 205,
+        "correct": 293,
+        "partial": 146,
+        "missed": 122,
+        "incorrect": 49,
+        "abstained_correctly": 95
+      },
+      "answerable_correct": {
+        "n": 610,
+        "rate": 0.4803,
+        "ci95": [
+          0.4426,
+          0.518
+        ]
+      },
+      "answerable_correct_or_partial": {
+        "n": 610,
+        "rate": 0.7197,
+        "ci95": [
+          0.682,
+          0.7541
+        ]
+      },
+      "answerable_missed": {
+        "n": 610,
+        "rate": 0.2,
+        "ci95": [
+          0.1689,
+          0.2328
+        ]
+      },
+      "answerable_incorrect": {
+        "n": 610,
+        "rate": 0.0803,
+        "ci95": [
+          0.059,
+          0.1033
+        ]
+      },
+      "unanswerable_abstained": {
+        "n": 300,
+        "rate": 0.3167,
+        "ci95": [
+          0.2633,
+          0.3667
+        ]
+      },
+      "end_to_end_accuracy": {
+        "n": 910,
+        "rate": 0.4264,
+        "ci95": [
+          0.3945,
+          0.4571
+        ]
+      },
+      "precision_when_answering": {
+        "n": 693,
+        "rate": 0.4228,
+        "ci95": [
+          0.3853,
+          0.4603
+        ]
+      },
+      "faithful_when_answering": {
+        "n": 693,
+        "rate": 0.824,
+        "ci95": [
+          0.7965,
+          0.8528
+        ]
+      },
+      "actionable_when_answering_answerable": {
+        "n": 488,
+        "rate": 0.5574,
+        "ci95": [
+          0.5143,
+          0.6004
+        ]
+      },
+      "gold_doc_retrieved": {
+        "n": 610,
+        "rate": 0.5754,
+        "ci95": [
+          0.5344,
+          0.6148
+        ]
+      },
+      "correct_given_gold_retrieved": {
+        "n": 351,
+        "rate": 0.6895,
+        "ci95": [
+          0.641,
+          0.735
+        ]
+      },
+      "errors": 0,
+      "latency_s": {
+        "p50": 20.544,
+        "p95": 39.554
+      },
+      "agent_outcomes": {
+        "answered": 693,
+        "insufficient_context": 209,
+        "abstained": 6,
+        "ungrounded": 2
+      },
+      "routes": {
+        "knowledge_base": 908,
+        "direct": 2
+      },
+      "index": {
+        "documents": 28481,
+        "chunks": 176710,
+        "seconds": 889.4,
+        "backends": {
+          "dense": "faiss-hnsw",
+          "sparse": "bm25-in-memory",
+          "cache": "in-memory",
+          "rate_limiter": "in-memory",
+          "embedder": "sentence-transformers/all-MiniLM-L6-v2",
+          "inference": "mock",
+          "ranker": "rrf",
+          "vision": "off"
+        }
+      },
+      "cost": {
+        "meta": {
+          "model": "gpt-4.1-mini-2025-04-14",
+          "prompt_tokens": 3855812,
+          "completion_tokens": 473239,
+          "usd_estimate": 2.2995,
+          "tokens_per_question": 4757.2
+        },
+        "judge-meta": {
+          "model": "gpt-4.1-2025-04-14",
+          "prompt_tokens": 1046560,
+          "completion_tokens": 93169,
+          "usd_estimate": 2.8385,
+          "tokens_per_question": 1252.4
+        }
+      }
+    }
+  },
+  "agent_vs_rag": {
+    "answerable_correct": {
+      "pairs": 610,
+      "delta": 0.0,
+      "ci95": [
+        -0.0344,
+        0.0344
+      ],
+      "agent_only_right": 57,
+      "rag_only_right": 57,
+      "mcnemar_p": 1.0
+    },
+    "unanswerable_abstained": {
+      "pairs": 300,
+      "delta": 0.29,
+      "ci95": [
+        0.24,
+        0.3433
+      ],
+      "agent_only_right": 89,
+      "rag_only_right": 2,
+      "mcnemar_p": 0.0
+    },
+    "end_to_end_accuracy": {
+      "pairs": 910,
+      "delta": 0.0956,
+      "ci95": [
+        0.0648,
+        0.1253
+      ],
+      "agent_only_right": 146,
+      "rag_only_right": 59,
+      "mcnemar_p": 0.0
+    },
+    "faithful_when_both_answered": {
+      "pairs": 688,
+      "delta": 0.0349,
+      "ci95": [
+        0.0,
+        0.0698
+      ],
+      "agent_only_right": 86,
+      "rag_only_right": 62,
+      "mcnemar_p": 0.058312
+    }
+  }
+}

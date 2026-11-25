@@ -1,0 +1,29 @@
+{
+  "segments": [
+    {
+      "questions": 910,
+      "wall_s": 2871.9,
+      "prompt_tokens": 1022738,
+      "completion_tokens": 194608,
+      "concurrency": 8
+    }
+  ],
+  "model": "gpt-4.1-mini-2025-04-14",
+  "index": {
+    "documents": 28481,
+    "chunks": 176710,
+    "seconds": 889.4,
+    "backends": {
+      "dense": "faiss-hnsw",
+      "sparse": "bm25-in-memory",
+      "cache": "in-memory",
+      "rate_limiter": "in-memory",
+      "embedder": "sentence-transformers/all-MiniLM-L6-v2",
+      "inference": "mock",
+      "ranker": "rrf",
+      "vision": "off"
+    }
+  },
+  "seed": 2026,
+  "limit": null
+}
