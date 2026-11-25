@@ -27,8 +27,11 @@ correctness (compare with the reference answer; use "incorrect" when no referenc
 - "correct": conveys the reference's key resolution (the fix, cause, setting, version,
   APAR or procedure) and does not contradict it. Extra accurate detail is fine.
 - "partial": contains part of the key resolution but misses an essential element, or is
-  so vague that an engineer would still need the reference to act.
-- "incorrect": a different or contradicting resolution, or it does not address the question.
+  so vague that an engineer would still need the reference to act. It must contain at
+  least one element of the reference's resolution; agreeing with background facts or
+  restating the problem does not count.
+- "incorrect": a different or contradicting resolution, none of the reference's
+  resolution, or it does not address the question.
 
 actionable: true only if the answer names a concrete action an engineer can take now
 (a command, configuration change, fix pack or APAR to apply, specific procedure), not
