@@ -239,3 +239,16 @@ async def test_qdrant_int8_quantization_keeps_exact_top_hits():
     bypass = QdrantDenseStore(AsyncQdrantClient(location=":memory:"), "b", quantization="none")
     assert bypass.search_params.quantization.ignore is True
     await store.close()
+
+
+def test_abbreviations_and_hostnames_are_not_scoped_settings():
+    # From TechQA DEV_Q154: a Netcool filter string, not two conflicting settings.
+    from search.evidence import setting_conflict
+
+    text = (
+        "See www-01.ibm.com/support. Used for test:\n"
+        'Filter = "SiteMgr=251_;No.=0, Subrack=0, Site No.=251, Site Type=BTS"'
+    )
+    chunks = chunk_document(Document(doc_id="iv92243", title="IV92243", text=text))
+    question = "Why are some DataTypes corrupt? This property no longer exists."
+    assert setting_conflict(question, chunks) is None

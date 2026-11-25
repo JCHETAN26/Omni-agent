@@ -1,0 +1,10 @@
+{
+  "segments": [
+    {
+      "judged": 693,
+      "prompt_tokens": 1046560,
+      "completion_tokens": 93169
+    }
+  ],
+  "model": "gpt-4.1-2025-04-14"
+}

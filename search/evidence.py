@@ -14,13 +14,15 @@ _IDENTIFIER = re.compile(
     re.IGNORECASE,
 )
 _SETTING = re.compile(
-    r"(?<![\w.-])([a-z][\w.-]*)\s*`?\s*([:=])\s*`?\s*"
+    # A key ends in a letter or digit, so abbreviations such as "No." are not keys.
+    r"(?<![\w.-])([a-z](?:[\w.-]*[a-z0-9])?)\s*`?\s*([:=])\s*`?\s*"
     r"([+-]?\d+(?:\.\d+)?|true|false|enabled|disabled|allow|deny)"
     r"(?:\s*((?:ms|s|m|h|kib|mib|gib|kb|mb|gb|%)(?![\w-]|\.\w)))?"
     r"(?![\w+/-]|\.\d)",
     re.IGNORECASE,
 )
-_ENTITY = re.compile(r"(?<![\w-])[a-z][a-z0-9]*(?:-[a-z0-9]+)*-\d+(?![\w-])")
+# Hostname labels such as www-01 in www-01.ibm.com are not entities.
+_ENTITY = re.compile(r"(?<![\w.-])[a-z][a-z0-9]*(?:-[a-z0-9]+)*-\d+(?![\w-]|\.\w)")
 _ENV = re.compile(
     r"\b(?:non[- ]prod(?:uction)?|production|prod|staging|development|dev|test|"
     r"legacy|sandbox|canary|uat|qa)\b",
