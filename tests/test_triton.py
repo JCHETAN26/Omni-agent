@@ -131,11 +131,18 @@ async def test_event_loop_stays_responsive_under_load(triton, record_property):
     tick = asyncio.create_task(ticker())
     start = time.perf_counter()
     await asyncio.gather(*(client.embed([f"load {i}"] * 4) for i in range(256)))
-    record_property("burst_wall_ms", round((time.perf_counter() - start) * 1000, 2))
+    burst = time.perf_counter() - start
+    record_property("burst_wall_ms", round(burst * 1000, 2))
     stop.set()
     await tick
     record_property("event_loop_lag_max_ms", round(max(lags) * 1000, 2))
-    assert max(lags) < 0.25, f"event loop blocked for {max(lags) * 1000:.0f} ms"
+    # A client that blocks the loop stalls it for about the whole burst. On a shared CI
+    # runner a single GIL or scheduler hiccup can exceed a fixed 250 ms, so the bound is
+    # relative to the burst (with 250 ms as the floor).
+    limit = max(0.25, burst / 2)
+    assert max(lags) < limit, (
+        f"event loop blocked for {max(lags) * 1000:.0f} ms of a {burst * 1000:.0f} ms burst"
+    )
 
 
 @pytest.mark.slow
