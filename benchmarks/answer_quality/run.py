@@ -13,6 +13,7 @@ Steps (each resumable; outputs go to --run):
   answer      index the corpus in-process, then answer every question per variant
   judge       grade answered responses with a different, stronger model
   report      metrics with bootstrap CIs and a paired agent-vs-RAG comparison
+  consistency re-grade a seeded sample to measure the judge's own run-to-run agreement
   human-sample / agreement
               export a blind sample for hand grading; measure judge-human agreement
 
@@ -324,48 +325,105 @@ async def answer(args) -> None:
 # -- judge --------------------------------------------------------------------
 
 
-async def judge(args) -> None:
+def _judge_model(name: str):
     from backend.agent.llm_openai import OpenAICompatibleChatModel
     from backend.core.config import Settings
 
     s = Settings()
-    model = OpenAICompatibleChatModel(
-        s.llm_base_url, s.llm_api_key or s.openai_api_key, args.model, s.llm_timeout_s, 0.0
+    return OpenAICompatibleChatModel(
+        s.llm_base_url, s.llm_api_key or s.openai_api_key, name, s.llm_timeout_s, 0.0
     )
+
+
+async def _judge_all(model, name: str, todo: list[dict], out: Path, concurrency: int) -> dict:
+    """Grade each answer in ``todo``, appending one row per answer to ``out``."""
+    sem = asyncio.Semaphore(concurrency)
+    p0, c0 = _tokens()
+
+    async def one(a):
+        async with sem:
+            messages = judge_messages(a["question"], a["reference"], a["answer"], a["passages"])
+            try:
+                j = await _with_retries(
+                    lambda _: model.complete_json(JUDGE_PROMPT, messages, Judgment)
+                )
+                row = {"qid": a["qid"], "judge_model": name, **j.model_dump()}
+            except CreditsExhausted:
+                raise
+            except Exception as exc:  # noqa: BLE001
+                row = {"qid": a["qid"], "judge_error": f"{type(exc).__name__}: {exc}"[:300]}
+            _append_jsonl(out, row)
+
+    await asyncio.gather(*(one(a) for a in todo))
+    p1, c1 = _tokens()
+    return {"judged": len(todo), "prompt_tokens": int(p1 - p0), "completion_tokens": int(c1 - c0)}
+
+
+def _judgeable(answers: list[dict]) -> list[dict]:
+    return [a for a in answers if not a["error"] and not a["abstained"]]
+
+
+async def judge(args) -> None:
+    model = _judge_model(args.model)
     for variant in VARIANTS:
         answers = _read_jsonl(args.run / f"answers-{variant}.jsonl")
         out = args.run / f"judgments-{variant}.jsonl"
         done = {r["qid"] for r in _read_jsonl(out)}
-        todo = [
-            a for a in answers if a["qid"] not in done and not a["error"] and not a["abstained"]
-        ]
-        sem = asyncio.Semaphore(args.concurrency)
-        p0, c0 = _tokens()
-
-        async def one(a, out=out, sem=sem):
-            async with sem:
-                messages = judge_messages(a["question"], a["reference"], a["answer"], a["passages"])
-                try:
-                    j = await _with_retries(
-                        lambda _: model.complete_json(JUDGE_PROMPT, messages, Judgment)
-                    )
-                    row = {"qid": a["qid"], "judge_model": args.model, **j.model_dump()}
-                except CreditsExhausted:
-                    raise
-                except Exception as exc:  # noqa: BLE001
-                    row = {"qid": a["qid"], "judge_error": f"{type(exc).__name__}: {exc}"[:300]}
-                _append_jsonl(out, row)
-
-        await asyncio.gather(*(one(a) for a in todo))
-        p1, c1 = _tokens()
+        todo = [a for a in _judgeable(answers) if a["qid"] not in done]
+        segment = await _judge_all(model, args.model, todo, out, args.concurrency)
         meta_path = args.run / f"judge-meta-{variant}.json"
         meta = json.loads(meta_path.read_text()) if meta_path.exists() else {"segments": []}
         meta["model"] = args.model
-        meta["segments"].append(
-            {"judged": len(todo), "prompt_tokens": int(p1 - p0), "completion_tokens": int(c1 - c0)}
-        )
+        meta["segments"].append(segment)
         meta_path.write_text(json.dumps(meta, indent=2))
         print(f"{variant}: judged {len(todo)}")
+    await model.close()
+
+
+async def consistency(args) -> None:
+    """Re-grade a seeded sample of judged answers; report how often the verdict moves."""
+    model = _judge_model(args.model)
+    out = {"model": args.model, "per_variant": {}}
+    first_all, second_all = [], []
+    for variant in VARIANTS:
+        first = {
+            r["qid"]: r
+            for r in _read_jsonl(args.run / f"judgments-{variant}.jsonl")
+            if "correctness" in r
+        }
+        answers = [a for a in _judgeable(_read_jsonl(args.run / f"answers-{variant}.jsonl"))]
+        pool = sorted((a for a in answers if a["qid"] in first), key=lambda a: a["qid"])
+        sample = random.Random(args.seed).sample(pool, min(args.n, len(pool)))
+        path = args.run / f"judgments-repeat-{variant}.jsonl"
+        done = {r["qid"] for r in _read_jsonl(path)}
+        segment = await _judge_all(
+            model, args.model, [a for a in sample if a["qid"] not in done], path, args.concurrency
+        )
+        second = {r["qid"]: r for r in _read_jsonl(path) if "correctness" in r}
+        qids = [a["qid"] for a in sample if a["qid"] in second]
+        a1 = [first[q]["correctness"] for q in qids]
+        a2 = [second[q]["correctness"] for q in qids]
+        first_all += a1
+        second_all += a2
+        out["per_variant"][variant] = {
+            "regraded": len(qids),
+            "correctness_same": _agree(a1, a2),
+            "correctness_kappa": _kappa(a1, a2),
+            "correct_vs_not_same": _agree(
+                [x == "correct" for x in a1], [x == "correct" for x in a2]
+            ),
+            "faithful_same": _agree(
+                [first[q]["faithful"] for q in qids], [second[q]["faithful"] for q in qids]
+            ),
+            **{f"tokens_{k}": v for k, v in segment.items() if k != "judged"},
+        }
+    out["overall"] = {
+        "regraded": len(first_all),
+        "correctness_same": _agree(first_all, second_all),
+        "correctness_kappa": _kappa(first_all, second_all),
+    }
+    (args.run / "judge-consistency.json").write_text(json.dumps(out, indent=2))
+    print(json.dumps(out, indent=2))
     await model.close()
 
 
@@ -635,6 +693,12 @@ def main(argv: list[str] | None = None) -> None:
     h.add_argument("--run", type=Path, required=True)
     h.add_argument("--n", type=int, default=40)
     h.add_argument("--seed", type=int, default=7)
+    c = sub.add_parser("consistency")
+    c.add_argument("--run", type=Path, required=True)
+    c.add_argument("--model", default=JUDGE_MODEL)
+    c.add_argument("--n", type=int, default=100, help="answers re-graded per variant")
+    c.add_argument("--seed", type=int, default=11)
+    c.add_argument("--concurrency", type=int, default=8)
     g = sub.add_parser("agreement")
     g.add_argument("--run", type=Path, required=True)
     g.add_argument("--grades", type=Path, required=True)
@@ -645,6 +709,8 @@ def main(argv: list[str] | None = None) -> None:
         asyncio.run(answer(args))
     elif args.cmd == "judge":
         asyncio.run(judge(args))
+    elif args.cmd == "consistency":
+        asyncio.run(consistency(args))
     elif args.cmd == "report":
         report(args)
     elif args.cmd == "human-sample":

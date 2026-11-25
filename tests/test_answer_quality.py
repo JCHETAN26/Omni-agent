@@ -160,3 +160,49 @@ def test_agent_turn_with_heuristic_fallback_is_rejected():
     q = SimpleNamespace(qid="Q1", question="why?")
     with pytest.raises(run.LLMFallbackUsed):
         asyncio.run(run._answer_agent(Runner(), q))
+
+
+def test_consistency_regrades_a_sample_and_reports_agreement(tmp_path, monkeypatch):
+    import asyncio
+
+    for variant in run.VARIANTS:
+        answers = [
+            {
+                "qid": str(i),
+                "question": "q",
+                "reference": "r",
+                "answer": "a",
+                "passages": [],
+                "error": None,
+                "abstained": False,
+            }
+            for i in range(4)
+        ]
+        (tmp_path / f"answers-{variant}.jsonl").write_text(
+            "".join(json.dumps(a) + "\n" for a in answers)
+        )
+        first = [{"qid": str(i), "correctness": "correct", "faithful": True} for i in range(4)]
+        (tmp_path / f"judgments-{variant}.jsonl").write_text(
+            "".join(json.dumps(r) + "\n" for r in first)
+        )
+
+    class Model:
+        async def complete_json(self, system, messages, schema):
+            return Judgment(
+                correctness="partial",
+                actionable=True,
+                faithful=True,
+                unsupported_claims=[],
+                reason="",
+            )
+
+        async def close(self):
+            return None
+
+    monkeypatch.setattr(run, "_judge_model", lambda name: Model())
+    args = SimpleNamespace(run=tmp_path, model="m", n=3, seed=1, concurrency=2)
+    asyncio.run(run.consistency(args))
+    out = json.loads((tmp_path / "judge-consistency.json").read_text())
+    assert out["overall"]["regraded"] == 6
+    assert out["overall"]["correctness_same"] == 0.0
+    assert out["per_variant"]["rag"]["faithful_same"] == 1.0
