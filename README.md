@@ -95,7 +95,7 @@ laptop. Every number links to a raw result file.
 | Area | Result | Measured on |
 | --- | --- | --- |
 | **Search relevance** | **nDCG@10 0.408**, **+22.0%** over the RRF hybrid baseline and +13.0% over dense-only (p < 0.001), on BEIR CQADupStack: 457,199 documents, 2,581 held-out test queries. | [`retrieval/`](benchmarks/results/2026-11-20/retrieval/) |
-| **Answer quality** | On 910 real IBM support questions (TechQA), the agent's answers are correct as often as plain RAG's (**48.0%** of answerable questions) but wrong half as often (**8.0% vs 15.4%**). It also recognizes **32% vs 3%** of unanswerable questions, giving **+9.6 pts end-to-end accuracy** (p < 0.001), at the cost of 3.6× tokens and declining 20% of answerable questions. Graded by a separate LLM judge (99% self-consistent). | [`answer-quality/`](benchmarks/results/2026-11-24/answer-quality/) |
+| **Answer quality** | On 910 real IBM support questions (TechQA), the agent's answers are correct as often as plain RAG's (**48.0%** of answerable questions) but wrong half as often (**8.0% vs 15.4%**). It also recognizes **32% vs 3%** of unanswerable questions, giving **+9.6 pts end-to-end accuracy** (p < 0.001), at the cost of 3.6× tokens and declining 20% of answerable questions. Graded by a separate LLM judge: 99% self-consistent, 85% agreement with blind human grading on correct vs not (κ 0.70). | [`answer-quality/`](benchmarks/results/2026-11-24/answer-quality/) |
 | **Search latency** | Hybrid `/search` **p50 28.7 ms** single-client over 807k chunks; LTR-ranked p50 42.9 ms. | [`latency/`](benchmarks/results/2026-11-20/latency/) |
 | **Agent throughput** | **3.6× more agent turns/s** (1.93 → 7.04) and **88% fewer LLM tokens** on repeated questions with the LLM cache. | [`agent/`](benchmarks/results/2026-11-20/agent/) |
 | **Developer CLI** | `omni new service --verify` generates, tests and security-checks a hardened Go service in **2.0–2.6 s** with 0 findings. | local runs, Go 1.27.4 |
@@ -596,8 +596,9 @@ samples/          small technical-support corpus and logs used by tests and demo
 - **Answer quality is bounded by retrieval.** On TechQA the gold technote reaches the top 4 for only 57% of
   answerable questions, and answers are correct 69% of the time when it does. That run used plain RRF hybrid search
   (no learning-to-rank or cross-encoder). The agent's caution also costs answers: it declines 20% of answerable
-  questions, and 0.5% of its abstentions are false "sources disagree" conflicts on vendor error codes. Judge labels
-  are not yet checked against human grades.
+  questions, and 0.5% of its abstentions are false "sources disagree" conflicts on vendor error codes. The judge's
+  correctness labels agree with blind human grades 85% of the time (κ 0.70, 40 items), but its faithfulness labels
+  are stricter than the human's (κ 0.20), so the faithfulness rates are not human-validated.
 - **Live logs** read `.log` files; a Loki or Elasticsearch log backend is still to be added.
 - **Ingestion updates** that shrink a document leave its old higher-position chunks behind (both pipelines); a
   delete-by-document step is planned.

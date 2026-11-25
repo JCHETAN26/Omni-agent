@@ -70,7 +70,22 @@ not a single-user latency figure.
 - **Self-consistency:** 200 judged answers (100 per variant, seed 11) were re-graded. The 3-way correctness verdict
   was identical 99.0% of the time (Cohen's κ 0.98), and the faithfulness verdict 96.5% of the time
   (`judge-consistency.json`).
-- **Human agreement:** a blind 40-item sample is exported by `run.py human-sample`. Agreement is not measured yet.
+- **Human agreement:** the project author hand-graded a blind 40-item sample (seed 7, variant hidden) from
+  `run.py human-sample`, using the judge's rubric (`agreement.json`, `human-grades.csv.gz`).
+
+  | Label | Agreement | Cohen's κ |
+  | --- | --- | --- |
+  | Correct vs not correct | **85.0%** | **0.70** |
+  | Correctness, 3-way (correct / partial / incorrect) | 75.0% | 0.60 |
+  | Faithful to passages | 72.5% | 0.20 |
+
+  - Both graders marked the same share of answers correct: 52.5% (21 of 40).
+  - Most disagreements are at the partial boundary. In 4 items the judge said partial where the human said
+    incorrect, and in 3 items the judge said partial where the human said correct.
+  - **Faithfulness is not validated.** The judge flagged unsupported claims in 8 answers the human accepted, so
+    agreement is only slight (κ 0.20). Treat the faithfulness rates above as the judge's strict reading, not a
+    human-checked number.
+  - The sample is small: 40 items and a single human grader.
 - **Rubric change:** after the pilot, the rubric was tightened before any of these answers were judged. A "partial"
   verdict now has to contain an element of the reference's fix; agreeing with background facts is not enough.
 
@@ -91,6 +106,7 @@ not a single-user latency figure.
 | `answers-{rag,agent}.jsonl.gz` | question, reference, answer, abstention, passages, gold hit, latency per question |
 | `judgments-{rag,agent}.jsonl.gz` | judge verdict and reason per answered question |
 | `judgments-repeat-*.jsonl.gz`, `judge-consistency.json` | re-graded sample and agreement |
+| `human-grades.csv.gz`, `human-grading-key.json`, `agreement.json` | blind human grades, the judge's verdicts for the same items, agreement |
 | `meta-*.json`, `judge-meta-*.json` | token counts, wall time, index stats, models |
 
 Reproduce (needs `LLM_API_KEY` or `OPENAI_API_KEY`):
@@ -101,4 +117,6 @@ python -m benchmarks.answer_quality.run answer --data ~/omni-eval/techqa --run <
 python -m benchmarks.answer_quality.run judge  --run <dir>
 python -m benchmarks.answer_quality.run consistency --run <dir>
 python -m benchmarks.answer_quality.run report --run <dir>
+python -m benchmarks.answer_quality.run human-sample --run <dir>   # then grade the CSV by hand
+python -m benchmarks.answer_quality.run agreement --run <dir> --grades <graded.csv>
 ```

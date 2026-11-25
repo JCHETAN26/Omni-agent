@@ -1,0 +1,11 @@
+{
+  "graded": 40,
+  "correctness_3way_agreement": 0.75,
+  "correctness_3way_kappa": 0.5984,
+  "correct_vs_not_agreement": 0.85,
+  "correct_vs_not_kappa": 0.6992,
+  "faithful_agreement": 0.725,
+  "faithful_kappa": 0.1971,
+  "judge_correct_rate": 0.525,
+  "human_correct_rate": 0.525
+}
