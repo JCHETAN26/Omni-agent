@@ -206,3 +206,77 @@ def test_consistency_regrades_a_sample_and_reports_agreement(tmp_path, monkeypat
     assert out["overall"]["regraded"] == 6
     assert out["overall"]["correctness_same"] == 0.0
     assert out["per_variant"]["rag"]["faithful_same"] == 1.0
+
+
+def test_retrieval_replay_uses_production_pipeline_with_stored_scores():
+    import asyncio
+
+    from backend.core.models import Chunk, SearchHit
+    from benchmarks.answer_quality import retrieval
+    from search.hybrid_retriever import HybridResult, RetrievalTimings
+
+    def hit(doc, i, rank):
+        chunk = Chunk(
+            chunk_id=f"{doc}-{i}",
+            doc_id=doc,
+            document_title=doc,
+            section_heading="",
+            position=i,
+            text=f"text {doc} {i}",
+        )
+        return SearchHit(chunk=chunk, score=1 / rank, sparse_rank=rank, dense_rank=rank)
+
+    hits = [hit("a", 0, 1), hit("a", 1, 2), hit("a", 2, 3), hit("a", 3, 4), hit("gold", 0, 5)]
+    timings = RetrievalTimings(dense_ms=0, sparse_ms=0, fusion_ms=0, total_ms=0)
+    pools = [
+        {
+            "qid": "DEV_Q1",
+            "question": "why does it fail",
+            "gold_docs": ["gold"],
+            "result": HybridResult(hits=hits, timings=timings).model_dump(),
+        }
+    ]
+    ce = {"DEV_Q1": {"gold-0": 9.0}}
+    base = asyncio.run(retrieval._replay(pools, ce, retrieval._config("b", None, None)))
+    assert base["DEV_Q1"] == {4: False, 10: True, 20: True}
+    capped = retrieval._config("c", None, None, kb_max_chunks_per_doc=1, rerank_candidates=20)
+    assert asyncio.run(retrieval._replay(pools, ce, capped))["DEV_Q1"][4] is True
+    reranked = retrieval._config("r", "m", None, rerank_enabled=True, rerank_candidates=20)
+    assert asyncio.run(retrieval._replay(pools, ce, reranked))["DEV_Q1"][4] is True
+
+
+def test_fold_ltr_ranks_each_question_with_the_model_that_never_saw_it(tmp_path):
+    import asyncio
+    import json
+
+    import numpy as np
+
+    from benchmarks.answer_quality import run
+
+    class Fixed:
+        uses_ce = True
+
+        def __init__(self, value):
+            self.value = value
+
+        def score(self, x):
+            return np.full(len(x), self.value)
+
+    (tmp_path / "folds.json").write_text(json.dumps({"folds": 2, "fold_of": {"TRAIN_Q1": 1}}))
+    ltr = run.FoldLtr.__new__(run.FoldLtr)
+    ltr.folds, ltr.fold_of = 2, {"TRAIN_Q1": 1}
+    ltr.models = [Fixed(0.0), Fixed(1.0)]
+
+    async def scored(qid):
+        run._QID.set(qid)
+        await asyncio.sleep(0)
+        return float(ltr.score(np.zeros((1, 3)))[0])
+
+    async def both():
+        return await asyncio.gather(scored("TRAIN_Q1"), scored("DEV_Q9"))
+
+    first, unanswerable = asyncio.run(both())
+    assert first == 1.0  # its own held-out fold, not the default
+    assert unanswerable == float(ltr.fold("DEV_Q9"))  # stable hash fold
+    assert run._settings("m", "ltr-ce").rerank_candidates == 50
+    assert run._settings("m").rerank_enabled is False

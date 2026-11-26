@@ -8,9 +8,13 @@ from decimal import Decimal
 
 from backend.core.models import Chunk
 
+# Exact tokens worth anchoring retrieval on: hex codes, hyphen/snake-case names
+# (payments-api, mqrc_not_authorized, cve-2015-4000), letter+digit codes (pi50993),
+# vendor message IDs with a severity suffix (sql0911n, dsnt408i, crima1217e) and
+# SQLCODEs (-911). A token followed by ".word" is part of a hostname, not an ID.
 _IDENTIFIER = re.compile(
-    r"(?<![\w-])(?:0x[0-9a-f]+|[a-z][a-z0-9]*(?:[-_][a-z0-9]+)+"
-    r"|[a-z]{2,}\d+)(?![\w-])",
+    r"(?<![\w.-])(?:0x[0-9a-f]+|[a-z][a-z0-9]*(?:[-_][a-z0-9]+)+"
+    r"|[a-z]{2,}\d+|[a-z]{2,}[a-z0-9]*\d{3,}[a-z]|-\d{3,5})(?![\w-]|\.\w)",
     re.IGNORECASE,
 )
 _SETTING = re.compile(

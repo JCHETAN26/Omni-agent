@@ -44,6 +44,32 @@ class KnowledgeResult:
         return [source_dict(h, r) for h, r in zip(self.hits, self.rerank_scores, strict=True)]
 
 
+def _diverse(
+    hits: list[SearchHit], scores: list[float | None], top_k: int, per_doc: int | None
+) -> list[tuple[SearchHit, float | None]]:
+    """Take the top_k in ranked order, at most per_doc chunks from any one document.
+
+    When the cap leaves slots empty (few distinct documents), the skipped chunks
+    fill them in ranked order, so the context never shrinks because of the cap.
+    """
+    ranked = list(zip(hits, scores, strict=True))
+    if per_doc is None:
+        return ranked[:top_k]
+    taken: list[tuple[SearchHit, float | None]] = []
+    skipped: list[tuple[SearchHit, float | None]] = []
+    per: dict[str, int] = {}
+    for hit, score in ranked:
+        if len(taken) == top_k:
+            break
+        doc = hit.chunk.doc_id
+        if per.get(doc, 0) < per_doc:
+            per[doc] = per.get(doc, 0) + 1
+            taken.append((hit, score))
+        else:
+            skipped.append((hit, score))
+    return taken + skipped[: top_k - len(taken)]
+
+
 def source_dict(hit: SearchHit, rerank_score: float | None) -> dict:
     c = hit.chunk
     return {
@@ -74,9 +100,10 @@ async def retrieve_with_rerank(
     missing = anchors.difference(exact_identifiers(query))
     if missing:
         query = f"{query} {' '.join(sorted(missing))}"
-    # Any ranking stage needs a candidate pool deeper than what it returns.
+    # Any ranking stage, and the per-document cap, needs a pool deeper than what it returns.
     ranking = settings.rerank_enabled or ltr is not None
-    depth = max(top_k, settings.rerank_candidates) if ranking else top_k
+    deep = ranking or settings.kb_max_chunks_per_doc is not None
+    depth = max(top_k, settings.rerank_candidates) if deep else top_k
     # Inspect the bounded hybrid candidate pool before discarding evidence.
     result = await retriever.search(query, max(depth, 2 * settings.retrieval_candidates))
     candidates = [
@@ -165,7 +192,7 @@ async def retrieve_with_rerank(
             scores = [scores[i] for i in order]
             ltr_applied = True
             ltr_ms = (time.perf_counter() - t_ltr) * 1000
-    selected = list(zip(hits[:top_k], scores[:top_k], strict=True))
+    selected = _diverse(hits, scores, top_k, settings.kb_max_chunks_per_doc)
     selected_ids = {hit.chunk.chunk_id for hit, _ in selected}
     ranked_scores = {hit.chunk.chunk_id: score for hit, score in zip(hits, scores, strict=True)}
     for chunk_id in protected:

@@ -11,6 +11,9 @@ Sequences are padded to a fixed length bucket (32/64/128/256). Triton's
 dynamic batcher only merges requests whose input shapes match, so bucketing
 lets concurrent requests share a batch.
 
+`LocalInferenceClient` runs a sentence-transformers cross-encoder in-process
+(in a worker thread), for single-node deployments without Triton.
+
 `MockInferenceClient` keeps the same interface with no server, for tests and
 local development.
 """
@@ -215,6 +218,90 @@ class TritonInferenceClient:
         await self.client.close()
 
 
+class LocalInferenceClient:
+    """Cross-encoder reranking in-process with sentence-transformers.
+
+    Scores are ``CrossEncoder.predict`` outputs, the same values the TechQA
+    learning-to-rank model was trained on (benchmarks/answer_quality/retrieval.py).
+    Model calls run in a worker thread, one at a time, so the event loop stays free.
+    """
+
+    def __init__(
+        self,
+        rerank_model: str,
+        max_length: int = 512,
+        device: str | None = None,
+        embed_model: str = "sentence-transformers/all-MiniLM-L6-v2",
+        batch_size: int = 32,
+    ):
+        self.name = f"local:{rerank_model}"
+        self.rerank_model = rerank_model
+        self.max_length = max_length
+        self.device = device
+        self.embed_model = embed_model
+        self.batch_size = batch_size
+        self._cross_encoder = None
+        self._embedder = None
+        self._lock = asyncio.Lock()
+
+    @classmethod
+    def from_settings(cls, s: Settings) -> LocalInferenceClient:
+        return cls(
+            s.local_rerank_model,
+            s.local_rerank_max_length,
+            s.embedding_device,
+            s.embedding_model,
+        )
+
+    def _load_cross_encoder(self):
+        if self._cross_encoder is None:
+            from sentence_transformers import CrossEncoder
+
+            self._cross_encoder = CrossEncoder(
+                self.rerank_model, max_length=self.max_length, device=self.device
+            )
+        return self._cross_encoder
+
+    async def warmup(self) -> None:
+        async with self._lock:
+            await asyncio.to_thread(self._load_cross_encoder)
+
+    async def ready(self) -> bool:
+        return self._cross_encoder is not None
+
+    async def embed(self, texts: Sequence[str]) -> np.ndarray:
+        def run():
+            if self._embedder is None:
+                from sentence_transformers import SentenceTransformer
+
+                self._embedder = SentenceTransformer(self.embed_model, device=self.device)
+            return self._embedder.encode(list(texts), normalize_embeddings=True)
+
+        async with self._lock:
+            return np.asarray(await asyncio.to_thread(run), dtype=np.float32)
+
+    async def rerank(self, query: str, passages: Sequence[str]) -> list[float]:
+        if not passages:
+            return []
+
+        def run():
+            model = self._load_cross_encoder()
+            return model.predict([(query, p) for p in passages], batch_size=self.batch_size)
+
+        with get_tracer().start_as_current_span(
+            "local.rerank", attributes={"batch": len(passages), "model": self.rerank_model}
+        ):
+            try:
+                async with self._lock:
+                    scores = await asyncio.to_thread(run)
+            except Exception as exc:  # model load or inference failure
+                raise InferenceError(f"local rerank failed: {exc}") from exc
+            return [float(x) for x in scores]
+
+    async def close(self) -> None:
+        return None
+
+
 class MockInferenceClient:
     """In-process stand-in: hashing embeddings + lexical-overlap rerank scores."""
 
@@ -271,4 +358,6 @@ class TritonEmbedder:
 def inference_client_from_settings(settings: Settings) -> InferenceClient:
     if settings.inference_backend == "triton":
         return TritonInferenceClient.from_settings(settings)
+    if settings.inference_backend == "local":
+        return LocalInferenceClient.from_settings(settings)
     return MockInferenceClient()

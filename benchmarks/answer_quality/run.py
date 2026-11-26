@@ -27,7 +27,9 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import contextvars
 import csv
+import hashlib
 import json
 import random
 import statistics
@@ -105,7 +107,55 @@ def select(questions: list, limit: int | None, seed: int) -> list:
 # -- answer -------------------------------------------------------------------
 
 
-def _settings(model: str):
+# Ranking stacks the answer run can use. "ltr-ce" is the TechQA-selected stack
+# (benchmarks/answer_quality/retrieval.py): bge-reranker-base scores over the top
+# 50 fused candidates, a learning-to-rank model on top, one chunk per technote.
+RANKINGS = {
+    "rrf": {},
+    "ltr-ce": {
+        "inference_backend": "local",
+        "local_rerank_model": "BAAI/bge-reranker-base",
+        "local_rerank_max_length": 512,
+        "rerank_enabled": True,
+        "rerank_candidates": 50,
+        "kb_max_chunks_per_doc": 1,
+        # Offline run: the reranker is serialised in-process and queues under load;
+        # a generous budget keeps every turn on the measured stack (fallbacks are counted).
+        "rerank_timeout_s": 300.0,
+    },
+}
+
+_QID: contextvars.ContextVar[str] = contextvars.ContextVar("techqa_qid")
+
+
+class FoldLtr:
+    """Ranks each question with the cross-validation fold model that never saw it.
+
+    ``retrieval.py crossval`` trains one LTR model per fold of the answerable
+    questions. Unanswerable questions were never training data, so any fold is
+    out-of-sample for them; they get a stable hash-assigned fold.
+    """
+
+    def __init__(self, directory: Path):
+        from search.ltr import LtrModel
+
+        meta = json.loads((directory / "folds.json").read_text())
+        self.folds = meta["folds"]
+        self.fold_of = meta["fold_of"]
+        self.models = [LtrModel.load(directory / f"fold-{f}") for f in range(self.folds)]
+        self.uses_ce = all(m.uses_ce for m in self.models)
+        self.directory = directory
+
+    def fold(self, qid: str) -> int:
+        if qid in self.fold_of:
+            return self.fold_of[qid]
+        return int(hashlib.sha256(qid.encode()).hexdigest(), 16) % self.folds
+
+    def score(self, x):
+        return self.models[self.fold(_QID.get())].score(x)
+
+
+def _settings(model: str, ranking: str = "rrf"):
     from backend.core.config import Settings
 
     return Settings(
@@ -124,7 +174,7 @@ def _settings(model: str):
         ltr_model_path=None,
         vision_backend="off",
         otel_exporter_otlp_endpoint=None,
-    )
+    ).model_copy(update=RANKINGS[ranking])
 
 
 def _passages_out(passages: list[dict], sources: list[dict]) -> list[dict]:
@@ -244,9 +294,14 @@ async def answer(args) -> None:
     run: Path = args.run
     run.mkdir(parents=True, exist_ok=True)
     questions = select(techqa.load_questions(args.data), args.limit, args.seed)
-    settings = _settings(args.model)
+    settings = _settings(args.model, args.ranking)
+    if (args.ranking == "ltr-ce") != (args.ltr_folds is not None):
+        raise SystemExit("--ranking ltr-ce needs --ltr-folds (and only it uses them)")
     await preflight(settings)
     services = await Services.build(settings)
+    if args.ltr_folds is not None:
+        services.ltr = FoldLtr(args.ltr_folds)
+        services.backends["ranker"] = f"ltr+cross-encoder (out-of-fold, {services.ltr.folds} folds)"
     try:
         docs = techqa.load_corpus(args.data)
         t0 = time.perf_counter()
@@ -271,6 +326,7 @@ async def answer(args) -> None:
             t_variant = time.perf_counter()
 
             async def one(q, variant=variant, out=out, sem=sem):
+                _QID.set(q.qid)  # gather runs each question in its own task and context
                 async with sem:
                     t = time.perf_counter()
                     try:
@@ -306,7 +362,16 @@ async def answer(args) -> None:
             p1, c1 = _tokens()
             meta_path = run / f"meta-{variant}.json"
             meta = json.loads(meta_path.read_text()) if meta_path.exists() else {"segments": []}
-            meta.update(model=args.model, index=index, seed=args.seed, limit=args.limit)
+            meta.update(
+                model=args.model,
+                index=index,
+                seed=args.seed,
+                limit=args.limit,
+                ranking=args.ranking,
+                ranking_settings=RANKINGS[args.ranking],
+                ltr_folds=str(args.ltr_folds) if args.ltr_folds else None,
+                ranking_fallbacks=_ranking_fallbacks(),
+            )
             meta["segments"].append(
                 {
                     "questions": len(todo),
@@ -320,6 +385,19 @@ async def answer(args) -> None:
             print(f"{variant}: {len(todo)} answered, tokens {int(p1 - p0)}/{int(c1 - c0)}")
     finally:
         await services.close()
+
+
+def _ranking_fallbacks() -> dict:
+    """Cumulative rerank/LTR fallbacks in this process (should all be zero)."""
+    from prometheus_client import REGISTRY
+
+    out = {}
+    for metric in ("omniagent_rerank_skipped_total", "omniagent_ltr_skipped_total"):
+        for family in REGISTRY.collect():
+            for sample in family.samples:
+                if sample.name == metric:
+                    out[f"{metric}{{{sample.labels.get('reason')}}}"] = sample.value
+    return out
 
 
 # -- judge --------------------------------------------------------------------
@@ -682,6 +760,8 @@ def main(argv: list[str] | None = None) -> None:
     a.add_argument("--seed", type=int, default=2026)
     a.add_argument("--concurrency", type=int, default=8)
     a.add_argument("--ingest-batch", type=int, default=256)
+    a.add_argument("--ranking", choices=sorted(RANKINGS), default="rrf")
+    a.add_argument("--ltr-folds", type=Path, default=None, help="crossval fold-model directory")
     j = sub.add_parser("judge")
     j.add_argument("--run", type=Path, required=True)
     j.add_argument("--model", default=JUDGE_MODEL)

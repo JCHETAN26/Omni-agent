@@ -73,6 +73,9 @@ class Settings(BaseSettings):
     retrieval_candidates: int = 50  # per-retriever depth fed into RRF
     rerank_enabled: bool = False  # cross-encoder rerank via the inference client
     rerank_candidates: int = 10  # fused hits sent to the reranker
+    # At most this many of the returned chunks may come from one document (None: no cap).
+    # Distinct documents give the answer more independent evidence per context slot.
+    kb_max_chunks_per_doc: int | None = None
     rerank_timeout_s: float = 1.5  # budget; on timeout/error fall back to RRF order
     # Learning-to-rank: a trained search/ltr.py model directory (model.pt + model.json).
     # Unset disables the stage. A model trained with cross-encoder features needs
@@ -80,7 +83,11 @@ class Settings(BaseSettings):
     ltr_model_path: str | None = None
 
     # --- Model inference (Triton) ---
-    inference_backend: Literal["mock", "triton"] = "mock"
+    # "triton": models on a Triton server; "local": cross-encoder in-process
+    # (sentence-transformers); "mock": deterministic stand-in for tests.
+    inference_backend: Literal["mock", "local", "triton"] = "mock"
+    local_rerank_model: str = "BAAI/bge-reranker-base"
+    local_rerank_max_length: int = 512
     triton_grpc_url: str = "localhost:8001"
     triton_embed_model: str = "minilm_embedder"
     triton_rerank_model: str = "cross_encoder_reranker"

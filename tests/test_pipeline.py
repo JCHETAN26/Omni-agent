@@ -4,7 +4,7 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from backend.core.models import Document, SearchHit
+from backend.core.models import Chunk, Document, SearchHit
 from backend.core.stores import InMemoryBM25Index
 from backend.ingestion.chunker import chunk_document
 from backend.ingestion.embedder import HashingEmbedder
@@ -241,6 +241,57 @@ async def test_qdrant_int8_quantization_keeps_exact_top_hits():
     await store.close()
 
 
+def test_exact_identifiers_keep_vendor_codes_and_skip_hostnames():
+    from search.evidence import exact_identifiers
+
+    text = (
+        "SQL0911N with sqlcode -911 after DSNT408I; see www-01.ibm.com; "
+        "payments-api, APAR PI50993, rc 0x1f, pages 1-100"
+    )
+    assert exact_identifiers(text) == [
+        "sql0911n",
+        "-911",
+        "dsnt408i",
+        "payments-api",
+        "pi50993",
+        "0x1f",
+    ]
+
+
+def test_local_inference_client_reranks_in_a_worker_thread(monkeypatch):
+    import sys
+    import threading
+    import types
+
+    from model_server.inference_client import InferenceError, LocalInferenceClient
+
+    main = threading.get_ident()
+    calls = []
+
+    class FakeCrossEncoder:
+        def __init__(self, name, max_length, device):
+            calls.append((name, max_length, device))
+
+        def predict(self, pairs, batch_size):
+            assert threading.get_ident() != main  # never on the event loop thread
+            return [float(len(p)) for _, p in pairs]
+
+    fake = types.ModuleType("sentence_transformers")
+    fake.CrossEncoder = FakeCrossEncoder
+    monkeypatch.setitem(sys.modules, "sentence_transformers", fake)
+    client = LocalInferenceClient("some/reranker", max_length=384, device="cpu")
+    assert asyncio.run(client.rerank("q", ["a", "abc"])) == [1.0, 3.0]
+    assert asyncio.run(client.rerank("q", [])) == []
+    assert calls == [("some/reranker", 384, "cpu")]  # loaded once
+
+    def boom(self, pairs, batch_size):
+        raise RuntimeError("out of memory")
+
+    monkeypatch.setattr(FakeCrossEncoder, "predict", boom)
+    with pytest.raises(InferenceError):  # the pipeline falls back to RRF on this
+        asyncio.run(client.rerank("q", ["a"]))
+
+
 def test_abbreviations_and_hostnames_are_not_scoped_settings():
     # From TechQA DEV_Q154: a Netcool filter string, not two conflicting settings.
     from search.evidence import setting_conflict
@@ -252,3 +303,26 @@ def test_abbreviations_and_hostnames_are_not_scoped_settings():
     chunks = chunk_document(Document(doc_id="iv92243", title="IV92243", text=text))
     question = "Why are some DataTypes corrupt? This property no longer exists."
     assert setting_conflict(question, chunks) is None
+
+
+def test_diverse_caps_chunks_per_document_and_backfills():
+    from search.pipeline import _diverse
+
+    def hit(doc, i):
+        c = Chunk(
+            chunk_id=f"{doc}-{i}",
+            doc_id=doc,
+            document_title=doc,
+            section_heading="",
+            position=i,
+            text="t",
+        )
+        return SearchHit(chunk=c, score=1.0)
+
+    hits = [hit("a", 0), hit("a", 1), hit("b", 0), hit("a", 2), hit("c", 0)]
+    scores = [None] * len(hits)
+    ids = [h.chunk.chunk_id for h, _ in _diverse(hits, scores, 3, 1)]
+    assert ids == ["a-0", "b-0", "c-0"]
+    ids = [h.chunk.chunk_id for h, _ in _diverse(hits[:4], scores[:4], 3, 1)]
+    assert ids == ["a-0", "b-0", "a-1"]  # only two documents: backfill in ranked order
+    assert _diverse(hits, scores, 2, None) == list(zip(hits[:2], scores[:2], strict=True))
