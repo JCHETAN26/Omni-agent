@@ -1,0 +1,264 @@
+{
+  "ce_model": "BAAI/bge-reranker-base",
+  "ce_max_length": 512,
+  "uses_ce": true,
+  "settings": {
+    "rerank_enabled": true,
+    "rerank_candidates": 20,
+    "kb_max_chunks_per_doc": 1
+  },
+  "folds": [
+    {
+      "fold": 0,
+      "train": 488,
+      "test": 122,
+      "best_inner_ndcg10": 0.6864
+    },
+    {
+      "fold": 1,
+      "train": 488,
+      "test": 122,
+      "best_inner_ndcg10": 0.617
+    },
+    {
+      "fold": 2,
+      "train": 488,
+      "test": 122,
+      "best_inner_ndcg10": 0.6921
+    },
+    {
+      "fold": 3,
+      "train": 488,
+      "test": 122,
+      "best_inner_ndcg10": 0.5479
+    },
+    {
+      "fold": 4,
+      "train": 488,
+      "test": 122,
+      "best_inner_ndcg10": 0.685
+    }
+  ],
+  "baseline": {
+    "ALL": {
+      "hit@4": {
+        "n": 610,
+        "rate": 0.5738,
+        "ci95": [
+          0.5344,
+          0.6115
+        ]
+      },
+      "hit@10": {
+        "n": 610,
+        "rate": 0.6607,
+        "ci95": [
+          0.623,
+          0.6967
+        ]
+      },
+      "hit@20": {
+        "n": 610,
+        "rate": 0.7361,
+        "ci95": [
+          0.7,
+          0.7721
+        ]
+      }
+    },
+    "TRAIN": {
+      "hit@4": {
+        "n": 450,
+        "rate": 0.5511,
+        "ci95": [
+          0.5044,
+          0.5956
+        ]
+      },
+      "hit@10": {
+        "n": 450,
+        "rate": 0.6378,
+        "ci95": [
+          0.5933,
+          0.68
+        ]
+      },
+      "hit@20": {
+        "n": 450,
+        "rate": 0.72,
+        "ci95": [
+          0.68,
+          0.76
+        ]
+      }
+    },
+    "DEV": {
+      "hit@4": {
+        "n": 160,
+        "rate": 0.6375,
+        "ci95": [
+          0.5687,
+          0.7125
+        ]
+      },
+      "hit@10": {
+        "n": 160,
+        "rate": 0.725,
+        "ci95": [
+          0.6562,
+          0.7875
+        ]
+      },
+      "hit@20": {
+        "n": 160,
+        "rate": 0.7812,
+        "ci95": [
+          0.7188,
+          0.8438
+        ]
+      }
+    }
+  },
+  "ltr_out_of_fold": {
+    "ALL": {
+      "hit@4": {
+        "n": 610,
+        "rate": 0.6459,
+        "ci95": [
+          0.6082,
+          0.6836
+        ]
+      },
+      "hit@10": {
+        "n": 610,
+        "rate": 0.7197,
+        "ci95": [
+          0.6836,
+          0.7557
+        ]
+      },
+      "hit@20": {
+        "n": 610,
+        "rate": 0.7361,
+        "ci95": [
+          0.7,
+          0.7721
+        ]
+      }
+    },
+    "TRAIN": {
+      "hit@4": {
+        "n": 450,
+        "rate": 0.6267,
+        "ci95": [
+          0.5822,
+          0.6711
+        ]
+      },
+      "hit@10": {
+        "n": 450,
+        "rate": 0.7,
+        "ci95": [
+          0.6556,
+          0.74
+        ]
+      },
+      "hit@20": {
+        "n": 450,
+        "rate": 0.72,
+        "ci95": [
+          0.68,
+          0.76
+        ]
+      }
+    },
+    "DEV": {
+      "hit@4": {
+        "n": 160,
+        "rate": 0.7,
+        "ci95": [
+          0.625,
+          0.7688
+        ]
+      },
+      "hit@10": {
+        "n": 160,
+        "rate": 0.775,
+        "ci95": [
+          0.7063,
+          0.8375
+        ]
+      },
+      "hit@20": {
+        "n": 160,
+        "rate": 0.7812,
+        "ci95": [
+          0.7188,
+          0.8438
+        ]
+      }
+    }
+  },
+  "vs_baseline": {
+    "hit@4": {
+      "ALL": {
+        "delta": 0.0721,
+        "gained": 58,
+        "lost": 14,
+        "mcnemar_p": 0.0
+      },
+      "TRAIN": {
+        "delta": 0.0756,
+        "gained": 43,
+        "lost": 9,
+        "mcnemar_p": 2e-06
+      },
+      "DEV": {
+        "delta": 0.0625,
+        "gained": 15,
+        "lost": 5,
+        "mcnemar_p": 0.041389
+      }
+    },
+    "hit@10": {
+      "ALL": {
+        "delta": 0.059,
+        "gained": 39,
+        "lost": 3,
+        "mcnemar_p": 0.0
+      },
+      "TRAIN": {
+        "delta": 0.0622,
+        "gained": 30,
+        "lost": 2,
+        "mcnemar_p": 0.0
+      },
+      "DEV": {
+        "delta": 0.05,
+        "gained": 9,
+        "lost": 1,
+        "mcnemar_p": 0.021484
+      }
+    },
+    "hit@20": {
+      "ALL": {
+        "delta": 0.0,
+        "gained": 0,
+        "lost": 0,
+        "mcnemar_p": 1.0
+      },
+      "TRAIN": {
+        "delta": 0.0,
+        "gained": 0,
+        "lost": 0,
+        "mcnemar_p": 1.0
+      },
+      "DEV": {
+        "delta": 0.0,
+        "gained": 0,
+        "lost": 0,
+        "mcnemar_p": 1.0
+      }
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "questions": 610,
+  "pool": 100,
+  "documents": 28481,
+  "backends": {
+    "dense": "faiss-hnsw",
+    "sparse": "bm25-in-memory",
+    "cache": "in-memory",
+    "rate_limiter": "in-memory",
+    "embedder": "sentence-transformers/all-MiniLM-L6-v2",
+    "inference": "mock",
+    "ranker": "rrf",
+    "vision": "off"
+  },
+  "index_seconds": 2321.4
+}
